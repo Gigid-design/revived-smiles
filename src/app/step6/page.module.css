@@ -21,11 +21,11 @@
   align-items: center;
 }
 .segTrackFull {
-  width: 20.8125em; /* 333px */
+  flex: 1;
+  min-width: 0;
   height: 0.3125em;
   background: #0e1b4d;
   border-radius: 6.1875em;
-  flex-shrink: 0;
 }
 .segSmall {
   width: 1.4375em;

@@ -169,11 +169,7 @@
 
 .productImageWrapper {
   position: absolute;
-  top: -1.125em;    /* -18px */
-  left: 0;          /* shifted ~15px right from original -16px */
-  width: 28.8125em; /* 461px */
-  height: 36em;     /* 576px */
-  will-change: transform;
+  inset: 0;
 }
 
 .productImage {
