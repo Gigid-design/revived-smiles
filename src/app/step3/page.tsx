@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import styles from "./page.module.css";
+import { usePageTransition } from "../hooks/usePageTransition";
 
 const PRODUCTS = [
   "Flexible partial denture",
@@ -34,6 +35,7 @@ function CheckIcon({ checked }: { checked: boolean }) {
 
 export default function Step3() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const { cardRef, navigate } = usePageTransition();
 
   function toggle(product: string) {
     setSelected((prev) => {
@@ -69,9 +71,9 @@ export default function Step3() {
 
       {/* Nav bar */}
       <nav className={styles.navBar} aria-label="Form navigation">
-        <Link href="/step2" className={styles.navBtn} aria-label="Go back">
+        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/step2', 'backward')}>
           <Image src="/assets/images/intake-icon-back.svg" alt="" width={20} height={20} />
-        </Link>
+        </button>
         <span className={styles.navTitle}>Intake form</span>
         <Link href="/" className={styles.navBtn} aria-label="Close form">
           <Image src="/assets/images/intake-icon-close.svg" alt="" width={20} height={20} />
@@ -79,7 +81,7 @@ export default function Step3() {
       </nav>
 
       {/* White card */}
-      <div className={styles.card} id="main-content">
+      <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Your ordered product</h1>
 
         {/* Scrollable list */}
@@ -108,16 +110,17 @@ export default function Step3() {
         {/* Gradient fade — masks list bottom edge */}
         <div className={styles.fadeGradient} aria-hidden="true" />
 
-        {/* CONTINUE button */}
-        <div className={styles.buttonWrapper}>
-          <button
-            type="button"
-            className={`${styles.btn} ${hasSelection ? styles.btnActive : ""}`}
-            onClick={() => { if (hasSelection) window.location.href = '/step4'; }}
-          >
-            CONTINUE
-          </button>
-        </div>
+      </div>
+
+      {/* CONTINUE button */}
+      <div className={styles.buttonWrapper}>
+        <button
+          type="button"
+          className={`${styles.btn} ${hasSelection ? styles.btnActive : ""}`}
+          onClick={() => { if (hasSelection) navigate('/step4', 'forward'); }}
+        >
+          CONTINUE
+        </button>
       </div>
     </main>
   );

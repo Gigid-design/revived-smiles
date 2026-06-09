@@ -316,12 +316,13 @@
 
 /* CONTINUE button */
 .buttonWrapper {
-  position: absolute;
+  position: fixed;
   bottom: 0;
-  left: 1.3125em;
-  width: 22.1875em;
-  padding-bottom: 2.1875em;
-  z-index: 2;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2em), 26.375em);
+  padding: 0 1.3125em 2.1875em;
+  z-index: 20;
 }
 .btn {
   display: flex;

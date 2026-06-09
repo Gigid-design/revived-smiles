@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./page.module.css";
+import { usePageTransition } from "../hooks/usePageTransition";
 
 const SLOTS = [
   { id: 1, label: "Upper Impression 1", sub: "Angle 1", done: true,  tray: "imp-dental-tray-2.svg", section: "upper" },
@@ -12,6 +15,8 @@ const SLOTS = [
 const photosAdded = SLOTS.filter(s => s.done).length; // 1
 
 export default function Step6() {
+  const { cardRef, navigate } = usePageTransition();
+
   return (
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
@@ -33,9 +38,9 @@ export default function Step6() {
 
       {/* Nav */}
       <nav className={styles.navBar} aria-label="Form navigation">
-        <Link href="/step5" className={styles.navBtn} aria-label="Go back">
+        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/step5', 'backward')}>
           <Image src="/assets/images/intake-icon-back.svg" alt="" width={20} height={20} />
-        </Link>
+        </button>
         <span className={styles.navTitle}>Intake form</span>
         <Link href="/" className={styles.navBtn} aria-label="Close form">
           <Image src="/assets/images/intake-icon-close.svg" alt="" width={20} height={20} />
@@ -43,7 +48,7 @@ export default function Step6() {
       </nav>
 
       {/* White card */}
-      <div className={styles.card} id="main-content">
+      <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Impression Photos</h1>
         <p className={styles.cardSubtitle}>
           Take 4 photos of your at-home impression kit so we can verify your molds are accurate.
@@ -109,10 +114,11 @@ export default function Step6() {
           ))}
         </div>
 
-        {/* CONTINUE */}
-        <div className={styles.buttonWrapper}>
-          <button type="button" className={styles.btn}>CONTINUE</button>
-        </div>
+      </div>
+
+      {/* CONTINUE */}
+      <div className={styles.buttonWrapper}>
+        <button type="button" className={styles.btn}>CONTINUE</button>
       </div>
     </main>
   );
