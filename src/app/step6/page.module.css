@@ -1,0 +1,313 @@
+/* Screen */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.outerBg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.cardBg  { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+
+/* Progress bar — fully complete: entire 333px track is navy */
+.progressBar {
+  position: absolute;
+  top: 2.3125em;
+  left: 1.0625em;
+  right: 1.1875em;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+}
+.segTrackFull {
+  width: 20.8125em; /* 333px */
+  height: 0.3125em;
+  background: #0e1b4d;
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+}
+.segSmall {
+  width: 1.4375em;
+  height: 0.3125em;
+  background: #ffffff;
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+  margin-left: 0.5em;
+}
+
+/* Nav */
+.navBar {
+  position: absolute;
+  top: 5.125em;
+  left: 0; right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 2.8125em;
+}
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em; height: 1.25em;
+  flex-shrink: 0;
+}
+.navTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.9375em;
+  line-height: 1;
+  letter-spacing: -0.15px;
+  color: #ffffff;
+}
+
+/* White card — scrollable */
+.card {
+  position: absolute;
+  left: 1em; right: 1em;
+  top: 7.125em; bottom: 0;
+  background: #ffffff;
+  border-radius: 2em 2em 0 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding-inline: 1.25em; /* 20px */
+  padding-bottom: 7em;
+  scrollbar-width: none;
+}
+.card::-webkit-scrollbar { display: none; }
+
+/* Title — Inter Medium 28px navy, top: 80/28 = 2.857em */
+.cardTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.75em;
+  line-height: 1;
+  color: #0e1b4d;
+  padding-top: 2.857em;
+  margin-bottom: 0.5em;
+  flex-shrink: 0;
+}
+
+/* Subtitle — Inter Regular 12px #7a8ea8 */
+.cardSubtitle {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.75em; /* 12px */
+  line-height: 1.517;
+  color: #7a8ea8;
+  margin-bottom: 1em;
+  flex-shrink: 0;
+}
+
+/* Tip box — #f3f7ff bg, 86px, rounded 12px */
+.tipBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 1em;
+  background: #f3f7ff;
+  border-radius: 0.75em;
+  padding: 1em;
+  margin-bottom: 0.75em;
+  flex-shrink: 0;
+}
+.tipIcon {
+  width: 3.5em;
+  height: 3.5em;
+  min-width: 3.5em;
+  background: #ffffff;
+  border-radius: 0.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tipText {
+  font-family: var(--font-body);
+  font-size: 0.75em; /* 12px */
+  line-height: 1.45;
+  color: #7a8ea8;
+  margin: 0;
+}
+.tipText strong {
+  color: #0e1b4d;
+  font-weight: 700;
+}
+
+/* Upload progress bar */
+.progressRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f3f7ff;
+  border-radius: 0.75em;
+  padding: 0.6875em 0.875em;
+  margin-bottom: 1em;
+  flex-shrink: 0;
+  height: 2.1875em; /* 35px */
+}
+.progressText {
+  font-family: var(--font-body);
+  font-size: 0.75em;
+  color: #4a5a78;
+  margin: 0;
+  line-height: 1;
+}
+.progressText strong {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: #1a2a52;
+}
+.progressDots {
+  display: flex;
+  gap: 0.8125em; /* 13px */
+  align-items: center;
+}
+.dot {
+  width: 0.5em; /* 8px */
+  height: 0.5em;
+  border-radius: 0.25em;
+  background: #dce4f2;
+  flex-shrink: 0;
+}
+.dotActive {
+  background: #3a6ad4;
+}
+
+/* Section label */
+.sectionLabel {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.0625em; /* 17px */
+  color: #000000;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  margin-bottom: 0.75em;
+  flex-shrink: 0;
+}
+
+/* Photo grid — 2 columns */
+.photoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625em; /* 10px */
+  margin-bottom: 1em;
+  flex-shrink: 0;
+}
+
+/* Photo card */
+.photoCard {
+  position: relative;
+  background: #ffffff;
+  border: 2px solid #e8e8e4;
+  border-radius: 0.9856em; /* 15.769px */
+  overflow: hidden;
+  aspect-ratio: 177 / 159.3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 1em;
+}
+.photoCardDone {
+  border-color: #c6dbfe;
+}
+
+/* Dental tray image — DONE (large, fills most of card): inset matches Figma 16/24/19/24 */
+.photoCardInner {
+  position: absolute;
+  inset: 16% 24% 19% 24%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Dental tray image — EMPTY (small, upper half): inset matches Figma 19/37/49/37 */
+.photoCard:not(.photoCardDone) .photoCardInner {
+  inset: 19% 37% 49% 37%;
+}
+
+.trayImg {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+  opacity: 1;
+}
+
+/* Inactive tray — slightly more faded */
+.photoCard:not(.photoCardDone) .trayImg {
+  opacity: 0.75;
+}
+
+/* Badge — top-right corner */
+.badge {
+  position: absolute;
+  top: 0.44em;
+  right: 0.44em;
+  width: 1.354em; /* 21.682px */
+  height: 1.354em;
+  border-radius: 0.677em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.badgeDone  { background: #0e184d; }
+.badgeEmpty {
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 0.062em 0.246em rgba(0,0,0,0.12);
+}
+
+/* Card labels */
+.photoLabel {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.727em; /* ~11.63px */
+  color: #1a2a52;
+  text-align: center;
+  white-space: nowrap;
+  margin: 0;
+}
+.photoSub {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.75em; /* 12px */
+  color: #7a8ea8;
+  text-align: center;
+  white-space: nowrap;
+  margin: 0.1em 0 0;
+}
+
+/* CONTINUE button */
+.buttonWrapper {
+  position: absolute;
+  bottom: 0;
+  left: 1.3125em;
+  width: 22.1875em;
+  padding-bottom: 2.1875em;
+  z-index: 2;
+}
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 3.5em;
+  background-color: #e0e7f3;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}

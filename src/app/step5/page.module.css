@@ -1,0 +1,343 @@
+/* Screen */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.outerBg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.cardBg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Progress bar — 297px active */
+.progressBar {
+  position: absolute;
+  top: 2.3125em;
+  left: 1.0625em;
+  right: 1.1875em;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+}
+.segTrack {
+  position: relative;
+  width: 20.8125em;
+  height: 0.3125em;
+  background: rgba(255,255,255,0.4);
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+}
+.segActive {
+  position: absolute;
+  left: 0; top: 0;
+  width: 18.5625em; /* 297px */
+  height: 100%;
+  background: #0e1b4d;
+  border-radius: 6.1875em;
+}
+.segSmall {
+  width: 1.4375em;
+  height: 0.3125em;
+  background: rgba(255,255,255,0.4);
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+  margin-left: 0.5em;
+}
+
+/* Nav */
+.navBar {
+  position: absolute;
+  top: 5.125em;
+  left: 0; right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 2.8125em;
+}
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em;
+  height: 1.25em;
+  flex-shrink: 0;
+}
+.navTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.9375em;
+  line-height: 1;
+  letter-spacing: -0.15px;
+  color: #ffffff;
+}
+
+/* White card — scrollable */
+.card {
+  position: absolute;
+  left: 1em; right: 1em;
+  top: 7.125em; bottom: 0;
+  background: #ffffff;
+  border-radius: 2em 2em 0 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding-inline: 1.25em;
+  padding-bottom: 7em;
+  scrollbar-width: none;
+}
+.card::-webkit-scrollbar { display: none; }
+
+/* Title + subtitle — Inter Medium 28px navy
+   font-size 1.75em → top = 80/28 = 2.857em */
+.cardTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.75em;
+  line-height: 1;
+  color: #0e1b4d;
+  padding-top: 2.857em;
+  margin-bottom: 0.429em;
+  flex-shrink: 0;
+}
+
+/* Subtitle — Inter Regular 12px #7a8ea8 */
+.cardSubtitle {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.75em;  /* 12px */
+  line-height: 1.517; /* 18.2/12 */
+  color: #7a8ea8;
+  margin-bottom: 0.75em;
+  flex-shrink: 0;
+}
+
+/* Selected summary — bg #f3f7ff, h:86px, rounded:12px */
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  background: #f3f7ff;
+  border-radius: 0.75em;
+  padding: 0 1em;
+  height: 5.375em;  /* 86px */
+  flex-shrink: 0;
+  margin-bottom: 1em;
+}
+
+.summaryIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5em;
+  height: 3.5em;
+  background: #ffffff;
+  border-radius: 0.5em;
+  font-size: 1em;
+  flex-shrink: 0;
+}
+
+.summaryText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+
+.summaryTitle {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.375em;  /* 22px */
+  line-height: 1;
+  color: #111111;
+}
+
+.summarySubtitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.75em;   /* 12px */
+  line-height: 1;
+  color: #7a8ea8;
+}
+
+/* Tooth chart wrapper */
+.chartWrap {
+  background: #f7f9fc;
+  border-radius: 1em;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-bottom: 0.75em;
+}
+
+/* Labels row */
+.chartLabels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75em 0.75em 0;
+}
+
+.chartLabel {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.6875em;  /* 11px */
+  line-height: 1;
+  color: #8090a8;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+/* Chart area — 173px, relative container for all teeth */
+.chart {
+  position: relative;
+  height: 10.8125em;  /* 173px */
+  width: 100%;
+}
+
+/* Horizontal center divider */
+.chartDivider {
+  position: absolute;
+  left: 8px; right: 8px;
+  top: 86px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(220,228,240,0) 0%, rgb(220,228,240) 20%, rgb(220,228,240) 80%, rgba(220,228,240,0) 100%);
+}
+
+/* Lower jaw label */
+.lowerLabel {
+  position: absolute;
+  bottom: 0.5em;
+  left: 0.75em;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.6875em;
+  line-height: 1;
+  color: #8090a8;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+/* Individual tooth button */
+.tooth {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+
+/* Tooth number — below for upper, above for lower */
+.toothNum {
+  position: absolute;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 9px;  /* fixed px so it doesn't scale */
+  line-height: 1;
+  color: #b0bec5;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Selected state handled via inline SVG fill props — no overlay needed */
+
+/* Legend */
+.legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 0.625em;
+  font-family: var(--font-body);
+  font-size: 0.75em;
+  color: #7a8ea8;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.legendText {
+  margin-right: 0.75em;
+}
+
+/* Divider */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: #e8e8e4;
+  margin-block: 1em;
+  flex-shrink: 0;
+}
+
+/* "I'm not sure" option */
+.item {
+  width: 100%;
+  height: 5.4375em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 1.125em;
+  background: rgba(255,255,255,0.5);
+  border: 2px solid #e8e8e4;
+  border-radius: 1.25em;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.itemActive {
+  border-color: #c6dbfe;
+  background: #ffffff;
+}
+.itemLabel {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.0625em;
+  color: #0e1b4d;
+}
+.itemCheck { display: flex; align-items: center; flex-shrink: 0; }
+
+/* CONTINUE button */
+.buttonWrapper {
+  position: absolute;
+  bottom: 0;
+  left: 1.3125em;
+  width: 22.1875em;
+  padding-bottom: 2.1875em;
+  z-index: 2;
+}
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 3.5em;
+  background-color: #e0e7f3;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+.btnActive { background-color: #0e184d; }
+.btnActive:hover { background-color: #1a2a6b; }

@@ -1,0 +1,279 @@
+/* Screen — dark bg like screen 1 */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.outerBg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.cardBg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Progress bar — step 3: active 297px */
+.progressBar {
+  position: absolute;
+  top: 2.3125em;
+  left: 1.0625em;
+  right: 1.1875em;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+}
+.segTrack {
+  position: relative;
+  width: 20.8125em;
+  height: 0.3125em;
+  background: rgba(255,255,255,0.4);
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+}
+.segActive {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18.5625em; /* 297px */
+  height: 100%;
+  background: #0e1b4d;
+  border-radius: 6.1875em;
+}
+.segSmall {
+  width: 1.4375em;
+  height: 0.3125em;
+  background: rgba(255,255,255,0.4);
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+  margin-left: 0.5em;
+}
+
+/* Nav */
+.navBar {
+  position: absolute;
+  top: 5.125em;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 2.8125em;
+}
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em;
+  height: 1.25em;
+  flex-shrink: 0;
+}
+.navTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.9375em;
+  line-height: 1;
+  letter-spacing: -0.15px;
+  color: #ffffff;
+}
+
+/* White card */
+.card {
+  position: absolute;
+  left: 1em;
+  right: 1em;
+  top: 7.125em;      /* 114px */
+  bottom: 0;
+  background: #ffffff;
+  border-radius: 2em 2em 0 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding-inline: 1.25em; /* 20px */
+  padding-bottom: 7em;    /* room for button */
+  scrollbar-width: none;
+}
+.card::-webkit-scrollbar { display: none; }
+
+/* Title — "Tooth & Gum shade" Inter Medium 28px navy
+   font-size 1.75em → padding-top = 80/28 = 2.857em */
+.cardTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.75em;   /* 28px */
+  line-height: 1;
+  color: #0e1b4d;
+  padding-top: 2.857em;  /* ~80px from card top */
+  padding-bottom: 0.571em;
+  flex-shrink: 0;
+}
+
+/* Live preview row — rgba(235,241,255,0.6), h:86px, rounded:16px */
+.preview {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  background: rgba(235, 241, 255, 0.6);
+  border-radius: 1em;    /* 16px */
+  padding: 0.9375em 1.0625em; /* 15px 17px */
+  height: 5.375em;       /* 86px */
+  flex-shrink: 0;
+  margin-bottom: 0.75em;
+}
+
+/* Tooth/gum swatch preview chip — 48×56px, tooth-like shape */
+.previewSwatch {
+  width: 3em;            /* 48px */
+  height: 3.5em;         /* 56px */
+  border-radius: 0.625em 0.625em 1.125em 1.125em; /* 10px top, 18px bottom */
+  border: 2px solid rgba(0,0,0,0.09);
+  flex-shrink: 0;
+}
+
+.previewText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375em;
+}
+
+/* A2 / G1 large code */
+.previewCode {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.375em;    /* 22px */
+  line-height: 1;
+  color: #111111;
+}
+
+/* "Light" / "Medium" small label */
+.previewLabel {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.75em;     /* 12px */
+  line-height: 1;
+  color: #7a8ea8;
+}
+
+/* Section label — "WHITE SHADE" / "GUM SHADE" */
+.sectionLabel {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.0625em;   /* 17px */
+  line-height: 1;
+  color: #000000;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  margin-bottom: 0.75em;
+  flex-shrink: 0;
+}
+
+/* Swatch row */
+.swatchRow {
+  display: flex;
+  gap: 0.625em;          /* ~10px */
+  margin-bottom: 1.25em;
+  flex-shrink: 0;
+}
+
+/* Individual swatch card — 80px × 105px, rounded 14px */
+.swatchCard {
+  flex: 1;
+  height: 6.5625em;      /* 105px */
+  background: #ffffff;
+  border: 2px solid #e8e8e4;
+  border-radius: 0.875em; /* 14px */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0.625em;  /* 10px */
+  gap: 0.375em;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Active swatch — blue border */
+.swatchCardActive {
+  border-width: 3px;
+  border-color: #c6dcfe;
+}
+
+/* Tooth/gum chip inside swatch — 36×44px, tooth shape */
+.swatchChip {
+  width: 2.25em;          /* 36px */
+  height: 2.75em;         /* 44px */
+  border-radius: 0.5em 0.5em 0.875em 0.875em; /* 8px top, 14px bottom */
+  border: 1px solid rgba(0,0,0,0.09);
+  flex-shrink: 0;
+}
+
+/* Shade code e.g. "A1" */
+.swatchCode {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8125em;   /* 13px */
+  line-height: 1;
+  color: #1a1a1a;
+}
+
+/* Shade name e.g. "Very Light" */
+.swatchName {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.75em;     /* 12px */
+  line-height: 1;
+  color: #8a8a8a;
+  text-align: center;
+}
+
+/* Divider */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: #e8e8e4;
+  margin-block: 1.25em;
+  flex-shrink: 0;
+}
+
+/* CONTINUE — pinned to bottom of card */
+.buttonWrapper {
+  position: absolute;
+  bottom: 0;
+  left: 1.3125em;
+  width: 22.1875em;
+  padding-bottom: 2.1875em;
+  z-index: 2;
+}
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 3.5em;
+  background-color: #e0e7f3;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+.btnActive {
+  background-color: #0e184d;
+}
+.btnActive:hover {
+  background-color: #1a2a6b;
+}

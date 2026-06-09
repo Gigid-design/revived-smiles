@@ -1,0 +1,253 @@
+/* Full screen */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Outer texture bg */
+.outerBg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Card gradient bg overlay */
+.cardBg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* =============================================
+   PROGRESS BAR — Figma: top:37px
+   Seg1: left:17, w:333 (bg white) + active overlay w:48 (navy)
+   Seg2: left:358, w:23 (white)
+   Seg3: left:389, w:23 (white)
+   ============================================= */
+.progressBar {
+  position: absolute;
+  top: 2.3125em;   /* 37px */
+  left: 1.0625em;  /* 17px */
+  right: 1.1875em; /* 19px to end at 411px */
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+/* Segment 1 track — 333px wide, white bg */
+.segTrack {
+  position: relative;
+  width: 20.8125em;  /* 333px */
+  height: 0.3125em;  /* 5px */
+  background: #ffffff;
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+}
+
+/* Active portion on seg1 — 48px navy */
+.segActive {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3em;        /* 48px */
+  height: 100%;
+  background: #0e1b4d;
+  border-radius: 6.1875em;
+}
+
+/* Small segments — 23px, white, with 8px gaps before them */
+.segSmall {
+  width: 1.4375em;   /* 23px */
+  height: 0.3125em;  /* 5px */
+  background: #ffffff;
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+  margin-left: 0.5em; /* 8px gap */
+}
+
+/* =============================================
+   NAV BAR — Figma: top≈82px (calc 50%-384px = 466-384)
+   Back: left:45px | Title centered | Close: left:362px
+   ============================================= */
+.navBar {
+  position: absolute;
+  top: 5.125em;     /* 82px */
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 2.8125em; /* 45px — aligns back btn */
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em;    /* 20px */
+  height: 1.25em;
+  flex-shrink: 0;
+}
+
+/* "Intake form" — Inter Medium 15px white tracking:-0.15px */
+.navTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.9375em;  /* 15px */
+  line-height: 1;
+  letter-spacing: -0.15px;
+  color: #ffffff;
+}
+
+/* =============================================
+   WHITE CARD
+   Figma: left:16 right:16, top:114px, h:820px
+   Rounded top corners only (32px)
+   ============================================= */
+.card {
+  position: absolute;
+  left: 1em;         /* 16px */
+  right: 1em;        /* 16px */
+  top: 7.125em;      /* 114px */
+  height: 51.25em;   /* 820px */
+  background: #ffffff;
+  border-radius: 2em 2em 0 0;  /* 32px top corners */
+  overflow: hidden;
+  z-index: 2;
+}
+
+/* "Your name" — Figma: top:196px from screen → 196-114=82px inside card
+   left:46px from screen → 46-16=30px inside card
+   Inter Medium 28px, black
+   NOTE: top uses element's own font-size (28px) as 1em, so 82/28 = 2.929em */
+.cardTitle {
+  position: absolute;
+  top: 2.9286em;     /* 82px ÷ 28px (own font-size) */
+  left: 1.0714em;    /* 30px ÷ 28px */
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.75em; /* 28px */
+  line-height: 1;
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* Input — Figma: top:230px from screen → 116px inside card
+   left:37px from screen → 21px inside card. w:356, h:87
+   bg:rgba(255,255,255,0.5), border-2 #e8e8e4, rounded:20px */
+.inputWrapper {
+  position: absolute;
+  top: 8em;          /* 128px from card top — 18px gap below heading */
+  left: 1.3125em;    /* 21px from card left */
+  width: 22.25em;    /* 356px */
+  /* relative so floating label can be positioned inside */
+  /* (absolute from card is maintained; label uses position:absolute within) */
+}
+
+/* Input — default state */
+.input {
+  width: 100%;
+  height: 5.4375em;     /* 87px */
+  background: #ffffff;
+  border: 2px solid #e8e8e4;
+  border-radius: 1.25em; /* 20px */
+  padding-top: 1.875em;  /* pushes typed text to lower half */
+  padding-bottom: 0.5em;
+  padding-inline: 1.125em;
+  font-family: var(--font-body);
+  font-size: 1.0625em;  /* 17px */
+  font-weight: 500;
+  color: #0e1b4d;
+  outline: none;
+}
+
+/* Floating label — centered by default (acts as placeholder) */
+.floatingLabel {
+  position: absolute;
+  left: 1.125em;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-body);
+  font-size: 1.0625em;  /* 17px */
+  font-weight: 400;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: top 0.15s ease, font-size 0.15s ease;
+}
+
+/* Typing / filled state — label floats to top */
+.input:focus ~ .floatingLabel,
+.input:not(:placeholder-shown) ~ .floatingLabel {
+  top: 1em;
+  transform: translateY(0);
+  font-size: 0.8125em;  /* 13px */
+  font-weight: 400;
+  color: #8a8a8a;
+}
+
+/* Focus: blue border + white bg */
+.input:focus {
+  border-color: #c6dbfe;
+  background: #ffffff;
+}
+
+/* Has value but not focused: keep blue border */
+.input:not(:placeholder-shown):not(:focus) {
+  border-color: #c6dbfe;
+  background: #ffffff;
+}
+
+/* CONTINUE button — Figma: top:729px inside card, left:21px, w:355, h:56
+   bg:#e0e7f3 (light blue-gray), pill, Inter Bold 14px uppercase white */
+.buttonWrapper {
+  position: absolute;
+  bottom: 0;
+  left: 1.3125em;    /* 21px */
+  width: 22.1875em;  /* 355px */
+  padding-bottom: 2.1875em; /* 35px — positions btn 35px above card bottom */
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 3.5em;     /* 56px */
+  background-color: #e0e7f3;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em; /* 14px */
+  line-height: 1.543;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: #c8d8ef;
+}
+
+/* Active state — when input has a value */
+.btnActive {
+  background-color: #0e1b4d;
+}
+
+.btnActive:hover {
+  background-color: #1a2a6b;
+}
+
+@media (max-width: 479px) {
+  .cardTitle {
+    font-size: 1.5em;
+  }
+}

@@ -1,0 +1,230 @@
+/* ---- shared with intake, same structure ---- */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.outerBg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.cardBg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Progress bar — step 2: active segment 77px (vs 48px step 1) */
+.progressBar {
+  position: absolute;
+  top: 2.3125em;
+  left: 1.0625em;
+  right: 1.1875em;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+}
+.segTrack {
+  position: relative;
+  width: 20.8125em;  /* 333px */
+  height: 0.3125em;
+  background: #ffffff;
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+}
+.segActive {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4.8125em;   /* 77px — step 2 progress */
+  height: 100%;
+  background: #0e1b4d;
+  border-radius: 6.1875em;
+}
+.segSmall {
+  width: 1.4375em;
+  height: 0.3125em;
+  background: #ffffff;
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+  margin-left: 0.5em;
+}
+
+/* Nav bar */
+.navBar {
+  position: absolute;
+  top: 5.125em;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 2.8125em;
+}
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em;
+  height: 1.25em;
+  flex-shrink: 0;
+}
+.navTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.9375em;
+  line-height: 1;
+  letter-spacing: -0.15px;
+  color: #ffffff;
+}
+
+/* White card */
+.card {
+  position: absolute;
+  left: 1em;
+  right: 1em;
+  top: 7.125em;
+  height: 51.25em;
+  background: #ffffff;
+  border-radius: 2em 2em 0 0;
+  overflow: hidden;
+  z-index: 2;
+}
+
+/* "Your state" heading — same position as "Your name" on screen 3 */
+/* font-size: 1.75em (28px) → top: 82/28 = 2.929em */
+.cardTitle {
+  position: absolute;
+  top: 2.9286em;
+  left: 1.0714em;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.75em;
+  line-height: 1;
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* =============================================
+   STATE DROPDOWN WRAPPER
+   Figma: top:230px from screen → 116px inside card → 8em (adjusted to 8em for 18px gap)
+   left:37px from screen → 21px inside card
+   width:357px, height:87px
+   ============================================= */
+.selectWrapper {
+  position: absolute;
+  top: 8em;
+  left: 1.3125em;
+  width: 22.3125em;  /* 357px */
+  height: 5.4375em;  /* 87px */
+  background: #ffffff;
+  border: 2px solid #e8e8e4;
+  border-radius: 1.25em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+/* Filled / selected state — blue border */
+.selectFilled {
+  border-color: #c6dbfe;
+}
+
+/* Floating label — "Select Your State" centered default, "State" floated when filled */
+.selectLabel {
+  position: absolute;
+  left: 1.125em;
+  font-family: var(--font-body);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  /* Default: centered */
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.0625em;  /* 17px */
+  font-weight: 400;
+  transition: top 0.15s ease, font-size 0.15s ease, transform 0.15s ease;
+}
+
+/* When filled: label floats to top */
+.selectFilled .selectLabel {
+  top: 1em;
+  transform: translateY(0);
+  font-size: 0.8125em;  /* 13px */
+}
+
+/* Selected value — navy, Inter Medium, lower half */
+.selectedValue {
+  position: absolute;
+  left: 1.125em;
+  bottom: 0.75em;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.0625em;  /* 17px */
+  color: #0e1b4d;
+  pointer-events: none;
+}
+
+/* Chevron — right side */
+.chevron {
+  position: absolute;
+  right: 1.125em;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.chevron svg {
+  max-width: 12px;
+  width: 12px;
+  height: auto;
+}
+
+/* Native select — invisible, sits on top of everything for native UX */
+.nativeSelect {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 1rem; /* prevents iOS zoom */
+}
+
+/* CONTINUE button */
+.buttonWrapper {
+  position: absolute;
+  bottom: 0;
+  left: 1.3125em;
+  width: 22.1875em;
+  padding-bottom: 2.1875em;
+}
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 3.5em;
+  background-color: #e0e7f3;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  line-height: 1.543;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+.btn:hover { background-color: #c8d8ef; }
+
+.btnActive { background-color: #0e1b4d; }
+.btnActive:hover { background-color: #1a2a6b; }

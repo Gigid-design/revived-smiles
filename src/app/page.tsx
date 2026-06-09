@@ -1,65 +1,122 @@
+"use client";
+
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { FormEvent, useRef, useState } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import styles from "./page.module.css";
+
+gsap.registerPlugin(useGSAP);
 
 export default function Home() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const productRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    const mm = gsap.matchMedia();
+
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      const el = productRef.current;
+      if (!el) return;
+
+      // Vertical bob — 4s full period (2s half), ±10px, sine wave
+      gsap.to(el, {
+        y: -10,
+        duration: 2,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: -1,
+      });
+
+      // Horizontal sway — slightly different period for organic feel, ±4px
+      gsap.to(el, {
+        x: 4,
+        duration: 2.4,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: -1,
+      });
+
+      // Rotation — ±1.5°, tied loosely to the bob
+      gsap.to(el, {
+        rotation: 1.5,
+        duration: 2,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: -1,
+      });
+    });
+
+    return () => mm.revert();
+  }, { scope: productRef });
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (email.trim()) {
+      router.push("/welcome");
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <main className={styles.screen}>
+      <a href="#main-content" className="sr-only">Skip to main content</a>
+
+      {/* Full-screen card background image */}
+      <div className={styles.cardBg} aria-hidden="true">
         <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
+          src="/assets/images/hero-card-bg.png"
+          alt=""
+          fill
+          style={{ objectFit: "cover", objectPosition: "center top" }}
           priority
+          sizes="430px"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+      </div>
+
+      {/* Top section — heading, subtitle, input, button (396px) */}
+      <div className={styles.topSection} id="main-content">
+        <h1 className={styles.heading}>Your smile journey starts here</h1>
+        <p className={styles.subtitle}>
+          Enter the email you used when you placed your order.
+        </p>
+
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.inputWrapper}>
+            {/* placeholder=" " enables CSS :placeholder-shown trick for floating label */}
+            <input
+              id="email"
+              type="email"
+              placeholder=" "
+              className={styles.input}
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <label htmlFor="email" className={styles.floatingLabel}>
+              Enter email
+            </label>
+          </div>
+          <button type="submit" className={styles.submitBtn}>
+            Submit
+          </button>
+        </form>
+      </div>
+
+      {/* Bottom section — product image (536px) */}
+      <div className={styles.bottomSection} aria-hidden="true">
+        <div className={styles.productImageWrapper} ref={productRef}>
+          <Image
+            src="/assets/images/hero-product-v2.png"
+            alt="Revived Smiles impression kit"
+            width={461}
+            height={576}
+            className={styles.productImage}
+            sizes="461px"
+          />
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
