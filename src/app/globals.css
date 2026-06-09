@@ -84,21 +84,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   display: flex;
-  align-items: center;
   justify-content: center;
-  min-height: 100svh;
 }
 
-/* Lock the app to exact Figma phone dimensions: 430×932px */
+/* Lock the app to 430px — centers it on wide screens */
 body > * {
   width: 100%;
   max-width: 430px;
-  height: 932px;
-  max-height: 932px;
   background-color: var(--color-bg-dark);
-  overflow: hidden;
-  position: relative;
-  flex-shrink: 0;
+  overflow-x: hidden;
 }
 
 img, picture, video, canvas, svg {
