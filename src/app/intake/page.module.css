@@ -3,7 +3,7 @@
   position: relative;
   width: 100%;
   min-height: 100svh;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -117,10 +117,10 @@
   left: 1em;         /* 16px */
   right: 1em;        /* 16px */
   top: 7.125em;      /* 114px */
-  min-height: 51.25em;   /* 820px */
+  height: 51.25em;   /* 820px */
   background: #ffffff;
   border-radius: 2em 2em 0 0;  /* 32px top corners */
-  overflow-y: auto;
+  overflow: hidden;
   z-index: 2;
 }
 
