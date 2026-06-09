@@ -15,16 +15,12 @@
   pointer-events: none;
 }
 
-/* Photo background — two images stacked (Figma: left:-120px top:-113px w:669px h:1198px) */
+/* Photo background — fills full screen, image cropped to show subject */
 .photoBg {
   position: absolute;
-  left: -7.5em;     /* -120px */
-  top: -7.0625em;   /* -113px */
-  width: 41.8125em; /* 669px */
-  height: 74.875em; /* 1198px */
+  inset: 0;
   z-index: 1;
   pointer-events: none;
-  will-change: transform;
 }
 
 .photoBg img {

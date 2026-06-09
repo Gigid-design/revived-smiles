@@ -34,11 +34,10 @@
 }
 .segTrack {
   position: relative;
-  width: 20.8125em;
+  flex: 1; min-width: 0;
   height: 0.3125em;
   background: rgba(255,255,255,0.4);
   border-radius: 6.1875em;
-  flex-shrink: 0;
 }
 .segActive {
   position: absolute;

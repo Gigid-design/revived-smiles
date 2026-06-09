@@ -41,14 +41,14 @@
   gap: 0;
 }
 
-/* Segment 1 track — 333px wide, white bg */
+/* Segment 1 track — fluid, fills available space */
 .segTrack {
   position: relative;
-  width: 20.8125em;  /* 333px */
+  flex: 1;
+  min-width: 0;
   height: 0.3125em;  /* 5px */
   background: #ffffff;
   border-radius: 6.1875em;
-  flex-shrink: 0;
 }
 
 /* Active portion on seg1 — 48px navy */
@@ -147,7 +147,8 @@
   position: absolute;
   top: 8em;          /* 128px from card top — 18px gap below heading */
   left: 1.3125em;    /* 21px from card left */
-  width: 22.25em;    /* 356px */
+  right: 1.3125em;   /* mirrors left so width is fluid */
+  width: auto;
   /* relative so floating label can be positioned inside */
   /* (absolute from card is maintained; label uses position:absolute within) */
 }

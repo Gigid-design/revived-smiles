@@ -32,7 +32,7 @@
 }
 .segTrack {
   position: relative;
-  width: 20.8125em;  /* 333px */
+  flex: 1; min-width: 0;
   height: 0.3125em;
   background: #ffffff;
   border-radius: 6.1875em;
@@ -122,7 +122,8 @@
   position: absolute;
   top: 8em;
   left: 1.3125em;
-  width: 22.3125em;  /* 357px */
+  right: 1.3125em;
+  width: auto;
   height: 5.4375em;  /* 87px */
   background: #ffffff;
   border: 2px solid #e8e8e4;
