@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import styles from "./page.module.css";
+import { usePageTransition } from "../hooks/usePageTransition";
 
 /* ── Tooth shape colors ── */
 const DEFAULT = { fill1: "#DCE4F0", fill2: "#E8EEF6", stroke1: "#C8D4E4", stroke2: "#B8C8DC" };
@@ -183,6 +184,7 @@ function ToothButton({ tooth, jaw, selected, onToggle }: {
 export default function Step5() {
   const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set());
   const [notSure, setNotSure] = useState(false);
+  const { cardRef, navigate } = usePageTransition();
 
   function toggleTooth(num: number) {
     setNotSure(false);
@@ -222,9 +224,9 @@ export default function Step5() {
 
       {/* Nav */}
       <nav className={styles.navBar} aria-label="Form navigation">
-        <Link href="/step4" className={styles.navBtn} aria-label="Go back">
+        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/step4', 'backward')}>
           <Image src="/assets/images/intake-icon-back.svg" alt="" width={20} height={20} />
-        </Link>
+        </button>
         <span className={styles.navTitle}>Intake form</span>
         <Link href="/" className={styles.navBtn} aria-label="Close form">
           <Image src="/assets/images/intake-icon-close.svg" alt="" width={20} height={20} />
@@ -232,7 +234,7 @@ export default function Step5() {
       </nav>
 
       {/* White card */}
-      <div className={styles.card} id="main-content">
+      <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Tooth Chart</h1>
         <p className={styles.cardSubtitle}>
           Tap teeth that need attention or have existing work (crowns, implants, missing)
@@ -280,11 +282,12 @@ export default function Step5() {
           </span>
         </button>
 
-        <div className={styles.buttonWrapper}>
-          <button type="button" className={`${styles.btn} ${styles.btnActive}`}
-            onClick={() => window.location.href = '/step6'}
-          >CONTINUE</button>
-        </div>
+      </div>
+
+      <div className={styles.buttonWrapper}>
+        <button type="button" className={`${styles.btn} ${styles.btnActive}`}
+          onClick={() => navigate('/step6', 'forward')}
+        >CONTINUE</button>
       </div>
     </main>
   );

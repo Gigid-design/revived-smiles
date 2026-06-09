@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import styles from "./page.module.css";
+import { usePageTransition } from "../hooks/usePageTransition";
 
 /* ── Tooth shade swatches ── */
 const WHITE_SHADES = [
@@ -23,6 +24,7 @@ const GUM_SHADES = [
 export default function Step4() {
   const [whiteShade, setWhiteShade] = useState<string | null>(null);
   const [gumShade,   setGumShade]   = useState<string | null>(null);
+  const { cardRef, navigate } = usePageTransition();
 
   const selectedWhite = WHITE_SHADES.find(s => s.id === whiteShade);
   const selectedGum   = GUM_SHADES.find(s => s.id === gumShade);
@@ -50,9 +52,9 @@ export default function Step4() {
 
       {/* Nav bar */}
       <nav className={styles.navBar} aria-label="Form navigation">
-        <Link href="/step3" className={styles.navBtn} aria-label="Go back">
+        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/step3', 'backward')}>
           <Image src="/assets/images/intake-icon-back.svg" alt="" width={20} height={20} />
-        </Link>
+        </button>
         <span className={styles.navTitle}>Intake form</span>
         <Link href="/" className={styles.navBtn} aria-label="Close form">
           <Image src="/assets/images/intake-icon-close.svg" alt="" width={20} height={20} />
@@ -60,7 +62,7 @@ export default function Step4() {
       </nav>
 
       {/* White card */}
-      <div className={styles.card} id="main-content">
+      <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Tooth &amp; Gum shade</h1>
 
         {/* Live preview — White */}
@@ -128,13 +130,14 @@ export default function Step4() {
           })}
         </div>
 
-        {/* CONTINUE — always active navy on this screen */}
-        <div className={styles.buttonWrapper}>
-          <button type="button" className={`${styles.btn} ${styles.btnActive}`}
-            onClick={() => window.location.href = '/step5'}>
-            CONTINUE
-          </button>
-        </div>
+      </div>
+
+      {/* CONTINUE — always active navy on this screen */}
+      <div className={styles.buttonWrapper}>
+        <button type="button" className={`${styles.btn} ${styles.btnActive}`}
+          onClick={() => navigate('/step5', 'forward')}>
+          CONTINUE
+        </button>
       </div>
     </main>
   );

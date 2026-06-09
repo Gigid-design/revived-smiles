@@ -4,10 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import styles from "./page.module.css";
+import { usePageTransition } from "../hooks/usePageTransition";
 
 export default function Intake() {
   const [name, setName] = useState("");
   const hasValue = name.trim().length > 0;
+  const { cardRef, navigate } = usePageTransition("fade");
 
   return (
     <main className={styles.screen}>
@@ -34,9 +36,9 @@ export default function Intake() {
 
       {/* Nav bar */}
       <nav className={styles.navBar} aria-label="Form navigation">
-        <Link href="/welcome" className={styles.navBtn} aria-label="Go back">
+        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/welcome', 'backward')}>
           <Image src="/assets/images/intake-icon-back.svg" alt="" width={20} height={20} />
-        </Link>
+        </button>
         <span className={styles.navTitle}>Intake form</span>
         <Link href="/" className={styles.navBtn} aria-label="Close form">
           <Image src="/assets/images/intake-icon-close.svg" alt="" width={20} height={20} />
@@ -44,7 +46,7 @@ export default function Intake() {
       </nav>
 
       {/* White card */}
-      <div className={styles.card} id="main-content">
+      <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Your name</h1>
 
         {/* Floating label input — same typing state as page 1 */}
@@ -63,16 +65,17 @@ export default function Intake() {
           </label>
         </div>
 
-        {/* CONTINUE — inactive (#e0e7f3) until input has value, then navy (#0e1b4d) */}
-        <div className={styles.buttonWrapper}>
-          <button
-            type="button"
-            className={`${styles.btn} ${hasValue ? styles.btnActive : ""}`}
-            onClick={() => { if (hasValue) window.location.href = '/step2'; }}
-          >
-            CONTINUE
-          </button>
-        </div>
+      </div>
+
+      {/* CONTINUE — inactive (#e0e7f3) until input has value, then navy (#0e1b4d) */}
+      <div className={styles.buttonWrapper}>
+        <button
+          type="button"
+          className={`${styles.btn} ${hasValue ? styles.btnActive : ""}`}
+          onClick={() => { if (hasValue) navigate('/step2', 'forward'); }}
+        >
+          CONTINUE
+        </button>
       </div>
     </main>
   );

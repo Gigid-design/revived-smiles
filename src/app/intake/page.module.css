@@ -208,11 +208,13 @@
 /* CONTINUE button — Figma: top:729px inside card, left:21px, w:355, h:56
    bg:#e0e7f3 (light blue-gray), pill, Inter Bold 14px uppercase white */
 .buttonWrapper {
-  position: absolute;
+  position: fixed;
   bottom: 0;
-  left: 1.3125em;    /* 21px */
-  width: 22.1875em;  /* 355px */
-  padding-bottom: 2.1875em; /* 35px — positions btn 35px above card bottom */
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2em), 26.375em);
+  padding: 0 1.3125em 2.1875em;
+  z-index: 20;
 }
 
 .btn {
