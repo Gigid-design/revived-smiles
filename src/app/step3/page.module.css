@@ -1,0 +1,210 @@
+/* Shared structure */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.outerBg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.cardBg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Progress bar — 77px active (step 2) */
+.progressBar {
+  position: absolute;
+  top: 2.3125em;
+  left: 1.0625em;
+  right: 1.1875em;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+}
+.segTrack {
+  position: relative;
+  width: 20.8125em;
+  height: 0.3125em;
+  background: #ffffff;
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+}
+.segActive {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4.8125em;   /* 77px */
+  height: 100%;
+  background: #0e1b4d;
+  border-radius: 6.1875em;
+}
+.segSmall {
+  width: 1.4375em;
+  height: 0.3125em;
+  background: #ffffff;
+  border-radius: 6.1875em;
+  flex-shrink: 0;
+  margin-left: 0.5em;
+}
+
+/* Nav bar */
+.navBar {
+  position: absolute;
+  top: 5.125em;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 2.8125em;
+}
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em;
+  height: 1.25em;
+  flex-shrink: 0;
+}
+.navTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.9375em;
+  line-height: 1;
+  letter-spacing: -0.15px;
+  color: #ffffff;
+}
+
+/* White card */
+.card {
+  position: absolute;
+  left: 1em;
+  right: 1em;
+  top: 7.125em;
+  bottom: 0;
+  background: #ffffff;
+  border-radius: 2em 2em 0 0;
+  overflow: hidden;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Title — "Your ordered product"
+   font-size 1.75em (28px) → top: 82/28 = 2.929em, left: 30/28 = 1.071em */
+.cardTitle {
+  flex-shrink: 0;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.75em;   /* 28px */
+  line-height: 1;
+  color: #0e1b4d;
+  padding-top: 2.929em; /* 82px from card top ÷ 28px */
+  padding-inline: 1.071em; /* 30px ÷ 28px */
+  padding-bottom: 0.714em; /* ~20px spacing before list */
+}
+
+/* Scrollable list — Figma: items start at 230px from screen = 116px from card */
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding-inline: 1.3125em; /* 21px */
+  padding-bottom: 9em; /* room for gradient + button */
+  display: flex;
+  flex-direction: column;
+  gap: 1.25em;         /* 20px */
+  list-style: none;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.list::-webkit-scrollbar { display: none; }
+
+/* Choice item */
+.item {
+  width: 100%;
+  height: 5.4375em;    /* 87px */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 1.125em; /* 18px */
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid #e8e8e4;
+  border-radius: 1.25em; /* 20px */
+  cursor: pointer;
+  text-align: left;
+}
+
+/* Active/selected state — blue border, white bg */
+.itemActive {
+  border-color: #c6dbfe;
+  background: #ffffff;
+}
+
+/* Item label — Inter Medium 17px, navy */
+.itemLabel {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.0625em; /* 17px */
+  color: #0e1b4d;
+  white-space: nowrap;
+}
+
+/* Checkbox on right */
+.itemCheck {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Gradient fade — masks list bottom, Figma: top:745px from screen = 631px from card top
+   h:189px, from transparent → white */
+.fadeGradient {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4.5em;   /* sits just above button */
+  height: 7em;     /* ~112px fade */
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, #ffffff 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* CONTINUE button — pinned to bottom of card */
+.buttonWrapper {
+  position: absolute;
+  bottom: 0;
+  left: 1.3125em;
+  width: 22.1875em;
+  padding-bottom: 2.1875em;
+  z-index: 2;
+}
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 3.5em;
+  background-color: #e0e7f3;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  line-height: 1.543;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+.btn:hover { background-color: #c8d8ef; }
+.btnActive { background-color: #0e1b4d; }
+.btnActive:hover { background-color: #1a2a6b; }

@@ -1,0 +1,196 @@
+/* Full screen */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card background image — covers full screen */
+.cardBg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* =============================================
+   TOP SECTION — heading, subtitle, input, button
+   Figma: 396px tall, 430px wide
+   ============================================= */
+.topSection {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: 3em;        /* 48px — heading top */
+  padding-inline: 1.125em;  /* 18px — matches welcome page button width */
+}
+
+/* Heading — Inter SemiBold 40px, line-height 47px, tracking -0.8px */
+.heading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 2.5em;    /* 40px */
+  line-height: 1.175;  /* 47/40 */
+  letter-spacing: -0.8px;
+  color: #ffffff;
+  text-align: center;
+  /* Heading spans left:25px right:34px in Figma, but padding-inline handles it */
+}
+
+/* Subtitle — Inter Medium 22px, line-height 27.5px, tracking -0.44px
+   Figma center at 181.5px. Heading top:48 + 2 lines × 47px = ~142px bottom.
+   Gap to subtitle: ~181.5 - 13.75 (half line-height) - 142 = ~25px */
+.subtitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.375em;  /* 22px */
+  line-height: 1.25;   /* 27.5/22 */
+  letter-spacing: -0.44px;
+  color: #ffffff;
+  text-align: center;
+  margin-top: 1em;     /* ~22px gap after heading */
+}
+
+/* Form — input then button
+   In Figma: input top:241px, button top:340px (gap = 12px after 87px input)
+   Margin from subtitle bottom (~195px) to input top (241px) = ~46px */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 1.5em;   /* ~24px — gap from subtitle to input */
+}
+
+/* Input wrapper — relative so floating label can be positioned inside */
+.inputWrapper {
+  position: relative;
+}
+
+/* Input — default: white bg, gray border, DM Sans 17px
+   height:87px, 20px radius, border-2 */
+.input {
+  width: 100%;
+  height: 5.4375em;     /* 87px */
+  background: #ffffff;
+  border: 2px solid #e8e8e4;
+  border-radius: 1.25em; /* 20px */
+  /* Top padding creates room for floating label; bottom padding anchors typed text */
+  padding-top: 1.875em;  /* 30px — pushes typed text down to ~54px center */
+  padding-bottom: 0.5em;
+  padding-inline: 1.125em; /* 18px */
+  font-family: var(--font-body);
+  font-size: 1.0625em;  /* 17px */
+  font-weight: 500;     /* Inter Medium when typing */
+  color: #0e1b4d;       /* navy — typed text color */
+  outline: none;
+}
+
+/* Floating label — default position: vertically centered (mimics placeholder) */
+.floatingLabel {
+  position: absolute;
+  left: 1.125em;        /* 18px — matches input padding */
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-body);
+  font-size: 1.0625em;  /* 17px — same as input */
+  font-weight: 400;
+  color: var(--color-text-muted); /* #8a8a8a */
+  pointer-events: none;
+  /* Smooth transition for floating */
+  transition: top 0.15s ease, font-size 0.15s ease, color 0.15s ease;
+  transform-origin: left center;
+}
+
+/* TYPING STATE — triggered when input is focused OR has a value
+   (:not(:placeholder-shown) detects value; :focus detects active typing) */
+.input:focus ~ .floatingLabel,
+.input:not(:placeholder-shown) ~ .floatingLabel {
+  top: 1.0em;           /* ~27px — floated label top position from Figma */
+  transform: translateY(0);
+  font-size: 0.8125em;  /* 13px — smaller label when floating */
+  font-weight: 400;     /* Inter Regular */
+  color: #8a8a8a;
+}
+
+/* Typing state background + border (focus only) */
+.input:focus {
+  background: #ffffff;
+  border-color: #c6dbfe;
+}
+
+/* Keep semi-transparent + blue border while has value but not focused */
+.input:not(:placeholder-shown):not(:focus) {
+  background: #ffffff;
+  border-color: #c6dbfe;
+}
+
+/* Submit button — height:56px, gap from input = 12px, pill, #0e1b4d, Inter Bold 14px */
+.submitBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 3.5em;        /* 56px */
+  margin-top: 2.5em;    /* 40px */
+  background-color: #0e1b4d;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;   /* 14px */
+  line-height: 1.543;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.submitBtn:hover {
+  background-color: #1a2a6b;
+}
+
+/* =============================================
+   BOTTOM SECTION — product image (536px tall)
+   image positioned: left:-16px, top:-18px, w:461, h:576
+   ============================================= */
+.bottomSection {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  flex: 1;
+  min-height: 33.5em;   /* 536px */
+  overflow: hidden;
+}
+
+.productImageWrapper {
+  position: absolute;
+  top: -1.125em;    /* -18px */
+  left: 0;          /* shifted ~15px right from original -16px */
+  width: 28.8125em; /* 461px */
+  height: 36em;     /* 576px */
+  will-change: transform;
+}
+
+.productImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =============================================
+   Responsive
+   ============================================= */
+@media (max-width: 479px) {
+  .heading {
+    font-size: 2.25em;
+  }
+
+  .subtitle {
+    font-size: 1.2em;
+  }
+}
