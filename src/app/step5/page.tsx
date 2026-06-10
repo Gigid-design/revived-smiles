@@ -288,7 +288,7 @@ export default function Step5() {
 
       <div className={styles.buttonWrapper}>
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
-          onClick={() => navigate('/step6', 'forward')}
+          onClick={() => navigate('/photo-intro', 'forward')}
         >CONTINUE</button>
       </div>
     </main>
