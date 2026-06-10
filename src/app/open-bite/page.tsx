@@ -5,7 +5,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 
-export default function Camera() {
+export default function OpenBite() {
   const { navigate } = usePageTransition();
 
   return (
@@ -21,19 +21,19 @@ export default function Camera() {
 
       {/* Progress bar */}
       <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Photo step" role="progressbar">
-        <rect x="0"   width="23"  height="5" rx="2.5" fill="#0E1B4D"/>
+        <rect x="0"   width="23"  height="5" rx="2.5" fill="#0E184D"/>
         <rect x="31"  width="302" height="5" rx="2.5" fill="white"/>
-        <rect x="31"  width="173" height="5" rx="2.5" fill="#0E1B4D"/>
+        <rect x="31"  width="302" height="5" rx="2.5" fill="#0E184D"/>
         <rect x="341" width="23"  height="5" rx="2.5" fill="white"/>
         <rect x="372" width="23"  height="5" rx="2.5" fill="white"/>
       </svg>
 
       {/* Nav bar */}
       <nav className={styles.navBar}>
-        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/photo-intro', 'backward')}>
+        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/camera', 'backward')}>
           <Image src="/assets/images/camera-icon-back.svg" alt="" width={20} height={20} unoptimized />
         </button>
-        <span className={styles.navTitle}>Mouth Angles - Close Bite</span>
+        <span className={styles.navTitle}>Mouth Angles - Open Bite</span>
         <Link href="/" className={styles.navBtn} aria-label="Close">
           <Image src="/assets/images/camera-icon-close.svg" alt="" width={20} height={20} unoptimized />
         </Link>
@@ -56,7 +56,7 @@ export default function Camera() {
         {/* Header */}
         <div className={styles.cardHeader}>
           <div className={styles.cardHeaderText}>
-            <h1 className={styles.cardTitle}>Close bite</h1>
+            <h1 className={styles.cardTitle}>Open bite</h1>
             <p className={styles.cardSubtitle}>Align teeth to the oval guide, then hold steady to capture</p>
           </div>
         </div>
@@ -90,7 +90,7 @@ export default function Camera() {
           <span className={`${styles.corner} ${styles.cornerBR}`} />
           {/* Teeth guide centered */}
           <div className={styles.teethGuide}>
-            <Image src="/assets/images/camera-teeth-guide.png" alt="Teeth alignment guide" width={280} height={140} style={{ width: '100%', height: 'auto' }} unoptimized />
+            <Image src="/assets/images/camera-teeth-guide-open.png" alt="Teeth alignment guide - open bite" width={280} height={140} style={{ width: '100%', height: 'auto' }} unoptimized />
           </div>
           <div className={styles.centeringHint}>
             <span className={styles.centeringDot} />
@@ -106,7 +106,7 @@ export default function Camera() {
           <button className={`${styles.controlBtn} ${styles.controlBtnFlash}`} aria-label="Flash">
             <Image src="/assets/images/camera-icon-flash.svg" alt="" width={21} height={21} unoptimized />
           </button>
-          <button className={styles.shutter} aria-label="Capture photo" onClick={() => navigate('/open-bite', 'forward')}>
+          <button className={styles.shutter} aria-label="Capture photo">
             <div className={styles.shutterInner} />
           </button>
           <button className={`${styles.controlBtn} ${styles.controlBtnGrid}`} aria-label="Grid">

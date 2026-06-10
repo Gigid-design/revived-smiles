@@ -1,0 +1,295 @@
+/* ── Screen ── */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.bgOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Progress bar ── */
+.progressBar {
+  position: absolute;
+  top: 2.3125em;
+  left: 1.0625em;
+  right: 1.1875em;
+  z-index: 3;
+  width: calc(100% - 2.25em);
+  height: 0.3125em;
+}
+
+/* ── Nav bar — top 82px ── */
+.navBar {
+  position: absolute;
+  top: 5.125em;
+  left: 0; right: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 2.8125em;
+}
+.navBtn {
+  width: 1.25em; height: 1.25em;
+  background: none; border: none; padding: 0;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.navTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.9375em;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* ── Timeline — top:115px, full width 430px ── */
+.timeline {
+  position: absolute;
+  top: 7.1875em;  /* 115px */
+  left: 0;
+  width: 100%;
+  height: 4em;    /* 64px */
+  z-index: 4;
+}
+.timelineStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4em;
+  position: relative;
+  z-index: 1;
+}
+/* connector lines between steps */
+.timelineStep:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 0.875em;
+  left: calc(50% + 0.875em);
+  right: calc(-50% + 0.875em - 5em);
+  height: 2px;
+  background: rgba(26, 34, 96, 0.4);
+  z-index: 0;
+  width: 5.5em;
+}
+.stepDot {
+  width: 1.75em; height: 1.75em;
+  border-radius: 50%;
+  background: #0e1b4d;
+  border: 2px solid #0e1b4d;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 1;
+}
+.stepDotActive {
+  background: #ffffff;
+  border-color: #1a2260;
+  box-shadow: 0 0 0 4px rgba(26, 34, 96, 0.12);
+}
+.stepNum {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.6875em;
+  color: #1a2260;
+}
+.stepLabel {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.625em;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* ── White card — left:16, right:16, top:175, radius:32 32 0 0 ── */
+.card {
+  position: absolute;
+  left: 1em; right: 1em;
+  top: 10.9375em;
+  bottom: 0;
+  background: #ffffff;
+  border-radius: 2em 2em 0 0;
+  z-index: 2;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* card padding: title left=30px, everything else left=20px, right=20px */
+  padding: 2.875em 1.25em 0 1.25em;
+}
+
+/* ── Card header row ── */
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  flex-shrink: 0;
+  padding-left: 0.625em; /* title/subtitle at 30px from card edge */
+}
+.cardHeaderText { flex: 1; }
+.cardTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.75em;
+  color: #0e1b4d;
+  line-height: 1;
+  margin: 0 0 0.4em;
+}
+.cardSubtitle {
+  font-size: 0.75em;
+  color: #7a8ea8;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 17em;
+}
+
+/* Tutorial button — 73×64, absolute: top=75px, right=20px within card */
+.tutorialBtn {
+  position: absolute;
+  top: 3.25em;    /* 52px — bottom aligns with subtitle text */
+  right: 1.25em;  /* 20px */
+  width: 4.5625em !important; /* 73px */
+  height: 4em !important;     /* 64px */
+  cursor: pointer;
+}
+
+/* ── Status bar — 14px below header text ── */
+.statusBar {
+  margin-top: 0.875em; /* 14px */
+  flex-shrink: 0;
+  height: 3.375em;
+  background: #f3f7ff;
+  border-radius: 0.75em;
+  display: flex; align-items: center;
+  gap: 0.75em;
+  padding-inline: 1em;
+}
+.statusIconWrap {
+  width: 2em; height: 2em;
+  background: #ffffff;
+  border-radius: 0.5em;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.statusText { display: flex; flex-direction: column; gap: 0.2em; }
+.statusTitle {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1em;
+  color: #111111;
+  line-height: 1;
+}
+.statusSub {
+  font-size: 0.75em;
+  font-weight: 500;
+  color: #7a8ea8;
+  line-height: 1;
+}
+
+/* ── Viewfinder — SVG: x=20, y=221, w=358, h=391 ── */
+.viewfinder {
+  position: absolute;
+  top: 13.8125em;   /* 221px */
+  left: 1.25em;     /* 20px */
+  right: 1.25em;    /* 20px */
+  height: 24.4375em;/* 391px */
+  border-radius: 2em;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  background: linear-gradient(140.7deg, rgba(155,195,235,0.45) 0%, rgba(130,175,225,0.55) 60%, rgba(160,200,230,0.4) 100%);
+  box-shadow: 0 8px 32px 0 rgba(26,34,96,0.1), inset 0 1px 0 2px rgba(255,255,255,0.4);
+  overflow: hidden;
+}
+
+/* Corner brackets */
+.corner {
+  position: absolute;
+  width: 1.75em; height: 1.75em;
+  border: 2px solid rgba(255,255,255,0.85);
+}
+.cornerTL { top:.875em; left:.875em; border-right:none; border-bottom:none; border-radius:1.25em 0 0 0; }
+.cornerTR { top:.875em; right:.875em; border-left:none; border-bottom:none; border-radius:0 1.25em 0 0; }
+.cornerBL { bottom:.875em; left:.875em; border-right:none; border-top:none; border-radius:0 0 0 1.25em; }
+.cornerBR { bottom:.875em; right:.875em; border-left:none; border-top:none; border-radius:0 0 1.25em 0; }
+
+/* Teeth guide — centered in viewfinder */
+.teethGuide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Centering hint */
+.centeringHint {
+  position: absolute;
+  bottom: .9em; left: 50%; transform: translateX(-50%);
+  height: 1.75em;
+  padding-inline: .875em;
+  background: rgba(26,34,96,0.75);
+  backdrop-filter: blur(3px);
+  border-radius: 999px;
+  display: flex; align-items: center; gap: .5em;
+  white-space: nowrap;
+}
+.centeringDot {
+  width: .375em; height: .375em;
+  border-radius: .1875em;
+  background: #ffbe32; flex-shrink: 0;
+}
+.centeringText {
+  font-size: 0.725em; font-weight: 500;
+  color: #ffffff; line-height: 1;
+}
+
+/* ── Bottom controls — positions from SVG (card w=398px) ── */
+/* Timer: x=23,y=653 | Flash: x=79,y=653 | Shutter: x=162,y=632 | Grid: x=271,y=652 */
+.controls {
+  position: absolute;
+  top: 39.5em;     /* 632px — shutter top (topmost element) */
+  left: 0; right: 0;
+}
+.controlBtn {
+  position: absolute;
+  width: 2.875em; height: 2.875em; /* 46px */
+  background: rgba(255,255,255,0.38);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: .875em; /* 14px */
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  top: 1.34375em;  /* 653-632=21px from controls top */
+}
+.controlBtnTimer { left: 1.4375em; }  /* x=23px */
+.controlBtnFlash { left: 4.9375em; }  /* x=79px */
+.controlBtnGrid  { left: 16.9375em; } /* x=271px */
+.shutter {
+  position: absolute;
+  left: 10.125em;  /* x=162px */
+  top: 0;
+  width: 4.5em; height: 4.5em; /* 72px */
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  box-shadow: 0 4px 16px 0 rgba(26,34,96,0.1);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.shutterInner {
+  width: 3.5625em; height: 3.5625em; /* 57px */
+  border-radius: 50%;
+  background: rgba(240,244,251,0.7);
+  border: 2px solid rgba(26,34,96,0.08);
+}
