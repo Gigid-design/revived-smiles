@@ -1,0 +1,97 @@
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+.outerBg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.cardBg  { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+
+/* Progress bar — left:17, same positioning as all other screens */
+.progressBar {
+  position: absolute;
+  top: 2.3125em;   /* 37px */
+  left: 1.0625em;  /* 17px */
+  right: 1.1875em;
+  z-index: 3;
+  width: calc(100% - 2.25em);
+  height: 0.3125em;
+}
+
+/* Nav — close button at right:68px (left:362), top:82px */
+.navBar {
+  position: absolute;
+  top: 5.125em;    /* 82px */
+  left: 0; right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-inline: 2.6875em; /* 43px — aligns close to left:362 */
+}
+.navSpacer { flex: 1; }
+.navBtn {
+  width: 1.25em; height: 1.25em;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Title — centered at top:184px (semi-bold 34px white) */
+.title {
+  position: absolute;
+  top: 8.9375rem;    /* 143px */
+  left: 2.8125rem;   /* 45px */
+  right: 2.5rem;     /* 40px */
+  z-index: 3;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 2.125rem; /* 34px */
+  color: #ffffff;
+  text-align: center;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* Photo card — 356×500 SVG, centered (left=(430-356)/2=37px), 22px below title */
+.photoCard {
+  position: absolute !important;
+  /* title top=143px, title height≈82px (34px*1.2*2), gap=22px → top=247px */
+  top: 15.4375rem;   /* 247px */
+  left: 50% !important;
+  transform: translateX(-50%);
+  width: 22.25rem !important;  /* 356px */
+  height: 31.25rem !important; /* 500px */
+  z-index: 3;
+}
+
+/* Bottom nav — fixed to viewport bottom, same as other pages */
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, 26.875em); /* 430px */
+  padding: 0 2.375rem 2.1875rem; /* 38px sides, 35px bottom */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 20;
+}
+
+.btnBack {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 3.5rem;   /* 56px */
+  height: 3.5rem;
+}
+
+.btnNext {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 5.875rem; /* 94px */
+  height: 3.5rem;  /* 56px */
+}
