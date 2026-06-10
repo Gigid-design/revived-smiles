@@ -106,7 +106,7 @@ export default function OpenBite() {
           <button className={`${styles.controlBtn} ${styles.controlBtnFlash}`} aria-label="Flash">
             <Image src="/assets/images/camera-icon-flash.svg" alt="" width={21} height={21} unoptimized />
           </button>
-          <button className={styles.shutter} aria-label="Capture photo">
+          <button className={styles.shutter} aria-label="Capture photo" onClick={() => navigate('/instructions', 'forward')}>
             <div className={styles.shutterInner} />
           </button>
           <button className={`${styles.controlBtn} ${styles.controlBtnGrid}`} aria-label="Grid">
