@@ -27,8 +27,8 @@
   left: 1.0625em;
   right: 1.1875em;
   z-index: 3;
-  display: flex;
-  align-items: center;
+  width: calc(100% - 2.25em);
+  height: 0.3125em;
 }
 .segTrack {
   position: relative;
