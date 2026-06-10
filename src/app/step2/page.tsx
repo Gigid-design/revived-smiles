@@ -49,14 +49,14 @@ export default function Step2() {
         <Image src="/assets/images/intake-card-bg.png" alt="" fill style={{ objectFit: "cover", objectPosition: "center top" }} priority sizes="430px" />
       </div>
 
-      {/* Progress bar — step 2: active segment 77px */}
-      <div className={styles.progressBar} aria-label="Step 2 of 3" role="progressbar" aria-valuenow={2} aria-valuemin={1} aria-valuemax={3}>
-        <div className={styles.segTrack}>
-          <div className={styles.segActive} />
-        </div>
-        <div className={styles.segSmall} />
-        <div className={styles.segSmall} />
-      </div>
+      {/* Progress bar */}
+      <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Step 2 of 3" role="progressbar" aria-valuenow={2} aria-valuemin={1} aria-valuemax={3}>
+        <rect x="4" width="298" height="5" rx="2.5" fill="white"/>
+        <rect width="83" height="5" rx="2.5" fill="#0E1B4D"/>
+        <rect x="341" width="23" height="5" rx="2.5" fill="white"/>
+        <rect x="310" width="23" height="5" rx="2.5" fill="white"/>
+        <rect x="372" width="23" height="5" rx="2.5" fill="white"/>
+      </svg>
 
       {/* Nav bar */}
       <nav className={styles.navBar} aria-label="Form navigation">
