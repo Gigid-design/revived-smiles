@@ -1,0 +1,217 @@
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+.outerBg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.cardBg  { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+
+/* Progress bar — left:17, same as all screens */
+.progressBar {
+  position: absolute;
+  top: 2.3125rem; left: 1.0625rem; right: 1.1875rem;
+  z-index: 3;
+  width: calc(100% - 2.25rem);
+  height: 0.3125rem;
+}
+
+/* Nav — top:82px */
+.navBar {
+  position: absolute;
+  top: 5.125rem; left: 0; right: 0;
+  z-index: 3;
+  display: flex; align-items: center; justify-content: space-between;
+  padding-inline: 2.8125rem;
+}
+.navBtn {
+  width: 1.25rem; height: 1.25rem;
+  background: none; border: none; padding: 0;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.navTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.9375rem; /* 15px */
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* White card — left:16, right:16, top:114px (7.125rem), radius:32 32 0 0 */
+.card {
+  position: absolute;
+  left: 1rem; right: 1rem;
+  top: 7.125rem;
+  bottom: 0;
+  background: #ffffff;
+  border-radius: 2rem 2rem 0 0;
+  z-index: 2;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  padding-inline: 1.25rem;
+  padding-bottom: 6rem;
+}
+.card::-webkit-scrollbar { display: none; }
+
+/* Title — 28px medium navy, centered at top:81px within card */
+.cardTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.75rem;
+  color: #0e1b4d;
+  margin: 0;
+  padding-top: 4rem; /* 64px from card top border */
+  line-height: 1;
+}
+
+/* Subtitle — 12px gray */
+.cardSubtitle {
+  font-size: 0.75rem;
+  color: #7a8ea8;
+  line-height: 1.517;
+  margin: 0.625rem 0 0;
+  padding-right: 1.9375rem; /* right:51px from card */
+}
+
+/* Tip box — top:153, h:86, bg:#f3f7ff, radius:12 */
+.tipBox {
+  margin-top: 1rem;
+  background: #f3f7ff;
+  border-radius: 0.75rem;
+  padding: 0.875rem 1.375rem;
+  min-height: 5.375rem;
+}
+.tipText {
+  font-size: 0.75rem;
+  color: #7a8ea8;
+  line-height: 1.45;
+  margin: 0;
+}
+.tipText strong { color: #0e1b4d; font-weight: 700; }
+
+/* Progress row — top:253, h:35 */
+.progressRow {
+  margin-top: 0.875rem;
+  height: 2.1875rem;
+  display: flex; align-items: center; justify-content: space-between;
+  padding-inline: 0.875rem;
+}
+.progressText {
+  font-size: 0.75rem;  /* 12px */
+  font-weight: 500;
+  color: #4a5a78;
+  margin: 0;
+}
+.progressText strong {
+  color: #1a2a52;
+  font-weight: 700;
+  font-size: 0.75rem; /* 12px */
+}
+.dots { display: flex; align-items: center; gap: 0.3125rem; } /* 5px */
+.dot {
+  width: 0.5rem; height: 0.5rem;
+  border-radius: 0.25rem;
+  background: #dce4f2;
+}
+.dotActive { background: #3a6ad4; }
+
+/* Section label — 17px medium black uppercase tracking:1.1px */
+.sectionLabel {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.0625rem;
+  color: #000000;
+  text-transform: uppercase;
+  letter-spacing: 0.065em;
+  margin: 1rem 0 0.75rem;
+}
+
+/* Photo grid — 2 cols */
+.photoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+  margin-bottom: 0;
+}
+
+/* Photo card — white, border, rounded:15.769px, aspect 177/159.3 */
+.photoCard {
+  position: relative;
+  background: #ffffff;
+  border: 2px solid #e8e8e4;
+  border-radius: 0.985rem;
+  aspect-ratio: 177 / 159.3;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.photoCardInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding-top: 0.5rem;
+}
+.trayImg { opacity: 0.6; }
+
+/* + badge — top-right */
+.plusBadge {
+  position: absolute;
+  top: 0.491rem; right: 0.491rem;
+  width: 1.355rem; height: 1.355rem;
+  background: rgba(255,255,255,0.9);
+  border-radius: 0.677rem;
+  box-shadow: 0 0.062rem 0.246rem 0 rgba(0,0,0,0.12);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.photoLabel {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.727rem;
+  color: #1a2a52;
+  text-align: center;
+  margin: 0;
+  white-space: nowrap;
+}
+.photoSub {
+  font-size: 0.75rem;
+  color: #7a8ea8;
+  text-align: center;
+  margin: 0 0 0.5rem;
+  white-space: nowrap;
+}
+
+/* Continue button — fixed bottom, same as all other pages */
+.btnWrapper {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2em), 26.375em);
+  padding: 0 1.3125em 2.1875em;
+  z-index: 20;
+}
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 3.5em;
+  background: #e0e7f3;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}

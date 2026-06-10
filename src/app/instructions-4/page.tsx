@@ -50,7 +50,7 @@ export default function Instructions4() {
         <button className={styles.btnBack} aria-label="Previous" onClick={() => navigate('/instructions-3', 'backward')}>
           <Image src="/assets/images/instructions-btn-back.svg" alt="Back" width={56} height={56} unoptimized />
         </button>
-        <button className={styles.btnNext} aria-label="Next">
+        <button className={styles.btnNext} aria-label="Next" onClick={() => navigate('/impression-photos', 'forward')}>
           <Image src="/assets/images/instructions-btn-next.svg" alt="Next" width={94} height={56} unoptimized />
         </button>
       </div>
