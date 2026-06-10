@@ -34,11 +34,10 @@
   position: absolute;
   top: 2.3125em;   /* 37px */
   left: 1.0625em;  /* 17px */
-  right: 1.1875em; /* 19px to end at 411px */
+  right: 1.1875em; /* 19px */
   z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 0;
+  width: calc(100% - 2.25em);
+  height: 0.3125em; /* 5px */
 }
 
 /* Segment 1 track — fluid, fills available space */
