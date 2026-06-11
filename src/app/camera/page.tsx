@@ -98,22 +98,25 @@ export default function Camera() {
           </div>
         </div>
 
-        {/* Camera controls */}
-        <div className={styles.controls}>
-          <button className={`${styles.controlBtn} ${styles.controlBtnTimer}`} aria-label="Timer">
-            <Image src="/assets/images/camera-icon-timer.svg" alt="" width={21} height={21} unoptimized />
-          </button>
-          <button className={`${styles.controlBtn} ${styles.controlBtnFlash}`} aria-label="Flash">
-            <Image src="/assets/images/camera-icon-flash.svg" alt="" width={21} height={21} unoptimized />
-          </button>
-          <button className={styles.shutter} aria-label="Capture photo" onClick={() => navigate('/open-bite', 'forward')}>
-            <div className={styles.shutterInner} />
-          </button>
-          <button className={`${styles.controlBtn} ${styles.controlBtnGrid}`} aria-label="Grid">
-            <Image src="/assets/images/camera-icon-grid.svg" alt="" width={21} height={21} unoptimized />
-          </button>
-        </div>
+      </div>
 
+      {/* Bottom fade gradient — outside card, pinned to screen bottom */}
+      <div className={styles.bottomFade} aria-hidden="true" />
+
+      {/* Camera controls — outside card, pinned to screen bottom */}
+      <div className={styles.controls}>
+        <button className={`${styles.controlBtn} ${styles.controlBtnTimer}`} aria-label="Timer">
+          <Image src="/assets/images/camera-icon-timer.svg" alt="" width={21} height={21} unoptimized />
+        </button>
+        <button className={`${styles.controlBtn} ${styles.controlBtnFlash}`} aria-label="Flash">
+          <Image src="/assets/images/camera-icon-flash.svg" alt="" width={21} height={21} unoptimized />
+        </button>
+        <button className={styles.shutter} aria-label="Capture photo" onClick={() => navigate('/open-bite', 'forward')}>
+          <div className={styles.shutterInner} />
+        </button>
+        <button className={`${styles.controlBtn} ${styles.controlBtnGrid}`} aria-label="Grid">
+          <Image src="/assets/images/camera-icon-grid.svg" alt="" width={21} height={21} unoptimized />
+        </button>
       </div>
     </main>
   );

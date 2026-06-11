@@ -2,7 +2,7 @@
 .screen {
   position: relative;
   width: 100%;
-  min-height: 100svh;
+  height: 100svh;
   overflow: hidden;
 }
 
@@ -256,12 +256,26 @@
   color: #ffffff; line-height: 1;
 }
 
-/* ── Bottom controls — Timer: x=23 | Flash: x=79 | Shutter: x=162 | Grid: x=271 (relative to card) ── */
+/* ── Bottom fade — CSS gradient, pinned to screen bottom ── */
+.bottomFade {
+  position: absolute;
+  bottom: 0;
+  left: 1em;
+  right: 1em;
+  height: 10em;
+  background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.85) 50%, #ffffff 100%);
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ── Bottom controls — pinned to screen bottom, outside card ── */
+/* Timer: x=39 | Flash: x=95 | Shutter: x=178 | Grid: x=287 (screen coords) */
 .controls {
   position: absolute;
   bottom: 3.3125em;
   left: 0; right: 0;
   height: 4.5em;
+  z-index: 6;
 }
 .controlBtn {
   position: absolute;
@@ -273,12 +287,12 @@
   cursor: pointer;
   top: 1.34375em;
 }
-.controlBtnTimer { left: 1.4375em; }
-.controlBtnFlash { left: 4.9375em; }
-.controlBtnGrid  { left: 16.9375em; }
+.controlBtnTimer { left: 2.4375em; }
+.controlBtnFlash { left: 5.9375em; }
+.controlBtnGrid  { left: 17.9375em; }
 .shutter {
   position: absolute;
-  left: 10.125em;
+  left: 11.125em;
   top: 0;
   width: 4.5em; height: 4.5em;
   border-radius: 50%;

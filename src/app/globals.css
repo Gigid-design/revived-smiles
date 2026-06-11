@@ -69,6 +69,11 @@
   padding: 0;
 }
 
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -91,8 +96,9 @@ body {
 body > * {
   width: 100%;
   max-width: 430px;
+  height: 100%;
   background-color: var(--color-bg-dark);
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 img, picture, video, canvas, svg {
