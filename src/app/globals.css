@@ -71,7 +71,6 @@
 
 html, body {
   height: 100%;
-  overflow: hidden;
 }
 
 html {
@@ -96,9 +95,8 @@ body {
 body > * {
   width: 100%;
   max-width: 430px;
-  height: 100%;
   background-color: var(--color-bg-dark);
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 img, picture, video, canvas, svg {
