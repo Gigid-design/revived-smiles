@@ -108,7 +108,9 @@ export default function ImpressionPhotos() {
               {photos[slot.id] ? (
                 <>
                   <img src={photos[slot.id]} alt={slot.label} className={styles.uploadedPhoto} />
-                  <button className={styles.removeBadge} onClick={(e) => handleRemove(slot.id, e)} aria-label={`Remove ${slot.label}`}>✕</button>
+                  <button className={styles.removeBadge} onClick={(e) => handleRemove(slot.id, e)} aria-label={`Remove ${slot.label}`}>
+                    <Image src="/assets/images/imp-icon-close-sm.svg" alt="" width={10} height={10} unoptimized />
+                  </button>
                 </>
               ) : (
                 <div className={styles.photoCardInner}>
@@ -152,7 +154,9 @@ export default function ImpressionPhotos() {
               {photos[slot.id] ? (
                 <>
                   <img src={photos[slot.id]} alt={slot.label} className={styles.uploadedPhoto} />
-                  <button className={styles.removeBadge} onClick={(e) => handleRemove(slot.id, e)} aria-label={`Remove ${slot.label}`}>✕</button>
+                  <button className={styles.removeBadge} onClick={(e) => handleRemove(slot.id, e)} aria-label={`Remove ${slot.label}`}>
+                    <Image src="/assets/images/imp-icon-close-sm.svg" alt="" width={10} height={10} unoptimized />
+                  </button>
                 </>
               ) : (
                 <div className={styles.photoCardInner}>
