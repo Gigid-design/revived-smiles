@@ -2,20 +2,33 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRef, useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 
-const UPPER = [
+const SLOTS = [
   { id: 1, label: "Upper Impression 1", sub: "Angle 1", tray: "imp-tray-upper-1.svg", flip: false },
   { id: 2, label: "Upper Impression 2", sub: "Angle 2", tray: "imp-tray-upper-2.svg", flip: false },
-];
-const LOWER = [
-  { id: 3, label: "Lower Impression 1", sub: "Angle 1", tray: "imp-tray-lower.svg", flip: false },
-  { id: 4, label: "Lower Impression 2", sub: "Angle 2", tray: "imp-tray-upper.svg", flip: true  },
+  { id: 3, label: "Lower Impression 1", sub: "Angle 1", tray: "imp-tray-lower.svg",   flip: false },
+  { id: 4, label: "Lower Impression 2", sub: "Angle 2", tray: "imp-tray-upper.svg",   flip: true  },
 ];
 
 export default function ImpressionPhotos() {
   const { navigate } = usePageTransition();
+  const [photos, setPhotos] = useState<Record<number, string>>({});
+  const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
+
+  const uploadedCount = Object.keys(photos).length;
+
+  function handleFileChange(id: number, file: File | undefined) {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPhotos(prev => ({ ...prev, [id]: url }));
+  }
+
+  function handleCardClick(id: number) {
+    inputRefs.current[id]?.click();
+  }
 
   return (
     <main className={styles.screen}>
@@ -28,7 +41,7 @@ export default function ImpressionPhotos() {
         <Image src="/assets/images/intake-card-bg.png" alt="" fill style={{ objectFit: "cover", objectPosition: "center top" }} priority sizes="430px" />
       </div>
 
-      {/* Progress bar — 4 navy segs: x=0,31,62 + main track at x=93 w=302, active w=80 */}
+      {/* Progress bar */}
       <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Impression photos" role="progressbar">
         <rect x="0"   width="23"  height="5" rx="2.5" fill="#0E184D"/>
         <rect x="31"  width="23"  height="5" rx="2.5" fill="#0E184D"/>
@@ -63,56 +76,108 @@ export default function ImpressionPhotos() {
 
         {/* Upload progress */}
         <div className={styles.progressRow}>
-          <p className={styles.progressText}><strong>1</strong> of 4 photos added</p>
+          <p className={styles.progressText}><strong>{uploadedCount}</strong> of 4 photos added</p>
           <div className={styles.dots}>
-            <span className={`${styles.dot} ${styles.dotActive}`} />
-            <span className={styles.dot} />
-            <span className={styles.dot} />
-            <span className={styles.dot} />
+            {SLOTS.map(s => (
+              <span key={s.id} className={`${styles.dot} ${photos[s.id] ? styles.dotActive : ""}`} />
+            ))}
           </div>
         </div>
 
         {/* Upper Arch */}
         <p className={styles.sectionLabel}>Upper Arch</p>
         <div className={styles.photoGrid}>
-          {UPPER.map(slot => (
-            <div key={slot.id} className={styles.photoCard} onClick={slot.id === 1 ? () => navigate('/impression-photos-2', 'forward') : undefined} style={slot.id === 1 ? { cursor: 'pointer' } : undefined}>
-              <div className={styles.photoCardInner}>
-                <Image src={`/assets/images/${slot.tray}`} alt="" width={44} height={50} className={styles.trayImg}
-                  style={slot.flip ? { transform: "scaleX(-1)" } : undefined} unoptimized />
+          {SLOTS.slice(0, 2).map(slot => (
+            <button
+              key={slot.id}
+              className={`${styles.photoCard} ${photos[slot.id] ? styles.photoCardFilled : ""}`}
+              onClick={() => handleCardClick(slot.id)}
+              aria-label={`Upload ${slot.label}`}
+            >
+              {photos[slot.id] ? (
+                <img src={photos[slot.id]} alt={slot.label} className={styles.uploadedPhoto} />
+              ) : (
+                <div className={styles.photoCardInner}>
+                  <Image src={`/assets/images/${slot.tray}`} alt="" width={44} height={50} className={styles.trayImg}
+                    style={slot.flip ? { transform: "scaleX(-1)" } : undefined} unoptimized />
+                </div>
+              )}
+              <div className={styles.plusBadge} aria-hidden="true">
+                <Image
+                  src={photos[slot.id] ? "/assets/images/imp-icon-check.svg" : "/assets/images/imp-icon-plus-new.svg"}
+                  alt="" width={10} height={10} unoptimized
+                />
               </div>
-              <div className={styles.plusBadge}>
-                <Image src="/assets/images/imp-icon-plus-new.svg" alt="" width={10} height={10} unoptimized />
-              </div>
-              <p className={styles.photoLabel}>{slot.label}</p>
-              <p className={styles.photoSub}>{slot.sub}</p>
-            </div>
+              {!photos[slot.id] && (
+                <>
+                  <p className={styles.photoLabel}>{slot.label}</p>
+                  <p className={styles.photoSub}>{slot.sub}</p>
+                </>
+              )}
+              <input
+                ref={el => { inputRefs.current[slot.id] = el; }}
+                type="file"
+                accept="image/*"
+                className={styles.hiddenInput}
+                onChange={e => handleFileChange(slot.id, e.target.files?.[0])}
+              />
+            </button>
           ))}
         </div>
 
         {/* Lower Arch */}
         <p className={styles.sectionLabel}>Lower Arch</p>
         <div className={styles.photoGrid}>
-          {LOWER.map(slot => (
-            <div key={slot.id} className={styles.photoCard}>
-              <div className={styles.photoCardInner}>
-                <Image src={`/assets/images/${slot.tray}`} alt="" width={44} height={50} className={styles.trayImg}
-                  style={slot.flip ? { transform: "scaleX(-1)" } : undefined} unoptimized />
+          {SLOTS.slice(2, 4).map(slot => (
+            <button
+              key={slot.id}
+              className={`${styles.photoCard} ${photos[slot.id] ? styles.photoCardFilled : ""}`}
+              onClick={() => handleCardClick(slot.id)}
+              aria-label={`Upload ${slot.label}`}
+            >
+              {photos[slot.id] ? (
+                <img src={photos[slot.id]} alt={slot.label} className={styles.uploadedPhoto} />
+              ) : (
+                <div className={styles.photoCardInner}>
+                  <Image src={`/assets/images/${slot.tray}`} alt="" width={44} height={50} className={styles.trayImg}
+                    style={slot.flip ? { transform: "scaleX(-1)" } : undefined} unoptimized />
+                </div>
+              )}
+              <div className={styles.plusBadge} aria-hidden="true">
+                <Image
+                  src={photos[slot.id] ? "/assets/images/imp-icon-check.svg" : "/assets/images/imp-icon-plus-new.svg"}
+                  alt="" width={10} height={10} unoptimized
+                />
               </div>
-              <div className={styles.plusBadge}>
-                <Image src="/assets/images/imp-icon-plus-new.svg" alt="" width={10} height={10} unoptimized />
-              </div>
-              <p className={styles.photoLabel}>{slot.label}</p>
-              <p className={styles.photoSub}>{slot.sub}</p>
-            </div>
+              {!photos[slot.id] && (
+                <>
+                  <p className={styles.photoLabel}>{slot.label}</p>
+                  <p className={styles.photoSub}>{slot.sub}</p>
+                </>
+              )}
+              <input
+                ref={el => { inputRefs.current[slot.id] = el; }}
+                type="file"
+                accept="image/*"
+                className={styles.hiddenInput}
+                onChange={e => handleFileChange(slot.id, e.target.files?.[0])}
+              />
+            </button>
           ))}
         </div>
 
       </div>
 
-      {/* Continue button — fixed bottom, same as all other pages */}
+      {/* Continue button */}
       <div className={styles.btnWrapper}>
-        <button type="button" className={styles.btn}>CONTINUE</button>
+        <button
+          type="button"
+          className={`${styles.btn} ${uploadedCount === 4 ? styles.btnActive : ""}`}
+          disabled={uploadedCount < 4}
+          onClick={() => uploadedCount === 4 && navigate('/impression-photos-2', 'forward')}
+        >
+          CONTINUE
+        </button>
       </div>
     </main>
   );

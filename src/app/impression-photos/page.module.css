@@ -150,6 +150,11 @@
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
+  cursor: pointer;
+  text-align: center;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .photoCardInner {
@@ -187,6 +192,30 @@
   text-align: center;
   margin: 0 0 0.5rem;
   white-space: nowrap;
+}
+
+/* Hidden file input */
+.hiddenInput {
+  display: none;
+}
+
+/* Uploaded state */
+.photoCardFilled {
+  border-color: #3a6ad4;
+  padding: 0;
+}
+.uploadedPhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.985rem;
+  display: block;
+}
+
+/* Active continue button */
+.btnActive {
+  background: #0e1b4d !important;
+  cursor: pointer;
 }
 
 /* Continue button — fixed bottom, same as all other pages */
