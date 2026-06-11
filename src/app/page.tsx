@@ -6,11 +6,13 @@ import { FormEvent, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import styles from "./page.module.css";
+import { useSubmission } from "./context/SubmissionContext";
 
 gsap.registerPlugin(useGSAP);
 
 export default function Home() {
   const router = useRouter();
+  const { update } = useSubmission();
   const [email, setEmail] = useState("");
   const productRef = useRef<HTMLDivElement>(null);
 
@@ -55,6 +57,7 @@ export default function Home() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (email.trim()) {
+      update({ email: email.trim() });
       router.push("/welcome");
     }
   }
