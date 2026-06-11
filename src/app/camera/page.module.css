@@ -55,16 +55,14 @@
   white-space: nowrap;
 }
 
-/* ── Timeline — top:115px, height:60px, full width padded 71px ── */
+/* ── Timeline — top:115px, full width 430px ── */
 .timeline {
   position: absolute;
   top: 7.1875em;
-  left: 4.4375em;
-  right: 4.4375em;
+  left: 0;
+  width: 100%;
+  height: 4em;
   z-index: 4;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
 }
 .timelineStep {
   display: flex;
@@ -258,29 +256,30 @@
   color: #ffffff; line-height: 1;
 }
 
-/* ── Bottom controls — positions from SVG (card w=398px) ── */
-/* Timer: x=23,y=653 | Flash: x=79,y=653 | Shutter: x=162,y=632 | Grid: x=271,y=652 */
+/* ── Bottom controls — Timer: x=23 | Flash: x=79 | Shutter: x=162 | Grid: x=271 (relative to card) ── */
+/* Shutter top = 807px from screen top; card top = 175px; controls bottom = 53px from screen bottom */
 .controls {
   position: absolute;
-  top: 39.5em;     /* 632px — shutter top (topmost element) */
+  bottom: 3.3125em;   /* 53px from card bottom = screen bottom */
   left: 0; right: 0;
+  height: 4.5em;      /* 72px — shutter height (tallest element) */
 }
 .controlBtn {
   position: absolute;
   width: 2.875em; height: 2.875em; /* 46px */
   background: rgba(255,255,255,0.38);
   border: 1px solid rgba(255,255,255,0.6);
-  border-radius: .875em; /* 14px */
+  border-radius: .875em;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  top: 1.34375em;  /* 653-632=21px from controls top */
+  top: 1.34375em;  /* (72-46)/2 + 8.5px ≈ 21px — vertically offset per design */
 }
-.controlBtnTimer { left: 1.4375em; }  /* x=23px */
-.controlBtnFlash { left: 4.9375em; }  /* x=79px */
-.controlBtnGrid  { left: 16.9375em; } /* x=271px */
+.controlBtnTimer { left: 1.4375em; }   /* x=23px */
+.controlBtnFlash { left: 4.9375em; }   /* x=79px */
+.controlBtnGrid  { left: 16.9375em; }  /* x=271px */
 .shutter {
   position: absolute;
-  left: 10.125em;  /* x=162px */
+  left: 10.125em;   /* x=162px */
   top: 0;
   width: 4.5em; height: 4.5em; /* 72px */
   border-radius: 50%;
