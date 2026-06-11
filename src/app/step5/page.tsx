@@ -5,6 +5,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
+import { useSubmission } from "../context/SubmissionContext";
 
 /* ── Tooth shape colors ── */
 const DEFAULT = { fill1: "#DCE4F0", fill2: "#E8EEF6", stroke1: "#C8D4E4", stroke2: "#B8C8DC" };
@@ -185,6 +186,7 @@ export default function Step5() {
   const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set());
   const [notSure, setNotSure] = useState(false);
   const { cardRef, navigate } = usePageTransition();
+  const { update } = useSubmission();
 
   function toggleTooth(num: number) {
     setNotSure(false);
@@ -288,7 +290,10 @@ export default function Step5() {
 
       <div className={styles.buttonWrapper}>
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
-          onClick={() => navigate('/photo-intro', 'forward')}
+          onClick={() => {
+          update({ selectedTeeth: [...selectedTeeth], teethNotSure: notSure });
+          navigate('/photo-intro', 'forward');
+        }}
         >CONTINUE</button>
       </div>
     </main>

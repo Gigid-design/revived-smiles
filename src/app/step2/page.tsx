@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
+import { useSubmission } from "../context/SubmissionContext";
 
 const US_STATES = [
   "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut",
@@ -36,6 +37,7 @@ export default function Step2() {
   const [selected, setSelected] = useState("");
   const hasValue = selected !== "";
   const { cardRef, navigate } = usePageTransition("fade");
+  const { update } = useSubmission();
 
   return (
     <main className={styles.screen}>
@@ -115,7 +117,7 @@ export default function Step2() {
         <button
           type="button"
           className={`${styles.btn} ${hasValue ? styles.btnActive : ""}`}
-          onClick={() => { if (hasValue) navigate('/step3', 'forward'); }}
+          onClick={() => { if (hasValue) { update({ state: selected }); navigate('/step3', 'forward'); } }}
         >
           CONTINUE
         </button>

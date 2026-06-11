@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
+import { useSubmission } from "../context/SubmissionContext";
 
 export default function Intake() {
   const [name, setName] = useState("");
   const hasValue = name.trim().length > 0;
   const { cardRef, navigate } = usePageTransition("fade");
+  const { update } = useSubmission();
 
   return (
     <main className={styles.screen}>
@@ -72,7 +74,7 @@ export default function Intake() {
         <button
           type="button"
           className={`${styles.btn} ${hasValue ? styles.btnActive : ""}`}
-          onClick={() => { if (hasValue) navigate('/step2', 'forward'); }}
+          onClick={() => { if (hasValue) { update({ name: name.trim() }); navigate('/step2', 'forward'); } }}
         >
           CONTINUE
         </button>

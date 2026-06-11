@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
+import { useSubmission } from "../context/SubmissionContext";
 
 /* ── Tooth shade swatches ── */
 const WHITE_SHADES = [
@@ -25,6 +26,7 @@ export default function Step4() {
   const [whiteShade, setWhiteShade] = useState<string | null>(null);
   const [gumShade,   setGumShade]   = useState<string | null>(null);
   const { cardRef, navigate } = usePageTransition();
+  const { update } = useSubmission();
 
   const selectedWhite = WHITE_SHADES.find(s => s.id === whiteShade);
   const selectedGum   = GUM_SHADES.find(s => s.id === gumShade);
@@ -135,7 +137,7 @@ export default function Step4() {
       {/* CONTINUE — always active navy on this screen */}
       <div className={styles.buttonWrapper}>
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
-          onClick={() => navigate('/step5', 'forward')}>
+          onClick={() => { update({ whiteShade, gumShade }); navigate('/step5', 'forward'); }}>
           CONTINUE
         </button>
       </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
+import { useSubmission } from "../context/SubmissionContext";
 
 const PRODUCTS = [
   "Flexible partial denture",
@@ -36,6 +37,7 @@ function CheckIcon({ checked }: { checked: boolean }) {
 export default function Step3() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const { cardRef, navigate } = usePageTransition();
+  const { update } = useSubmission();
 
   function toggle(product: string) {
     setSelected((prev) => {
@@ -117,7 +119,7 @@ export default function Step3() {
         <button
           type="button"
           className={`${styles.btn} ${hasSelection ? styles.btnActive : ""}`}
-          onClick={() => { if (hasSelection) navigate('/step4', 'forward'); }}
+          onClick={() => { if (hasSelection) { update({ products: [...selected] }); navigate('/step4', 'forward'); } }}
         >
           CONTINUE
         </button>
