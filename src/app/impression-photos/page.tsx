@@ -47,7 +47,7 @@ export default function ImpressionPhotos() {
         <rect x="31"  width="23"  height="5" rx="2.5" fill="#0E184D"/>
         <rect x="62"  width="23"  height="5" rx="2.5" fill="#0E184D"/>
         <rect x="93"  width="302" height="5" rx="2.5" fill="white"/>
-        <rect x="93"  width={uploadedCount === 4 ? 302 : 80} height="5" rx="2.5" fill="#0E184D"/>
+        <rect x="93"  width={80 + (222 * uploadedCount / 4)} height="5" rx="2.5" fill="#0E184D"/>
       </svg>
 
       {/* Nav bar */}
