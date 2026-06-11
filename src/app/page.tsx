@@ -14,59 +14,58 @@ export default function Home() {
   const router = useRouter();
   const { update } = useSubmission();
   const [email, setEmail] = useState("");
+  const screenRef = useRef<HTMLElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
   const productRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
+  const { contextSafe } = useGSAP(() => {
     const mm = gsap.matchMedia();
 
     mm.add("(prefers-reduced-motion: no-preference)", () => {
       const el = productRef.current;
       if (!el) return;
 
-      // Vertical bob — 4s full period (2s half), ±10px, sine wave
-      gsap.to(el, {
-        y: -10,
-        duration: 2,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-      });
-
-      // Horizontal sway — slightly different period for organic feel, ±4px
-      gsap.to(el, {
-        x: 4,
-        duration: 2.4,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-      });
-
-      // Rotation — ±1.5°, tied loosely to the bob
-      gsap.to(el, {
-        rotation: 1.5,
-        duration: 2,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-      });
+      gsap.to(el, { y: -10, duration: 2, ease: "sine.inOut", yoyo: true, repeat: -1 });
+      gsap.to(el, { x: 4, duration: 2.4, ease: "sine.inOut", yoyo: true, repeat: -1 });
+      gsap.to(el, { rotation: 1.5, duration: 2, ease: "sine.inOut", yoyo: true, repeat: -1 });
     });
 
     return () => mm.revert();
-  }, { scope: productRef });
+  }, { scope: screenRef });
 
-  function handleSubmit(e: FormEvent) {
+  const handleSubmit = contextSafe((e: FormEvent) => {
     e.preventDefault();
-    if (email.trim()) {
-      update({ email: email.trim() });
-      router.push("/welcome");
-    }
-  }
+    if (!email.trim()) return;
+
+    update({ email: email.trim() });
+
+    const tl = gsap.timeline({
+      onComplete: () => router.push("/welcome"),
+    });
+
+    tl.to(topRef.current, {
+      y: -40,
+      opacity: 0,
+      duration: 0.45,
+      ease: "power2.in",
+    }, 0)
+    .to(productRef.current, {
+      y: 60,
+      opacity: 0,
+      duration: 0.45,
+      ease: "power2.in",
+    }, 0.05)
+    .to(screenRef.current, {
+      opacity: 0,
+      duration: 0.2,
+      ease: "power1.in",
+    }, 0.3);
+  });
 
   return (
-    <main className={styles.screen}>
+    <main className={styles.screen} ref={screenRef}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
-      {/* Full-screen card background image */}
       <div className={styles.cardBg} aria-hidden="true">
         <Image
           src="/assets/images/hero-card-bg.png"
@@ -78,8 +77,7 @@ export default function Home() {
         />
       </div>
 
-      {/* Top section — heading, subtitle, input, button (396px) */}
-      <div className={styles.topSection} id="main-content">
+      <div className={styles.topSection} id="main-content" ref={topRef}>
         <h1 className={styles.heading}>Your smile journey starts here</h1>
         <p className={styles.subtitle}>
           Enter the email you used when you placed your order.
@@ -87,7 +85,6 @@ export default function Home() {
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputWrapper}>
-            {/* placeholder=" " enables CSS :placeholder-shown trick for floating label */}
             <input
               id="email"
               type="email"
@@ -107,7 +104,6 @@ export default function Home() {
         </form>
       </div>
 
-      {/* Bottom section — product image (536px) */}
       <div className={styles.bottomSection} aria-hidden="true">
         <div className={styles.productImageWrapper} ref={productRef}>
           <Image
