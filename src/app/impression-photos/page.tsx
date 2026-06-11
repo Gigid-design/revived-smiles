@@ -195,7 +195,7 @@ export default function ImpressionPhotos() {
           type="button"
           className={`${styles.btn} ${uploadedCount === 4 ? styles.btnActive : ""}`}
           disabled={uploadedCount < 4}
-          onClick={() => uploadedCount === 4 && navigate('/impression-photos-2', 'forward')}
+          onClick={() => uploadedCount === 4 && navigate('/complete', 'forward')}
         >
           CONTINUE
         </button>
