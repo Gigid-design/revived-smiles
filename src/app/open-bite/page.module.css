@@ -122,11 +122,14 @@
   background: #ffffff;
   border-radius: 2em 2em 0 0;
   z-index: 2;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
   display: flex;
   flex-direction: column;
-  /* card padding: title left=30px, everything else left=20px, right=20px */
-  padding: 2.875em 1.25em 0 1.25em;
+  padding: 2.875em 1.25em 10em 1.25em;
+}
+.card::-webkit-scrollbar { display: none;
 }
 
 /* ── Card header row ── */
@@ -197,12 +200,11 @@
   line-height: 1;
 }
 
-/* ── Viewfinder — SVG: x=20, y=221, w=358, h=391 ── */
+/* ── Viewfinder — in flow after status bar ── */
 .viewfinder {
-  position: absolute;
-  top: 13.8125em;   /* 221px */
-  left: 1.25em;     /* 20px */
-  right: 1.25em;    /* 20px */
+  position: relative;
+  margin-top: 0.875em;
+  flex-shrink: 0;
   height: 24.4375em;/* 391px */
   border-radius: 2em;
   border: 2px solid rgba(255, 255, 255, 0.65);
