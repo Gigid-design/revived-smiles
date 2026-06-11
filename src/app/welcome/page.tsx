@@ -10,13 +10,56 @@ import styles from "./page.module.css";
 gsap.registerPlugin(useGSAP);
 
 export default function Welcome() {
+  const screenRef = useRef<HTMLElement>(null);
   const photoBgRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
     const mm = gsap.matchMedia();
 
     mm.add("(prefers-reduced-motion: no-preference)", () => {
-      // Slow Ken Burns zoom: scale 1 → 1.15 over 10s, breathes back, loops forever
+      // Entrance: screen fades in, photo scales from slight zoom, text + button slide up
+      const tl = gsap.timeline();
+
+      tl.fromTo(screenRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.35, ease: "power1.out" }
+      )
+      .fromTo(photoBgRef.current,
+        { scale: 1.08, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.7, ease: "power2.out" },
+        0
+      )
+      .fromTo(heroRef.current,
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.55, ease: "power2.out" },
+        0.2
+      )
+      .fromTo(btnRef.current,
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" },
+        0.35
+      );
+
+      // Ken Burns loop on photo after entrance
+      tl.to(photoBgRef.current, {
+        scale: 1.15,
+        duration: 10,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: -1,
+        transformOrigin: "center center",
+      }, 0.7);
+    });
+
+    mm.add("(prefers-reduced-motion: reduce)", () => {
+      // Simple fade only
+      gsap.fromTo(screenRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4, ease: "power1.out" }
+      );
+      // Still do Ken Burns
       gsap.to(photoBgRef.current, {
         scale: 1.15,
         duration: 10,
@@ -28,13 +71,12 @@ export default function Welcome() {
     });
 
     return () => mm.revert();
-  }, { scope: photoBgRef });
+  }, { scope: screenRef });
 
   return (
-    <main className={styles.screen}>
+    <main className={styles.screen} ref={screenRef} style={{ opacity: 0 }}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
-      {/* Card background texture */}
       <div className={styles.cardBg} aria-hidden="true">
         <Image
           src="/assets/images/welcome-card-bg.png"
@@ -46,7 +88,6 @@ export default function Welcome() {
         />
       </div>
 
-      {/* Full-screen photo — two layers composited, slowly zooms in */}
       <div className={styles.photoBg} ref={photoBgRef} aria-hidden="true">
         <Image
           src="/assets/images/welcome-photo-1.png"
@@ -66,8 +107,7 @@ export default function Welcome() {
         />
       </div>
 
-      {/* Hero text — top-left */}
-      <div className={styles.heroContent} id="main-content">
+      <div className={styles.heroContent} id="main-content" ref={heroRef}>
         <p className={styles.heading}>
           Your{"\n"}
           new smile{"\n"}
@@ -76,8 +116,7 @@ export default function Welcome() {
         <p className={styles.headingNow}>NOW</p>
       </div>
 
-      {/* LET'S GO button → /intake */}
-      <div className={styles.buttonWrapper}>
+      <div className={styles.buttonWrapper} ref={btnRef}>
         <Link href="/intake" className={styles.btn}>
           LET&apos;S GO
         </Link>
