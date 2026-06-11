@@ -41,13 +41,13 @@ export default function ImpressionPhotos() {
         <Image src="/assets/images/intake-card-bg.png" alt="" fill style={{ objectFit: "cover", objectPosition: "center top" }} priority sizes="430px" />
       </div>
 
-      {/* Progress bar */}
+      {/* Progress bar — active segment fills as photos are uploaded */}
       <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Impression photos" role="progressbar">
         <rect x="0"   width="23"  height="5" rx="2.5" fill="#0E184D"/>
         <rect x="31"  width="23"  height="5" rx="2.5" fill="#0E184D"/>
         <rect x="62"  width="23"  height="5" rx="2.5" fill="#0E184D"/>
         <rect x="93"  width="302" height="5" rx="2.5" fill="white"/>
-        <rect x="93"  width="80"  height="5" rx="2.5" fill="#0E184D"/>
+        <rect x="93"  width={uploadedCount === 4 ? 302 : 80} height="5" rx="2.5" fill="#0E184D"/>
       </svg>
 
       {/* Nav bar */}
