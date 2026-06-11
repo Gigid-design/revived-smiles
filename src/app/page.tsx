@@ -43,23 +43,13 @@ export default function Home() {
       onComplete: () => router.push("/welcome"),
     });
 
-    tl.to(topRef.current, {
-      y: -40,
+    tl.to(screenRef.current, {
+      filter: "blur(18px)",
       opacity: 0,
-      duration: 0.45,
+      scale: 1.04,
+      duration: 0.55,
       ease: "power2.in",
-    }, 0)
-    .to(productRef.current, {
-      y: 60,
-      opacity: 0,
-      duration: 0.45,
-      ease: "power2.in",
-    }, 0.05)
-    .to(screenRef.current, {
-      opacity: 0,
-      duration: 0.2,
-      ease: "power1.in",
-    }, 0.3);
+    });
   });
 
   return (

@@ -23,26 +23,21 @@ export default function Welcome() {
       const tl = gsap.timeline();
 
       tl.fromTo(screenRef.current,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.35, ease: "power1.out" }
-      )
-      .fromTo(photoBgRef.current,
-        { scale: 1.08, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.7, ease: "power2.out" },
-        0
+        { filter: "blur(18px)", opacity: 0, scale: 1.04 },
+        { filter: "blur(0px)", opacity: 1, scale: 1, duration: 0.65, ease: "power2.out" }
       )
       .fromTo(heroRef.current,
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.55, ease: "power2.out" },
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" },
         0.2
       )
       .fromTo(btnRef.current,
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" },
+        { y: 16, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
         0.35
       );
 
-      // Ken Burns loop on photo after entrance
+      // Ken Burns loop after entrance
       tl.to(photoBgRef.current, {
         scale: 1.15,
         duration: 10,
