@@ -95,7 +95,7 @@ body {
 body > * {
   width: 100%;
   max-width: 430px;
-  background-color: var(--color-bg-dark);
+  background-color: #b8cce4;
   overflow-x: hidden;
 }
 
