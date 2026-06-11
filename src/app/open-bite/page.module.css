@@ -256,31 +256,31 @@
   color: #ffffff; line-height: 1;
 }
 
-/* ── Bottom controls — positions from SVG (card w=398px) ── */
-/* Timer: x=23,y=653 | Flash: x=79,y=653 | Shutter: x=162,y=632 | Grid: x=271,y=652 */
+/* ── Bottom controls — Timer: x=23 | Flash: x=79 | Shutter: x=162 | Grid: x=271 (relative to card) ── */
 .controls {
   position: absolute;
-  top: 39.5em;     /* 632px — shutter top (topmost element) */
+  bottom: 3.3125em;
   left: 0; right: 0;
+  height: 4.5em;
 }
 .controlBtn {
   position: absolute;
-  width: 2.875em; height: 2.875em; /* 46px */
+  width: 2.875em; height: 2.875em;
   background: rgba(255,255,255,0.38);
   border: 1px solid rgba(255,255,255,0.6);
-  border-radius: .875em; /* 14px */
+  border-radius: .875em;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  top: 1.34375em;  /* 653-632=21px from controls top */
+  top: 1.34375em;
 }
-.controlBtnTimer { left: 1.4375em; }  /* x=23px */
-.controlBtnFlash { left: 4.9375em; }  /* x=79px */
-.controlBtnGrid  { left: 16.9375em; } /* x=271px */
+.controlBtnTimer { left: 1.4375em; }
+.controlBtnFlash { left: 4.9375em; }
+.controlBtnGrid  { left: 16.9375em; }
 .shutter {
   position: absolute;
-  left: 10.125em;  /* x=162px */
+  left: 10.125em;
   top: 0;
-  width: 4.5em; height: 4.5em; /* 72px */
+  width: 4.5em; height: 4.5em;
   border-radius: 50%;
   background: rgba(255,255,255,0.5);
   box-shadow: 0 4px 16px 0 rgba(26,34,96,0.1);
@@ -288,7 +288,7 @@
   display: flex; align-items: center; justify-content: center;
 }
 .shutterInner {
-  width: 3.5625em; height: 3.5625em; /* 57px */
+  width: 3.5625em; height: 3.5625em;
   border-radius: 50%;
   background: rgba(240,244,251,0.7);
   border: 2px solid rgba(26,34,96,0.08);
