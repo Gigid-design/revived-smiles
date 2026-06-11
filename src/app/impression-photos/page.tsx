@@ -102,7 +102,7 @@ export default function ImpressionPhotos() {
                     style={slot.flip ? { transform: "scaleX(-1)" } : undefined} unoptimized />
                 </div>
               )}
-              <div className={styles.plusBadge} aria-hidden="true">
+              <div className={`${styles.plusBadge} ${photos[slot.id] ? styles.plusBadgeSuccess : ""}`} aria-hidden="true">
                 <Image
                   src={photos[slot.id] ? "/assets/images/imp-icon-check.svg" : "/assets/images/imp-icon-plus-new.svg"}
                   alt="" width={10} height={10} unoptimized
@@ -143,7 +143,7 @@ export default function ImpressionPhotos() {
                     style={slot.flip ? { transform: "scaleX(-1)" } : undefined} unoptimized />
                 </div>
               )}
-              <div className={styles.plusBadge} aria-hidden="true">
+              <div className={`${styles.plusBadge} ${photos[slot.id] ? styles.plusBadgeSuccess : ""}`} aria-hidden="true">
                 <Image
                   src={photos[slot.id] ? "/assets/images/imp-icon-check.svg" : "/assets/images/imp-icon-plus-new.svg"}
                   alt="" width={10} height={10} unoptimized
