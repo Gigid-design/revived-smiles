@@ -27,7 +27,18 @@ export default function ImpressionPhotos() {
   }
 
   function handleCardClick(id: number) {
-    inputRefs.current[id]?.click();
+    const input = inputRefs.current[id];
+    if (input) {
+      input.value = "";  // reset so re-selecting the same file fires onChange
+      input.click();
+    }
+  }
+
+  function handleRemove(id: number, e: React.MouseEvent) {
+    e.stopPropagation();
+    const prev = photos[id];
+    if (prev) URL.revokeObjectURL(prev);
+    setPhotos(p => { const next = { ...p }; delete next[id]; return next; });
   }
 
   return (
@@ -95,7 +106,10 @@ export default function ImpressionPhotos() {
               aria-label={`Upload ${slot.label}`}
             >
               {photos[slot.id] ? (
-                <img src={photos[slot.id]} alt={slot.label} className={styles.uploadedPhoto} />
+                <>
+                  <img src={photos[slot.id]} alt={slot.label} className={styles.uploadedPhoto} />
+                  <button className={styles.removeBadge} onClick={(e) => handleRemove(slot.id, e)} aria-label={`Remove ${slot.label}`}>✕</button>
+                </>
               ) : (
                 <div className={styles.photoCardInner}>
                   <Image src={`/assets/images/${slot.tray}`} alt="" width={44} height={50} className={styles.trayImg}
@@ -136,7 +150,10 @@ export default function ImpressionPhotos() {
               aria-label={`Upload ${slot.label}`}
             >
               {photos[slot.id] ? (
-                <img src={photos[slot.id]} alt={slot.label} className={styles.uploadedPhoto} />
+                <>
+                  <img src={photos[slot.id]} alt={slot.label} className={styles.uploadedPhoto} />
+                  <button className={styles.removeBadge} onClick={(e) => handleRemove(slot.id, e)} aria-label={`Remove ${slot.label}`}>✕</button>
+                </>
               ) : (
                 <div className={styles.photoCardInner}>
                   <Image src={`/assets/images/${slot.tray}`} alt="" width={44} height={50} className={styles.trayImg}

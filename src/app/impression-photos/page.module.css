@@ -181,6 +181,24 @@
   box-shadow: 0 0.062rem 0.246rem 0 rgba(34,197,94,0.3);
 }
 
+/* Remove (X) button — top-left on uploaded cards */
+.removeBadge {
+  position: absolute;
+  top: 0.491rem; left: 0.491rem;
+  width: 1.355rem; height: 1.355rem;
+  background: rgba(0,0,0,0.45);
+  border: none;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #ffffff;
+  font-size: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  z-index: 2;
+}
+
 .photoLabel {
   font-family: var(--font-heading);
   font-weight: 700;
