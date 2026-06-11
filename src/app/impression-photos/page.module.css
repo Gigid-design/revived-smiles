@@ -186,11 +186,12 @@
   position: absolute;
   top: 0.491rem; left: 0.491rem;
   width: 1.355rem; height: 1.355rem;
-  background: rgba(0,0,0,0.45);
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 0.062rem 0.246rem 0 rgba(0,0,0,0.12);
   border: none;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  color: #ffffff;
+  color: #0e1b4d;
   font-size: 0.5rem;
   font-weight: 700;
   cursor: pointer;
