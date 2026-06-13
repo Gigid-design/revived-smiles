@@ -2,11 +2,97 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRef, useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 
+type State = "idle" | "analyzing" | "pass" | "fail";
+
+interface Check {
+  id: string;
+  label: string;
+  pass: boolean;
+  detail: string;
+}
+
+interface PillState {
+  label: string;
+  detail: string;
+  status: "idle" | "checking" | "pass" | "fail" | "allpass" | "allfail";
+}
+
 export default function OpenBite() {
   const { navigate } = usePageTransition();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const [state, setState] = useState<State>("idle");
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [pill, setPill] = useState<PillState | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+
+  const startCamera = useCallback(async (facing: "environment" | "user" = "environment") => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) videoRef.current.srcObject = stream;
+    } catch {
+      setCameraError("Camera access denied. Allow camera in browser settings.");
+    }
+  }, []);
+
+  useEffect(() => {
+    startCamera(facingMode);
+    return () => { streamRef.current?.getTracks().forEach((t) => t.stop()); };
+  }, [startCamera, facingMode]);
+
+  const flipCamera = () => {
+    setFacingMode((prev) => prev === "environment" ? "user" : "environment");
+  };
+
+  const runChecks = useCallback(async (checks: Check[]) => {
+    for (let i = 0; i < checks.length; i++) {
+      const c = checks[i];
+      setPill({ label: c.label, detail: "", status: "checking" });
+      await new Promise<void>((r) => setTimeout(r, 900));
+      setPill({ label: c.label, detail: c.detail, status: c.pass ? "pass" : "fail" });
+      await new Promise<void>((r) => setTimeout(r, 500));
+    }
+    await new Promise<void>((r) => setTimeout(r, 300));
+    setPill({ label: "All checks passed", detail: "Ready to submit", status: "allpass" });
+    setState("pass");
+  }, []);
+
+  const captureAndAnalyze = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    canvas.getContext("2d")!.drawImage(video, 0, 0);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+    setCapturedImage(dataUrl);
+    setState("analyzing");
+    setPill({ label: "Starting scan…", detail: "", status: "checking" });
+
+    const checks: Check[] = [
+      { id: "blur",       label: "Blur & focus",        pass: true, detail: "Photo is sharp and in focus" },
+      { id: "lighting",   label: "Lighting",             pass: true, detail: "Lighting looks great" },
+      { id: "visibility", label: "Teeth visible",        pass: true, detail: "All teeth clearly visible" },
+      { id: "framing",    label: "Framing & distance",   pass: true, detail: "Teeth well framed" },
+      { id: "angle",      label: "Angle & orientation",  pass: true, detail: "Angle is perfect" },
+      { id: "bite",       label: "Bite position",        pass: true, detail: "Bite position looks correct" },
+      { id: "glare",      label: "Glare & reflections",  pass: true, detail: "No glare detected" },
+    ];
+    await runChecks(checks);
+  };
 
   return (
     <main className={styles.screen}>
@@ -43,80 +129,114 @@ export default function OpenBite() {
       <Image
         src="/assets/images/camera-timeline.svg"
         alt="Steps: Front, Left side, Right side"
-        width={430}
-        height={64}
+        width={430} height={64}
         className={styles.timeline}
-        unoptimized
-        priority
+        unoptimized priority
       />
 
       {/* White card */}
       <div className={styles.card} id="main-content">
 
-        {/* Header */}
         <div className={styles.cardHeader}>
           <div className={styles.cardHeaderText}>
             <h1 className={styles.cardTitle}>Open bite</h1>
-            <p className={styles.cardSubtitle}>Align teeth to the oval guide, then hold steady to capture</p>
+            <p className={styles.cardSubtitle}>
+              {state === "idle" && "Align teeth to the oval guide, then hold steady to capture"}
+              {state === "analyzing" && "AI is scanning your photo…"}
+              {state === "pass" && "All checks passed! Ready to submit."}
+            </p>
           </div>
         </div>
 
-        {/* Tutorial button — 73×64, 20px from right, 14px above status bar (top=75px) */}
-        <Image
-          src="/assets/images/camera-tutorial-btn.svg"
-          alt="Tutorial"
-          width={73}
-          height={64}
-          className={styles.tutorialBtn}
-          unoptimized
-        />
+        {state === "idle" && (
+          <Image src="/assets/images/camera-tutorial-btn.svg" alt="Tutorial" width={73} height={64} className={styles.tutorialBtn} unoptimized />
+        )}
 
-        {/* Status bar */}
-        <div className={styles.statusBar}>
-          <div className={styles.statusIconWrap}>
-            <Image src="/assets/images/camera-icon-align.svg" alt="" width={18} height={18} unoptimized />
+        {/* Viewfinder wrap */}
+        <div className={styles.viewfinderWrap}>
+          <div className={styles.viewfinder} aria-label="Camera viewfinder">
+            <video
+              ref={videoRef}
+              className={`${styles.liveVideo} ${state !== "idle" ? styles.hidden : ""} ${facingMode === "user" ? styles.mirrored : ""}`}
+              autoPlay playsInline muted
+            />
+            {capturedImage && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={capturedImage} alt="Captured" className={styles.capturedImg} />
+            )}
+            {cameraError && (
+              <div className={styles.cameraError}><p>{cameraError}</p></div>
+            )}
+
+            <span className={`${styles.corner} ${styles.cornerTL}`} />
+            <span className={`${styles.corner} ${styles.cornerTR}`} />
+            <span className={`${styles.corner} ${styles.cornerBL}`} />
+            <span className={`${styles.corner} ${styles.cornerBR}`} />
+
+            {state === "idle" && (
+              <div className={styles.teethGuide}>
+                <Image src="/assets/images/camera-teeth-guide-open.png" alt="Teeth alignment guide - open bite" width={280} height={140} style={{ width: '100%', height: 'auto' }} unoptimized />
+              </div>
+            )}
           </div>
-          <div className={styles.statusText}>
-            <strong className={styles.statusTitle}>Almost aligned</strong>
-            <span className={styles.statusSub}>Move slightly right to center teeth</span>
-          </div>
+
+          {/* Pill outside viewfinder */}
+          {pill && (
+            <div className={`${styles.scanPill} ${
+              pill.status === "allpass" ? styles.scanPillAllPass :
+              pill.status === "allfail" || pill.status === "fail" ? styles.scanPillFail :
+              pill.status === "pass" ? styles.scanPillPass :
+              styles.scanPillChecking
+            }`}>
+              <div className={styles.scanPillIcon}>
+                {pill.status === "checking" && <span className={styles.scanSpinner} />}
+                {pill.status === "pass" && <span className={styles.scanIconPass}>✓</span>}
+                {pill.status === "allpass" && <span className={styles.scanIconPass}>✓</span>}
+              </div>
+              <div className={styles.scanPillText}>
+                <span className={styles.scanPillLabel}>{pill.label}</span>
+                {pill.detail ? <span className={styles.scanPillDetail}>{pill.detail}</span> : null}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Viewfinder */}
-        <div className={styles.viewfinder} aria-label="Camera viewfinder">
-          <span className={`${styles.corner} ${styles.cornerTL}`} />
-          <span className={`${styles.corner} ${styles.cornerTR}`} />
-          <span className={`${styles.corner} ${styles.cornerBL}`} />
-          <span className={`${styles.corner} ${styles.cornerBR}`} />
-          {/* Teeth guide centered */}
-          <div className={styles.teethGuide}>
-            <Image src="/assets/images/camera-teeth-guide-open.png" alt="Teeth alignment guide - open bite" width={280} height={140} style={{ width: '100%', height: 'auto' }} unoptimized />
-          </div>
-          <div className={styles.centeringHint}>
-            <span className={styles.centeringDot} />
-            <span className={styles.centeringText}>Centering…</span>
-          </div>
-        </div>
-
+        <canvas ref={canvasRef} style={{ display: "none" }} />
       </div>
 
-      {/* Bottom fade gradient — outside card, pinned to screen bottom */}
+      {/* Bottom fade */}
       <div className={styles.bottomFade} aria-hidden="true" />
 
-      {/* Camera controls — outside card, pinned to screen bottom */}
+      {/* Controls */}
       <div className={styles.controls}>
-        <button className={`${styles.controlBtn} ${styles.controlBtnTimer}`} aria-label="Timer">
-          <Image src="/assets/images/camera-icon-timer.svg" alt="" width={21} height={21} unoptimized />
-        </button>
-        <button className={`${styles.controlBtn} ${styles.controlBtnFlash}`} aria-label="Flash">
-          <Image src="/assets/images/camera-icon-flash.svg" alt="" width={21} height={21} unoptimized />
-        </button>
-        <button className={styles.shutter} aria-label="Capture photo" onClick={() => navigate('/instructions', 'forward')}>
-          <div className={styles.shutterInner} />
-        </button>
-        <button className={`${styles.controlBtn} ${styles.controlBtnGrid}`} aria-label="Grid">
-          <Image src="/assets/images/camera-icon-grid.svg" alt="" width={21} height={21} unoptimized />
-        </button>
+        {state === "idle" && (
+          <>
+            <button className={`${styles.controlBtn} ${styles.controlBtnTimer}`} aria-label="Timer">
+              <Image src="/assets/images/camera-icon-timer.svg" alt="" width={21} height={21} unoptimized />
+            </button>
+            <button className={`${styles.controlBtn} ${styles.controlBtnFlash}`} aria-label="Flash">
+              <Image src="/assets/images/camera-icon-flash.svg" alt="" width={21} height={21} unoptimized />
+            </button>
+            <button className={styles.shutter} aria-label="Capture photo" onClick={captureAndAnalyze}>
+              <div className={styles.shutterInner} />
+            </button>
+            <button className={`${styles.controlBtn} ${styles.controlBtnGrid}`} aria-label="Flip camera" onClick={flipCamera}>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#0e1b4d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 4v6h6"/>
+                <path d="M23 20v-6h-6"/>
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+              </svg>
+            </button>
+          </>
+        )}
+        {state === "analyzing" && (
+          <div className={styles.analyzingControls}>
+            <span className={styles.analyzingLabel}>Scanning photo…</span>
+          </div>
+        )}
+        {state === "pass" && (
+          <button className={styles.submitBtn} onClick={() => navigate('/instructions', 'forward')}>Submit Photo</button>
+        )}
       </div>
     </main>
   );

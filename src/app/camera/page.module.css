@@ -491,8 +491,8 @@
   position: absolute;
   left: 50%; top: 50%;
   transform: translate(-50%, -50%);
+  width: 23.75em;
   height: 3em;
-  padding-inline: 2em;
   background: #0e1b4d;
   color: #ffffff;
   font-family: var(--font-heading);
