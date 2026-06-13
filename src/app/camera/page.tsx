@@ -55,9 +55,8 @@ export default function Camera() {
       });
       streamRef.current = stream;
       if (videoRef.current) videoRef.current.srcObject = stream;
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setCameraError(`Camera error: ${msg}`);
+    } catch {
+      setCameraError("Camera access denied. Allow camera in browser settings.");
     }
   }, []);
 
