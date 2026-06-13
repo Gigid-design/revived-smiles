@@ -1,0 +1,776 @@
+/* ── Screen ── */
+.screen {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.bgOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Progress bar ── */
+.progressBar {
+  position: absolute;
+  top: 2.3125em;
+  left: 1.0625em;
+  right: 1.1875em;
+  z-index: 3;
+  width: calc(100% - 2.25em);
+  height: 0.3125em;
+}
+
+/* ── Nav bar — top 82px ── */
+.navBar {
+  position: absolute;
+  top: 5.125em;
+  left: 0; right: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 2.8125em;
+}
+.navBtn {
+  width: 1.25em; height: 1.25em;
+  background: none; border: none; padding: 0;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.navTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.9375em;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* ── Timeline — top:115px, full width 430px ── */
+.timeline {
+  position: absolute;
+  top: 7.1875em;
+  left: 0;
+  width: 100%;
+  height: 4em;
+  z-index: 4;
+}
+.timelineStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4em;
+  position: relative;
+  z-index: 1;
+}
+/* connector lines between steps */
+.timelineStep:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 0.875em;
+  left: calc(50% + 0.875em);
+  right: calc(-50% + 0.875em - 5em);
+  height: 2px;
+  background: rgba(26, 34, 96, 0.4);
+  z-index: 0;
+  width: 5.5em;
+}
+.stepDot {
+  width: 1.75em; height: 1.75em;
+  border-radius: 50%;
+  background: #0e1b4d;
+  border: 2px solid #0e1b4d;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 1;
+}
+.stepDotActive {
+  background: #ffffff;
+  border-color: #1a2260;
+  box-shadow: 0 0 0 4px rgba(26, 34, 96, 0.12);
+}
+.stepNum {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.6875em;
+  color: #1a2260;
+}
+.stepLabel {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.625em;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* ── White card — left:16, right:16, top:175, radius:32 32 0 0 ── */
+.card {
+  position: absolute;
+  left: 1em; right: 1em;
+  top: 10.9375em;
+  bottom: 0;
+  background: #ffffff;
+  border-radius: 2em 2em 0 0;
+  z-index: 2;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  padding: 2.875em 1.25em 10em 1.25em;
+}
+.card::-webkit-scrollbar { display: none; }
+
+/* ── Card header row ── */
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  flex-shrink: 0;
+  padding-left: 0.625em; /* title/subtitle at 30px from card edge */
+}
+.cardHeaderText { flex: 1; }
+.cardTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.75em;
+  color: #0e1b4d;
+  line-height: 1;
+  margin: 0 0 0.4em;
+}
+.cardSubtitle {
+  font-size: 0.75em;
+  color: #7a8ea8;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 17em;
+}
+
+/* Tutorial button — 73×64, absolute: top=75px, right=20px within card */
+.tutorialBtn {
+  position: absolute;
+  top: 3.25em;    /* 52px — bottom aligns with subtitle text */
+  right: 1.25em;  /* 20px */
+  width: 4.5625em !important; /* 73px */
+  height: 4em !important;     /* 64px */
+  cursor: pointer;
+}
+
+/* ── Status bar — 14px below header text ── */
+.statusBar {
+  margin-top: 0.875em; /* 14px */
+  flex-shrink: 0;
+  height: 3.375em;
+  background: #f3f7ff;
+  border-radius: 0.75em;
+  display: flex; align-items: center;
+  gap: 0.75em;
+  padding-inline: 1em;
+}
+.statusIconWrap {
+  width: 2em; height: 2em;
+  background: #ffffff;
+  border-radius: 0.5em;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.statusText { display: flex; flex-direction: column; gap: 0.2em; }
+.statusTitle {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1em;
+  color: #111111;
+  line-height: 1;
+}
+.statusSub {
+  font-size: 0.75em;
+  font-weight: 500;
+  color: #7a8ea8;
+  line-height: 1;
+}
+
+/* ── Viewfinder — in flow after status bar ── */
+.viewfinder {
+  position: relative;
+  flex-shrink: 0;
+  height: 24.4375em;
+  border-radius: 2em;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  background: linear-gradient(140.7deg, rgba(155,195,235,0.45) 0%, rgba(130,175,225,0.55) 60%, rgba(160,200,230,0.4) 100%);
+  box-shadow: 0 8px 32px 0 rgba(26,34,96,0.1), inset 0 1px 0 2px rgba(255,255,255,0.4);
+  overflow: hidden;
+}
+
+/* Corner brackets */
+.corner {
+  position: absolute;
+  width: 1.75em; height: 1.75em;
+  border: 2px solid rgba(255,255,255,0.85);
+}
+.cornerTL { top:.875em; left:.875em; border-right:none; border-bottom:none; border-radius:1.25em 0 0 0; }
+.cornerTR { top:.875em; right:.875em; border-left:none; border-bottom:none; border-radius:0 1.25em 0 0; }
+.cornerBL { bottom:.875em; left:.875em; border-right:none; border-top:none; border-radius:0 0 0 1.25em; }
+.cornerBR { bottom:.875em; right:.875em; border-left:none; border-top:none; border-radius:0 0 1.25em 0; }
+
+/* Teeth guide — centered in viewfinder */
+.teethGuide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Centering hint */
+.centeringHint {
+  position: absolute;
+  bottom: .9em; left: 50%; transform: translateX(-50%);
+  height: 1.75em;
+  padding-inline: .875em;
+  background: rgba(26,34,96,0.75);
+  backdrop-filter: blur(3px);
+  border-radius: 999px;
+  display: flex; align-items: center; gap: .5em;
+  white-space: nowrap;
+}
+.centeringDot {
+  width: .375em; height: .375em;
+  border-radius: .1875em;
+  background: #ffbe32; flex-shrink: 0;
+}
+.centeringText {
+  font-size: 0.725em; font-weight: 500;
+  color: #ffffff; line-height: 1;
+}
+
+/* ── Bottom fade — CSS gradient, pinned to screen bottom ── */
+.bottomFade {
+  position: absolute;
+  bottom: 0;
+  left: 1em;
+  right: 1em;
+  height: 10em;
+  background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.85) 50%, #ffffff 100%);
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ── Bottom controls — pinned to screen bottom ── */
+.controls {
+  position: absolute;
+  bottom: 3.3125em;
+  left: 0; right: 0;
+  height: 4.5em;
+  z-index: 6;
+}
+.controlBtn {
+  position: absolute;
+  width: 2.875em; height: 2.875em;
+  background: rgba(255,255,255,0.38);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: .875em;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  top: 1.34375em;
+}
+.controlBtnTimer { left: 2.4375em; }
+.controlBtnFlash { left: 5.9375em; }
+.controlBtnGrid  { left: 17.9375em; }
+.shutter {
+  position: absolute;
+  left: 11.125em;
+  top: 0;
+  width: 4.5em; height: 4.5em;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  box-shadow: 0 4px 16px 0 rgba(26,34,96,0.1);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.shutterInner {
+  width: 3.5625em; height: 3.5625em;
+  border-radius: 50%;
+  background: rgba(240,244,251,0.7);
+  border: 2px solid rgba(26,34,96,0.08);
+}
+
+/* ── Viewfinder wrapper — pill lives here, no overflow clip ── */
+.viewfinderWrap {
+  position: relative;
+  margin-top: 0.875em;
+  flex-shrink: 0;
+}
+
+/* ── Viewfinder shrunk when analyzing ── */
+.viewfinderShrunk {
+  height: 11em;
+}
+
+/* ── Live camera video ── */
+.liveVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+.hidden { display: none; }
+.mirrored { transform: scaleX(-1); }
+
+/* ── Captured still ── */
+.capturedImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+/* ── Camera error ── */
+.cameraError {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5em;
+  text-align: center;
+}
+.cameraError p {
+  font-size: 0.875em;
+  color: #7a8ea8;
+  line-height: 1.5;
+}
+
+/* ── Analyzing overlay ── */
+.analyzingOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 27, 77, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+  border-radius: inherit;
+  z-index: 2;
+}
+.analyzingSpinner {
+  width: 2.5em; height: 2.5em;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+.analyzingText {
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  font-weight: 500;
+  color: #ffffff;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Pass overlay ── */
+.passOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 122, 74, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  z-index: 2;
+}
+.passIcon {
+  font-size: 4em;
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* ── Fail overlay ── */
+.failOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(192, 57, 43, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  z-index: 2;
+}
+.failIcon {
+  font-size: 4em;
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* ── Status bar variants ── */
+.statusBarPass { background: #e8f7ef; }
+.statusBarFail { background: #fdecea; }
+
+/* ── Spinner icon in status bar ── */
+.spinner {
+  display: block;
+  width: 1em; height: 1em;
+  border: 2px solid rgba(14,27,77,0.2);
+  border-top-color: #0e1b4d;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+.checkmark {
+  font-size: 1.1em;
+  color: #1a7a4a;
+  font-weight: 700;
+}
+.crossmark {
+  font-size: 1.1em;
+  color: #c0392b;
+  font-weight: 700;
+}
+
+/* ── Issues list (fail state) ── */
+.issuesList {
+  list-style: none;
+  margin: 0.75em 0 0;
+  padding: 0.75em 1em;
+  background: #fdecea;
+  border-radius: 0.75em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.issueItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.8125em;
+  color: #c0392b;
+  line-height: 1.4;
+}
+.issueDot {
+  width: 0.375em; height: 0.375em;
+  border-radius: 50%;
+  background: #c0392b;
+  flex-shrink: 0;
+}
+
+/* ── Analyzing controls label ── */
+.analyzingControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.analyzingLabel {
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  font-weight: 500;
+  color: rgba(14,27,77,0.6);
+}
+
+/* ── Retake button ── */
+.retakeBtn {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  height: 3em;
+  padding-inline: 2em;
+  background: #0e1b4d;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: 0.9375em;
+  font-weight: 600;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ── Submit button ── */
+.submitBtn {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  height: 3em;
+  padding-inline: 2em;
+  background: #1a7a4a;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: 0.9375em;
+  font-weight: 600;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ── Result badge over viewfinder ── */
+.resultBadgePass,
+.resultBadgeFail {
+  position: absolute;
+  bottom: 0.75em;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 2em;
+  padding-inline: 1em;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 3;
+}
+.resultBadgePass {
+  background: #b8ffce;
+  color: #0f6e3a;
+}
+.resultBadgeFail {
+  background: #ffe0de;
+  color: #c0392b;
+}
+
+/* ── AI check list ── */
+.checkList {
+  margin-top: 0.875em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+/* ── Single check pill — mirrors Container.svg ── */
+.checkPill {
+  display: flex;
+  align-items: center;
+  gap: 0.625em;
+  height: 2.875em;
+  padding-inline: 0.875em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  animation: pillIn 0.25s ease both;
+}
+@keyframes pillIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.checkPillPass  { background: #e8f7ef; border-color: rgba(26,122,74,0.2); }
+.checkPillFail  { background: #fdecea; border-color: rgba(192,57,43,0.2); }
+.checkPillChecking { background: #f3f7ff; border-color: rgba(14,27,77,0.12); }
+
+/* Icon circle */
+.checkPillIcon {
+  width: 2em; height: 2em;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.checkPillPass .checkPillIcon  { background: #b8ffce; }
+.checkPillFail .checkPillIcon  { background: #ffe0de; }
+
+.checkSpinner {
+  display: block;
+  width: 0.875em; height: 0.875em;
+  border: 2px solid rgba(14,27,77,0.15);
+  border-top-color: #0e1b4d;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.checkIconPass { font-size: 0.875em; color: #179537; font-weight: 700; }
+.checkIconFail { font-size: 0.875em; color: #c0392b; font-weight: 700; }
+
+/* Body */
+.checkPillBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  min-width: 0;
+}
+.checkPillLabel {
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  font-weight: 700;
+  color: #111111;
+  line-height: 1;
+  white-space: nowrap;
+}
+.checkPillDetail {
+  font-size: 0.7em;
+  color: #7a8ea8;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.checkPillFail .checkPillDetail { color: #c0392b; }
+
+/* Status text */
+.checkPillStatus {
+  font-family: var(--font-heading);
+  font-size: 0.75em;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.checkPillPass .checkPillStatus  { color: #179537; }
+.checkPillFail .checkPillStatus  { color: #c0392b; }
+.checkPillChecking .checkPillStatus { color: #7a8ea8; }
+
+/* ── Single rotating scan pill — inside viewfinder ── */
+.scanPill {
+  position: absolute;
+  bottom: 0.875em;
+  left: 1em;
+  right: 1em;
+  margin-inline: auto;
+  width: fit-content;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  height: 2.75em;
+  padding-inline: 0.75em 1em;
+  border-radius: 999px;
+  animation: pillIn 0.2s ease both;
+}
+.scanPillChecking {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+.scanPillPass {
+  background: rgba(15, 110, 58, 0.78);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.scanPillFail {
+  background: rgba(180, 30, 20, 0.78);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.scanPillAllPass {
+  background: rgba(15, 110, 58, 0.78);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.scanPillIcon {
+  width: 1.75em; height: 1.75em;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.scanSpinner {
+  display: block;
+  width: 0.875em; height: 0.875em;
+  border: 2px solid rgba(14,27,77,0.2);
+  border-top-color: #0e1b4d;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.scanIconPass { font-size: 0.875em; color: #ffffff; font-weight: 700; }
+.scanIconFail { font-size: 0.875em; color: #ffffff; font-weight: 700; }
+
+.scanPillText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05em;
+  min-width: 0;
+  flex: 1;
+}
+.scanPillLabel {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 700;
+  color: #0e1b4d;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scanPillDetail {
+  font-size: 0.6875em;
+  font-weight: 500;
+  color: rgba(14,27,77,0.6);
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scanPillPass .scanPillLabel,
+.scanPillAllPass .scanPillLabel { color: #ffffff; }
+.scanPillPass .scanPillDetail,
+.scanPillAllPass .scanPillDetail { color: rgba(255,255,255,0.8); }
+.scanPillFail .scanPillLabel { color: #ffffff; }
+.scanPillFail .scanPillDetail { color: rgba(255,255,255,0.8); }
+
+/* ── Tip card ── */
+.tipCard {
+  margin-top: 0.75em;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75em;
+  padding: 0.875em 1em;
+  background: #fffbec;
+  border: 1px solid rgba(186, 117, 23, 0.25);
+  border-radius: 1em;
+  animation: pillIn 0.3s ease both;
+}
+.tipIcon {
+  font-size: 1.25em;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0.1em;
+}
+.tipBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+.tipLabel {
+  font-family: var(--font-heading);
+  font-size: 0.75em;
+  font-weight: 700;
+  color: #ba7517;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.tipText {
+  font-size: 0.875em;
+  color: #5a4010;
+  line-height: 1.45;
+}

@@ -123,7 +123,7 @@ export default function Camera() {
   };
 
   const retake = () => {
-    navigate('/camera-1', 'forward');
+    navigate('/camera', 'backward');
   };
 
   return (
