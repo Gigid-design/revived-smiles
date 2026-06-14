@@ -11,11 +11,6 @@ export default function Dashboard() {
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
-      {/* Background */}
-      <div className={styles.bg}>
-        <Image src="/assets/images/intake-bg.png" alt="" fill style={{ objectFit: "cover" }} priority sizes="430px" />
-      </div>
-
       <div className={styles.content} id="main-content">
 
         {/* Greeting */}
