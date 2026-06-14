@@ -6,14 +6,14 @@ import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 
 const CLOSE_BITE_PHOTOS = [
-  { label: "Close bite front" },
-  { label: "Close bite left side" },
-  { label: "Close bite right side" },
+  { label: "Close bite front",       mockup: null },
+  { label: "Close bite left side",   mockup: "/assets/images/mockup-close-bite-left.png" },
+  { label: "Close bite right side",  mockup: "/assets/images/mockup-close-bite-right.png" },
 ];
 
 const OPEN_BITE_PHOTOS = [
-  { label: "Open bite front" },
-  { label: "Open bite left side" },
+  { label: "Open bite front",      mockup: null },
+  { label: "Open bite left side",  mockup: "/assets/images/mockup-open-bite-left.png" },
 ];
 
 export default function OrderDetail() {
@@ -81,6 +81,9 @@ export default function OrderDetail() {
                 {closeBitePhotos[i] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={closeBitePhotos[i]} alt={photo.label} className={styles.thumbnailImg} />
+                ) : photo.mockup ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photo.mockup} alt={photo.label} className={styles.thumbnailImg} />
                 ) : (
                   <div className={styles.thumbnailPlaceholder} />
                 )}
@@ -101,6 +104,9 @@ export default function OrderDetail() {
                 {openBitePhotos[i] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={openBitePhotos[i]} alt={photo.label} className={styles.thumbnailImg} />
+                ) : photo.mockup ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photo.mockup} alt={photo.label} className={styles.thumbnailImg} />
                 ) : (
                   <div className={styles.thumbnailPlaceholder} />
                 )}
