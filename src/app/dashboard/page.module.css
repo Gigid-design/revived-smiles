@@ -116,6 +116,7 @@
 /* View more button */
 .viewMoreBtn {
   display: flex;
+  text-decoration: none;
   align-items: center;
   justify-content: center;
   width: calc(100% - 2.5em);

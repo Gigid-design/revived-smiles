@@ -1,0 +1,169 @@
+/* ── Screen ── */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  background: #ffffff;
+  overflow-x: hidden;
+}
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.875em;
+  padding: 3.25em 1.25em 1em;
+}
+
+.backBtn {
+  width: 2.125em;
+  height: 2.125em;
+  background: #f5f5f5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.875em;
+  color: #0e1b4d;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.25;
+}
+
+/* ── Scrollable content ── */
+.content {
+  padding: 0 0 8em;
+}
+
+/* ── Section label ── */
+.sectionLabel {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.0625em;
+  color: #0e1b4d;
+  margin: 0;
+  padding: 1em 1.25em 0.5em;
+}
+
+/* ── Section rows ── */
+.section {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.75em 1.25em;
+  gap: 1em;
+}
+
+.rowLabel {
+  font-size: 1.25em;
+  font-weight: 500;
+  color: #8a8a8a;
+  flex-shrink: 0;
+}
+
+.rowValue {
+  font-size: 1.25em;
+  font-weight: 500;
+  color: #111111;
+  text-align: right;
+  max-width: 55%;
+}
+
+.rowValueUnderline {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Photo rows ── */
+.photoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5em 1.25em;
+  gap: 1em;
+  min-height: 4.25em;
+}
+
+.thumbnail {
+  width: 3.255em;   /* 52px */
+  height: 3.255em;
+  border-radius: 0.465em;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.thumbnailPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: #d9d9d9;
+}
+
+/* ── Divider ── */
+.divider {
+  height: 0.6875em; /* 11px */
+  background: #f5f5f5;
+  margin: 0.5em 0;
+}
+
+/* ── Bottom navigation ── */
+.bottomNav {
+  position: fixed;
+  bottom: 1.875em;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2em), 16.9375em);
+  height: 3.6875em;
+  background: #ffffff;
+  border-radius: 4.375em;
+  box-shadow: 0 4px 34px 1px rgba(0,0,0,0.11);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 10;
+  padding-inline: 0.5em;
+}
+
+.navItem {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75em;
+  height: 2.75em;
+  border-radius: 50%;
+  position: relative;
+  text-decoration: none;
+}
+
+.navItemActive {
+  background: none;
+}
+
+/* Notification dot on messages */
+.navDot {
+  position: absolute;
+  top: 0.4em;
+  right: 0.4em;
+  width: 0.25em;
+  height: 0.25em;
+  border-radius: 50%;
+  background: #0e1b4d;
+}

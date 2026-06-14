@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import styles from "./page.module.css";
 
 const STEPS = ["Ordered", "Intake Form", "Team Review", "Start The Treatment"];
@@ -53,7 +54,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <button className={styles.viewMoreBtn}>VIEW MORE</button>
+          <Link href="/order-detail" className={styles.viewMoreBtn}>VIEW MORE</Link>
         </div>
 
         {/* Care teams section */}
