@@ -71,6 +71,7 @@
 }
 
 .rowLabel {
+  font-family: var(--font-heading);
   font-size: 1.25em;
   font-weight: 500;
   color: #8a8a8a;
@@ -78,6 +79,7 @@
 }
 
 .rowValue {
+  font-family: var(--font-heading);
   font-size: 1.25em;
   font-weight: 500;
   color: #111111;
@@ -98,6 +100,7 @@
   padding: 0.5em 1.25em;
   gap: 1em;
   min-height: 4.25em;
+  font-family: var(--font-heading);
 }
 
 .thumbnail {
