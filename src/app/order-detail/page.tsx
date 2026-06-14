@@ -5,14 +5,6 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 
-const ABOUT_ROWS = [
-  { label: "Name",            value: "Mira M." },
-  { label: "State",           value: "California" },
-  { label: "Ordered Product", value: "Acrylic Partial Denture, Retainer", underline: true },
-  { label: "Tooth Shade",     value: "A2" },
-  { label: "Gum Shade",       value: "G3" },
-];
-
 const CLOSE_BITE_PHOTOS = [
   { label: "Close bite front" },
   { label: "Close bite left side" },
@@ -27,6 +19,15 @@ const OPEN_BITE_PHOTOS = [
 export default function OrderDetail() {
   const [closeBitePhotos, setCloseBitePhotos] = useState<string[]>([]);
   const [openBitePhotos, setOpenBitePhotos] = useState<string[]>([]);
+  const [fullName, setFullName] = useState("—");
+
+  const aboutRows = [
+    { label: "Name",            value: fullName },
+    { label: "State",           value: "California" },
+    { label: "Ordered Product", value: "Acrylic Partial Denture, Retainer", underline: true },
+    { label: "Tooth Shade",     value: "A2" },
+    { label: "Gum Shade",       value: "G3" },
+  ];
 
   useEffect(() => {
     try {
@@ -34,6 +35,8 @@ export default function OrderDetail() {
       setCloseBitePhotos(close);
       const open = JSON.parse(localStorage.getItem('rs_openBitePhotos') || '[]');
       setOpenBitePhotos(open);
+      const name = localStorage.getItem('rs_name');
+      if (name) setFullName(name.trim());
     } catch {}
   }, []);
   return (
@@ -56,7 +59,7 @@ export default function OrderDetail() {
         {/* About you */}
         <p className={styles.sectionLabel}>About you</p>
         <div className={styles.section}>
-          {ABOUT_ROWS.map((row) => (
+          {aboutRows.map((row) => (
             <div key={row.label} className={styles.row}>
               <span className={styles.rowLabel}>{row.label}</span>
               <span className={`${styles.rowValue} ${row.underline ? styles.rowValueUnderline : ""}`}>

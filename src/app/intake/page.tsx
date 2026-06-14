@@ -74,7 +74,14 @@ export default function Intake() {
         <button
           type="button"
           className={`${styles.btn} ${hasValue ? styles.btnActive : ""}`}
-          onClick={() => { if (hasValue) { update({ name: name.trim() }); navigate('/step2', 'forward'); } }}
+          onClick={() => {
+            if (hasValue) {
+              const trimmed = name.trim();
+              update({ name: trimmed });
+              try { localStorage.setItem('rs_name', trimmed); } catch {}
+              navigate('/step2', 'forward');
+            }
+          }}
         >
           CONTINUE
         </button>

@@ -2,12 +2,22 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 
 const STEPS = ["Ordered", "Intake Form", "Team Review", "Start The Treatment"];
 const ACTIVE_STEP = 2; // 0-indexed, currently at "Team Review"
 
 export default function Dashboard() {
+  const [firstName, setFirstName] = useState("Angela");
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('rs_name');
+      if (stored) setFirstName(stored.trim().split(" ")[0]);
+    } catch {}
+  }, []);
+
   return (
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
@@ -15,7 +25,7 @@ export default function Dashboard() {
       <div className={styles.content} id="main-content">
 
         {/* Greeting */}
-        <h1 className={styles.greeting}>Welcome back,<br />Angela</h1>
+        <h1 className={styles.greeting}>Welcome back,<br />{firstName}</h1>
 
         {/* Order status card */}
         <div className={styles.card}>
