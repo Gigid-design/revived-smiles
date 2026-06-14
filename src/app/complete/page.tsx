@@ -62,7 +62,7 @@ export default function Complete() {
 
       {/* OKAY! button — fixed bottom, same as Tooth Chart */}
       <div className={styles.btnWrapper}>
-        <button type="button" className={styles.btn}>OKAY!</button>
+        <Link href="/dashboard" className={styles.btn}>OKAY!</Link>
       </div>
     </main>
   );
