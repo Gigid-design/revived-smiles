@@ -13,6 +13,8 @@ export interface SubmissionState {
   teethNotSure: boolean;
   impressionPhotos: { slot: number; url: string; path: string }[];
   submissionId: string | null;
+  closeBitePhotos: string[];   // [front, leftSide, rightSide]
+  openBitePhotos: string[];    // [front, leftSide]
 }
 
 interface SubmissionContextValue {
@@ -32,6 +34,8 @@ const defaults: SubmissionState = {
   teethNotSure: false,
   impressionPhotos: [],
   submissionId: null,
+  closeBitePhotos: [],
+  openBitePhotos: [],
 };
 
 const SubmissionContext = createContext<SubmissionContextValue | null>(null);

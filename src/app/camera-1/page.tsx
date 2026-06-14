@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRef, useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
+import { useSubmission } from "../context/SubmissionContext";
 
 type State = "idle" | "analyzing" | "pass" | "fail";
 
@@ -35,6 +36,7 @@ const TIPS: Record<string, string> = {
 
 export default function Camera() {
   const { navigate } = usePageTransition();
+  const { update, data } = useSubmission();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -280,7 +282,17 @@ export default function Camera() {
           <button className={styles.retakeBtn} onClick={retake}>Retake Photo</button>
         )}
         {state === "pass" && (
-          <button className={styles.submitBtn} onClick={() => navigate('/open-bite', 'forward')}>Submit Photo</button>
+          <button className={styles.submitBtn} onClick={() => {
+            // Save close bite front photo to localStorage
+            if (capturedImage) {
+              try {
+                const stored = JSON.parse(localStorage.getItem('rs_closeBitePhotos') || '[]');
+                stored[0] = capturedImage;
+                localStorage.setItem('rs_closeBitePhotos', JSON.stringify(stored));
+              } catch {}
+            }
+            navigate('/open-bite', 'forward');
+          }}>Submit Photo</button>
         )}
       </div>
     </main>

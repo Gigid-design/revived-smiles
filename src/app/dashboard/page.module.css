@@ -3,7 +3,7 @@
   position: relative;
   width: 100%;
   min-height: 100dvh;
-  background: #f5f7fb;
+  background: #ffffff;
   overflow-x: hidden;
 }
 
@@ -28,110 +28,123 @@
   margin: 0 0 1.125rem 0.625rem;
 }
 
-/* ── Order status card ── */
+/* ── Order status card — matches Figma 212:417 exactly ── */
 .card {
+  position: relative;
   background: #ffffff;
-  border-radius: 1.25em;
+  border-radius: 1.25em;        /* 20px */
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
   overflow: hidden;
+  height: 16.375em;             /* 262px */
   margin-bottom: 1.875em;
+  flex-shrink: 0;
 }
 
-.cardBody {
-  display: flex;
-  align-items: flex-start;
-  gap: 0;
-  padding: 1.25em 1.25em 1em;
-  position: relative;
-}
-
-.cardInfo {
-  flex: 1;
-  min-width: 0;
-  padding-right: 6.5em; /* leave room for product image */
-}
-
+/* Title: top=20px, left=20px, width=244px, 20px semibold */
 .cardTitle {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 244px;
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 1.25em;
+  font-size: 1.25em;            /* 20px */
   color: #111111;
   line-height: 1.3;
-  margin: 0 0 0.5em;
-  max-width: 15em;
+  margin: 0;
 }
 
+/* Subtitle: top=89px, left=20px, 16px regular */
 .cardSub {
-  font-size: 1em;
+  position: absolute;
+  top: 5.5625em;                /* 89px */
+  left: 1.25em;
+  font-family: var(--font-heading);
+  font-size: 1em;               /* 16px */
   font-weight: 400;
   color: #8a8a8a;
-  margin: 0 0 1em;
+  margin: 0;
   text-transform: capitalize;
+  white-space: nowrap;
 }
 
-/* Progress bar */
+/* Product image box: top=20px, left=279px, 99×88px, bg #f5f0e8, rx=11px */
+.productImgWrap {
+  position: absolute;
+  top: 1.25em;                  /* 20px */
+  left: 17.4375em;              /* 279px */
+  width: 6.2163em;              /* 99.46px */
+  height: 5.5256em;             /* 88.41px */
+  background: #f5f0e8;
+  border-radius: 0.6907em;      /* 11.05px */
+  overflow: hidden;
+}
+
+/* Progress track: top=127px, left=20px, width=358px, h=4px */
 .progressTrack {
-  height: 4px;
+  position: absolute;
+  top: 7.9375em;                /* 127px */
+  left: 1.25em;                 /* 20px */
+  width: 22.375em;              /* 358px */
+  height: 0.25em;               /* 4px */
   background: #e8e8e4;
-  border-radius: 2px;
-  margin-bottom: 0.625em;
+  border-radius: 0.138em;
   overflow: hidden;
 }
 .progressFill {
   height: 100%;
-  width: 59.5%; /* Ordered → Intake → Team Review = ~3/4 filled */
+  width: 59.56%;                /* 213.29/358 */
   background: linear-gradient(90deg, #c6dcfe 0%, #0e184d 100%);
-  border-radius: 2px;
+  border-radius: inherit;
 }
 
-/* Step labels */
+/* Step labels: top=142px, absolute positions matching Figma */
 .stepLabels {
-  display: flex;
-  gap: 0.3em;
-  justify-content: space-between;
-  overflow: hidden;
+  position: absolute;
+  top: 8.875em;                 /* 142px */
+  left: 1.25em;                 /* 20px */
+  width: 22.375em;              /* 358px */
 }
 .stepLabel {
-  font-size: 0.75em;
-  font-weight: 500;
+  position: absolute;
+  font-family: var(--font-heading);
+  font-size: 0.75em;            /* 12px */
   line-height: 1.66;
   white-space: nowrap;
+  top: 0;
 }
-.stepLabelActive { color: #111111; }
-.stepLabelMuted  { color: #e8e8e4; }
+.stepMedium  { font-weight: 500; color: #111111; }
+.stepRegular { font-weight: 400; color: #111111; }
+.stepMuted   { font-weight: 400; color: #e8e8e4; }
 
-/* Product image */
-.productImgWrap {
-  position: absolute;
-  top: 1.25em;
-  right: 1.25em;
-  width: 6.21em;
-  height: 5.53em;
-  background: #f5f0e8;
-  border-radius: 0.69em;
-  overflow: hidden;
-  flex-shrink: 0;
-}
+/* Exact left positions from Figma (px, relative to track start at left=20px) */
+.stepLabel:nth-child(1) { left: 0; }        /* Ordered: 19.69-20 ≈ 0 */
+.stepIntake             { left: 74.69px; }  /* Intake Form: 94.69-20 */
+.stepTeam               { left: 160px; }   /* Team Review: 180-20 */
+.stepStart              { left: 244px; }   /* Start The Treatment: 264-20 */
 
-/* View more button */
+/* VIEW MORE button: top=186px, centered, w=358px, h=56px */
 .viewMoreBtn {
+  position: absolute;
+  top: 186px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 358px;
+  height: 56px;
   display: flex;
-  text-decoration: none;
   align-items: center;
   justify-content: center;
-  width: calc(100% - 2.5em);
-  margin: 0 1.25em 1.25em;
-  height: 3.5em;
   background: #0e1b4d;
   color: #ffffff;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.875em;
+  font-size: 0.875em;           /* 14px */
   letter-spacing: 0.05em;
   text-transform: uppercase;
   border: none;
   border-radius: 9999px;
   cursor: pointer;
+  text-decoration: none;
 }
 .viewMoreBtn:hover { background: #1a2a6b; }
 
@@ -146,75 +159,103 @@
   line-height: 1.57;
 }
 
-/* ── Team card ── */
+/* ── Team card — matches Figma 212:483 exactly ── */
 .teamCard {
-  background: #ffffff;
-  border-radius: 1.25em;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  padding: 1.25em;
-  display: flex;
-  align-items: center;
-  gap: 0;
   position: relative;
+  background: #ffffff;
+  border-radius: 1.25em;        /* 20px */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  height: 9.6875em;             /* 155px */
   overflow: hidden;
-  min-height: 9.6875em;
+  flex-shrink: 0;
 }
 
-.teamInfo {
-  flex: 1;
-  min-width: 0;
-}
-
+/* "Concierge": top=20px, left=20px, 20px semibold */
 .teamName {
+  position: absolute;
+  top: 20px;
+  left: 20px;
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 1.25em;
+  font-size: 1.25em;            /* 20px */
   color: #111111;
-  margin: 0 0 0.2em;
-  line-height: 1.2;
+  margin: 0;
+  white-space: nowrap;
+  line-height: normal;
 }
 
+/* "Available now": top=44px, left=20px, 14px medium green */
 .teamAvail {
-  font-size: 0.875em;
+  position: absolute;
+  top: 44px;
+  left: 20px;
+  font-family: var(--font-heading);
   font-weight: 500;
+  font-size: 0.875em;           /* 14px */
   color: #51a342;
-  margin: 0 0 0.75em;
+  margin: 0;
+  white-space: nowrap;
+  line-height: 19.892px;
 }
 
+/* "John Smith": top=92px, left=20px, 12px medium gray */
 .teamAgent {
-  font-size: 0.75em;
+  position: absolute;
+  top: 92px;
+  left: 20px;
+  font-family: var(--font-heading);
   font-weight: 500;
+  font-size: 0.75em;            /* 12px */
   color: #8a8a8a;
-  margin: 0 0 0.1em;
+  margin: 0;
+  white-space: nowrap;
+  line-height: 19.892px;
+}
+
+/* Icon + "+2 orders" row: icon at top=112px left=20px, text at top=115px left=45px */
+.teamIconRow {
+  position: absolute;
+  top: 112px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.teamIcon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
 }
 
 .teamOrders {
-  font-size: 0.75em;
+  font-family: var(--font-heading);
+  font-size: 0.75em;            /* 12px */
   font-weight: 500;
   color: #8a8a8a;
-  margin: 0;
-  padding-left: 1.5em;
-  background-image: url("data:image/svg+xml,%3Csvg width='14' height='10' viewBox='0 0 14 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='5' cy='5' r='4' stroke='%238a8a8a' stroke-width='1.2'/%3E%3Ccircle cx='9' cy='5' r='4' stroke='%238a8a8a' stroke-width='1.2'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: 0 50%;
+  margin: 3px 0 0;
+  white-space: nowrap;
+  line-height: 19.892px;
 }
 
+/* Avatar: photo=88px, centered at same point as 96px ellipse (left=238, top=29)
+   Visual: 88px photo → 2px white gap → 2px #75B3E5 ring = 96px total */
 .teamAvatarWrap {
   position: absolute;
-  right: 3.5em;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 6em;
-  height: 6em;
+  top: 33px;    /* 29 + (96-88)/2 = 33px, center stays at y=77 */
+  left: 242px;  /* 238 + (96-88)/2 = 242px, center stays at x=286 */
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   overflow: hidden;
-  flex-shrink: 0;
-  border: 2px solid #e8f0fe;
+  /* 2px white gap + 2px blue ring matching Figma's #75B3E5 stroke */
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #75B3E5;
 }
 
+/* Chevron: right=20px, vertically centered */
 .chevronBtn {
   position: absolute;
-  right: 1.25em;
+  right: 20px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -229,33 +270,12 @@
 /* ── Bottom navigation ── */
 .bottomNav {
   position: fixed;
-  bottom: 1.875em;
+  bottom: 1.25em;
   left: 50%;
   transform: translateX(-50%);
-  width: min(calc(100% - 2em), 16.9375em); /* 271px */
-  height: 3.6875em;
-  background: #ffffff;
-  border-radius: 4.375em;
-  box-shadow: 0 4px 34px 1px rgba(0,0,0,0.11);
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
   z-index: 10;
-  padding-inline: 0.5em;
-}
-
-.navItem {
-  background: none;
-  border: none;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.75em;
-  height: 2.75em;
-  border-radius: 50%;
-}
-
-.navItemActive {
-  background: none;
+  pointer-events: none;
 }

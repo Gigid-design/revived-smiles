@@ -235,7 +235,17 @@ export default function OpenBite() {
           </div>
         )}
         {state === "pass" && (
-          <button className={styles.submitBtn} onClick={() => navigate('/instructions', 'forward')}>Submit Photo</button>
+          <button className={styles.submitBtn} onClick={() => {
+            // Save open bite front photo to localStorage
+            if (capturedImage) {
+              try {
+                const stored = JSON.parse(localStorage.getItem('rs_openBitePhotos') || '[]');
+                stored[0] = capturedImage;
+                localStorage.setItem('rs_openBitePhotos', JSON.stringify(stored));
+              } catch {}
+            }
+            navigate('/instructions', 'forward');
+          }}>Submit Photo</button>
         )}
       </div>
     </main>

@@ -117,6 +117,13 @@
   background: #d9d9d9;
 }
 
+.thumbnailImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 /* ── Divider ── */
 .divider {
   height: 0.6875em; /* 11px */
@@ -127,46 +134,12 @@
 /* ── Bottom navigation ── */
 .bottomNav {
   position: fixed;
-  bottom: 1.875em;
+  bottom: 1.25em;
   left: 50%;
   transform: translateX(-50%);
-  width: min(calc(100% - 2em), 16.9375em);
-  height: 3.6875em;
-  background: #ffffff;
-  border-radius: 4.375em;
-  box-shadow: 0 4px 34px 1px rgba(0,0,0,0.11);
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
   z-index: 10;
-  padding-inline: 0.5em;
-}
-
-.navItem {
-  background: none;
-  border: none;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.75em;
-  height: 2.75em;
-  border-radius: 50%;
-  position: relative;
-  text-decoration: none;
-}
-
-.navItemActive {
-  background: none;
-}
-
-/* Notification dot on messages */
-.navDot {
-  position: absolute;
-  top: 0.4em;
-  right: 0.4em;
-  width: 0.25em;
-  height: 0.25em;
-  border-radius: 50%;
-  background: #0e1b4d;
+  pointer-events: none;
 }
