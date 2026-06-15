@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { getSupabase } from "@/lib/supabase";
 import { BottomNav } from "@/app/components/BottomNav";
+import { ChatPanel } from "@/app/components/ChatPanel";
+import { useChat } from "@/app/hooks/useChat";
 
 interface SubmissionData {
   id: string;
@@ -66,10 +68,13 @@ export default function Dashboard() {
   const [firstName, setFirstName] = useState("there");
   const [productLabel, setProductLabel] = useState("Acrylic partial denture");
   const [submission, setSubmission] = useState<SubmissionData | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [generatingLabel, setGeneratingLabel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [chatOpen, setChatOpen] = useState(false);
+  const patientName = submission?.name || firstName;
+  const { unreadCount: chatUnreadCount } = useChat(submission?.id ?? null, "patient", patientName);
 
   useEffect(() => {
     async function fetchSubmission() {
@@ -352,23 +357,52 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Need Help section (replaces fake Care Team) */}
-        <h2 className={styles.sectionTitle}>Need Help?</h2>
-        <div className={styles.helpCard}>
-          <div className={styles.helpContent}>
-            <p className={styles.helpText}>
-              Questions about your order or impressions? Our team is here to help.
-            </p>
-            <a href="mailto:support@revivedsmiles.com" className={styles.helpBtn}>
-              CONTACT SUPPORT
-            </a>
-          </div>
-          <div className={styles.helpIconWrap}>
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0e1b4d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
+        {/* Messages */}
+        <h2 className={styles.sectionTitle}>Messages</h2>
+
+        <div className={styles.helpCard} onClick={() => setChatOpen(!chatOpen)} style={{ cursor: "pointer" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: "50%",
+                background: "#0e1b4d", display: "flex", alignItems: "center",
+                justifyContent: "center", color: "#fff", fontSize: "1.125rem",
+                flexShrink: 0,
+              }}>💬</div>
+              <div>
+                <p className={styles.teamName} style={{ margin: 0 }}>Care Team Chat</p>
+                <p className={styles.teamAvail} style={{ margin: 0 }}>
+                  {chatUnreadCount > 0 ? `${chatUnreadCount} new message${chatUnreadCount > 1 ? "s" : ""}` : "Tap to open"}
+                </p>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              {chatUnreadCount > 0 && (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  minWidth: "1.25rem", height: "1.25rem", borderRadius: "9999px",
+                  background: "#ef4444", color: "#fff", fontSize: "0.6875rem",
+                  fontWeight: 700, padding: "0 0.375rem",
+                }}>{chatUnreadCount}</span>
+              )}
+              <svg width="8" height="14" viewBox="0 0 8 14" fill="none"
+                style={{ transform: chatOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>
+                <path d="M1 1l6 6-6 6" stroke="#8a8a8a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
           </div>
         </div>
+
+        {chatOpen && submission && (
+          <div className={styles.helpCard} style={{ padding: 0, marginTop: "-0.5rem" }}>
+            <ChatPanel
+              submissionId={submission.id}
+              currentRole="patient"
+              currentName={patientName}
+            />
+          </div>
+        )}
+
 
       </div>
 

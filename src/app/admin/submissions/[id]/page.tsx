@@ -10,6 +10,8 @@ import { CompletenessCheck } from "../../components/CompletenessCheck";
 import { useAdminUser } from "../../components/AdminAuthGuard";
 import { getSupabase } from "@/lib/supabase";
 import { PRODUCTS, CATEGORY_LABELS, type ProductConfig } from "@/app/context/productConfig";
+import { ChatPanel } from "@/app/components/ChatPanel";
+import { useChat } from "@/app/hooks/useChat";
 
 interface SubmissionDetail {
   id: string;
@@ -74,6 +76,7 @@ export default function SubmissionDetailPage() {
   const [saving, setSaving] = useState(false);
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { unreadCount } = useChat(id, "admin", adminUser?.name ?? "Admin");
 
   useEffect(() => {
     async function fetchSubmission() {
@@ -495,6 +498,36 @@ export default function SubmissionDetailPage() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Chat with Patient */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              Chat with Patient
+              {unreadCount > 0 && (
+                <span style={{
+                  marginLeft: "0.5rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minWidth: "1.25rem",
+                  height: "1.25rem",
+                  borderRadius: "9999px",
+                  background: "#ef4444",
+                  color: "#fff",
+                  fontSize: "0.6875rem",
+                  fontWeight: 700,
+                  padding: "0 0.375rem",
+                }}>{unreadCount}</span>
+              )}
+            </div>
+            <div style={{ padding: 0 }}>
+              <ChatPanel
+                submissionId={submission?.id ?? null}
+                currentRole="admin"
+                currentName={adminUser?.name ?? "Admin"}
+              />
             </div>
           </div>
         </div>
