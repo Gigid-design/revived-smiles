@@ -8,6 +8,7 @@ import { getSupabase } from "@/lib/supabase";
 import { BottomNav } from "@/app/components/BottomNav";
 import { ChatPanel } from "@/app/components/ChatPanel";
 import { useChat } from "@/app/hooks/useChat";
+import { PRODUCTS } from "@/app/context/productConfig";
 
 interface SubmissionData {
   id: string;
@@ -20,31 +21,58 @@ interface SubmissionData {
   created_at: string | null;
 }
 
-const STATUS_MESSAGES: Record<string, { title: string; message: string; color: string }> = {
+/** Map product slugs to human-readable display names */
+function formatProductLabel(products: string[]): string {
+  if (!products?.length) return "Dental product";
+  return products
+    .map((slug) => {
+      const found = PRODUCTS.find((p) => p.id === slug);
+      return found ? found.label : slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    })
+    .join(", ");
+}
+
+const STATUS_CONFIG: Record<string, {
+  title: string;
+  message: string;
+  color: string;
+  bannerBg: string;
+  bannerColor: string;
+}> = {
   pending: {
-    title: "Next step: Ship back\nyour impression kit",
-    message: "Your submission is being reviewed by our team. We'll update you soon.",
+    title: "Ship back your impression kit",
+    message: "Print your shipping label and send your impression kit to our lab.",
     color: "#f59e0b",
+    bannerBg: "#f0f3ff",
+    bannerColor: "#0d2260",
   },
   in_review: {
     title: "Under review",
-    message: "Our team is currently reviewing your submission. We'll be in touch shortly.",
+    message: "Our team is reviewing your submission. We'll be in touch shortly.",
     color: "#3b82f6",
+    bannerBg: "#dbeafe",
+    bannerColor: "#1e40af",
   },
   approved: {
-    title: "Submission approved!",
-    message: "Your submission has been approved! We're preparing your order.",
+    title: "Approved!",
+    message: "Your submission has been approved. We're preparing your order.",
     color: "#22c55e",
+    bannerBg: "#dcfce7",
+    bannerColor: "#166534",
   },
   changes_requested: {
     title: "Updates needed",
     message: "Our team needs some updates. Please review the notes below.",
     color: "#f97316",
+    bannerBg: "#fef3c7",
+    bannerColor: "#92400e",
   },
   rejected: {
-    title: "Submission not accepted",
-    message: "Unfortunately we can't process this submission. Please see the notes below.",
+    title: "Not accepted",
+    message: "Unfortunately we can't process this submission.",
     color: "#ef4444",
+    bannerBg: "#fee2e2",
+    bannerColor: "#991b1b",
   },
 };
 
@@ -56,17 +84,9 @@ const STEP_MAP: Record<string, number> = {
   rejected: 3,
 };
 
-const REVIEW_BANNER_STYLES: Record<string, { bg: string; color: string }> = {
-  changes_requested: { bg: "#fef3c7", color: "#92400e" },
-  rejected: { bg: "#fee2e2", color: "#991b1b" },
-  approved: { bg: "#dcfce7", color: "#166534" },
-  in_review: { bg: "#dbeafe", color: "#1e40af" },
-  pending: { bg: "#f0f3ff", color: "#0d2260" },
-};
-
 export default function Dashboard() {
   const [firstName, setFirstName] = useState("there");
-  const [productLabel, setProductLabel] = useState("Acrylic partial denture");
+  const [productLabel, setProductLabel] = useState("Dental product");
   const [submission, setSubmission] = useState<SubmissionData | null>(null);
   const [generatingLabel, setGeneratingLabel] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -82,12 +102,8 @@ export default function Dashboard() {
         setLoading(true);
         const supabase = getSupabase();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setLoading(false);
-          return;
-        }
+        if (!user) { setLoading(false); return; }
 
-        // Try user_id first, fall back to email for pre-migration submissions
         let { data } = await supabase
           .from("submissions")
           .select("id, name, email, products, status, review_notes, reviewed_at, created_at")
@@ -112,10 +128,9 @@ export default function Dashboard() {
         if (data) {
           setSubmission(data as SubmissionData);
           if (data.name) setFirstName(data.name.trim().split(" ")[0]);
-          if (data.products?.length) setProductLabel(data.products.join(", "));
+          if (data.products?.length) setProductLabel(formatProductLabel(data.products));
         }
 
-        // Fetch unread notifications count
         try {
           const { count } = await supabase
             .from("notifications")
@@ -123,9 +138,7 @@ export default function Dashboard() {
             .eq("email", user.email)
             .eq("read", false);
           setUnreadCount(count || 0);
-        } catch {
-          // Notifications table may not exist yet — silently ignore
-        }
+        } catch { /* table may not exist */ }
       } catch (err) {
         console.error("Failed to fetch submission:", err);
         setError("Unable to load your submission. Please try again.");
@@ -133,7 +146,6 @@ export default function Dashboard() {
         setLoading(false);
       }
     }
-
     fetchSubmission();
   }, []);
 
@@ -144,10 +156,7 @@ export default function Dashboard() {
       const res = await fetch("/api/shipping-label", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          submissionId: submission.id,
-          patientName: submission.name,
-        }),
+        body: JSON.stringify({ submissionId: submission.id, patientName: submission.name }),
       });
       if (!res.ok) throw new Error("Failed to generate label");
       const blob = await res.blob();
@@ -168,26 +177,23 @@ export default function Dashboard() {
   }
 
   const status = submission?.status || "pending";
-  const statusInfo = STATUS_MESSAGES[status] || STATUS_MESSAGES.pending;
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   const activeStep = STEP_MAP[status] || 3;
 
   const steps = [
     { label: "Ordered", idx: 1 },
-    { label: "Intake Form", idx: 2 },
+    { label: "Intake", idx: 2 },
     { label: "Ship Kit", idx: 3 },
-    { label: "Team Review", idx: 4 },
+    { label: "Review", idx: 4 },
     { label: "Treatment", idx: 5 },
   ];
-
-  const reviewBannerStyle = REVIEW_BANNER_STYLES[status] || REVIEW_BANNER_STYLES.pending;
 
   return (
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
       <div className={styles.content} id="main-content">
-
-        {/* Top bar: logo + notification */}
+        {/* Top bar */}
         <div className={styles.topBar}>
           <Image
             src="/assets/images/logo-revived-smiles.png"
@@ -199,17 +205,9 @@ export default function Dashboard() {
           />
           <Link href="/notifications" className={styles.notifBtn} aria-label="Notifications">
             <div className={styles.notifWrap}>
-              <Image
-                src="/assets/images/icon-notification-btn.svg"
-                alt=""
-                width={42}
-                height={42}
-                unoptimized
-              />
+              <Image src="/assets/images/icon-notification-btn.svg" alt="" width={42} height={42} unoptimized />
               {unreadCount > 0 && (
-                <span className={styles.notifBadge}>
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
+                <span className={styles.notifBadge}>{unreadCount > 9 ? "9+" : unreadCount}</span>
               )}
             </div>
           </Link>
@@ -218,7 +216,7 @@ export default function Dashboard() {
         {/* Greeting */}
         <h1 className={styles.greeting}>Welcome back,<br />{firstName}</h1>
 
-        {/* Loading state */}
+        {/* Loading skeleton */}
         {loading && (
           <div className={styles.card}>
             <div className={styles.skeleton}>
@@ -229,172 +227,136 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Error state */}
+        {/* Error */}
         {!loading && error && (
           <div className={styles.card}>
             <div className={styles.emptyState}>
               <p className={styles.emptyTitle}>Something went wrong</p>
               <p className={styles.emptyMsg}>{error}</p>
-              <button className={styles.retryBtn} onClick={() => window.location.reload()}>
-                TRY AGAIN
-              </button>
+              <button className={styles.retryBtn} onClick={() => window.location.reload()}>TRY AGAIN</button>
             </div>
           </div>
         )}
 
-        {/* Empty state */}
+        {/* Empty */}
         {!loading && !error && !submission && (
           <div className={styles.card}>
             <div className={styles.emptyState}>
               <p className={styles.emptyTitle}>No submission found</p>
               <p className={styles.emptyMsg}>Start your intake to get started with your custom dental solution.</p>
-              <Link href="/intake" className={styles.shippingBtn} style={{ textDecoration: "none", textAlign: "center", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-                START INTAKE
-              </Link>
+              <Link href="/intake" className={styles.primaryBtn}>START INTAKE</Link>
             </div>
           </div>
         )}
 
-        {/* Order status card */}
+        {/* ── Order Status Card (flex layout) ── */}
         {!loading && !error && submission && (
           <div className={styles.card}>
-            {/* Title — status aware */}
-            <h2 className={styles.cardTitle} style={{ whiteSpace: "pre-line" }}>{statusInfo.title}</h2>
-
-            {/* Subtitle — mapped from ordered product selection */}
-            <p className={styles.cardSub}>{productLabel}</p>
-
-            {/* Product image */}
-            <div className={styles.productImgWrap}>
-              <Image
-                src="/assets/images/hero-product-v2.png"
-                alt="Impression kit"
-                fill
-                style={{ objectFit: "contain" }}
-                sizes="99px"
-              />
-            </div>
-
-            {/* Progress track */}
-            <div className={styles.progressTrack}>
-              <div className={styles.progressFill} style={{ width: `${(activeStep / 5) * 100}%` }} />
-            </div>
-
-            {/* Step labels */}
-            <div className={styles.stepLabels}>
-              {steps.map((step) => (
-                <span
-                  key={step.label}
-                  className={`${styles.stepLabel} ${
-                    step.idx < activeStep ? styles.stepGreen :
-                    step.idx === activeStep ? styles.stepActive :
-                    styles.stepMuted
-                  }`}
-                >
-                  {step.label}
-                </span>
-              ))}
-            </div>
-
-            {/* Status message */}
-            <div className={styles.infoBanner}>
-              <div
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: "50%",
-                  background: statusInfo.color,
-                  flexShrink: 0,
-                  marginTop: 2,
-                }}
-              />
-              <div className={styles.infoText}>
-                <p className={styles.infoTitle} style={{ color: statusInfo.color }}>{statusInfo.message}</p>
+            {/* Card header: title + product image */}
+            <div className={styles.cardHeader}>
+              <div className={styles.cardHeaderText}>
+                <h2 className={styles.cardTitle}>{cfg.title}</h2>
+                <p className={styles.cardSub}>{productLabel}</p>
+              </div>
+              <div className={styles.productImgWrap}>
+                <Image
+                  src="/assets/images/hero-product-v2.png"
+                  alt="Impression kit"
+                  fill
+                  style={{ objectFit: "contain" }}
+                  sizes="80px"
+                />
               </div>
             </div>
 
-            {/* Review notes banner — show for ALL statuses when notes exist */}
+            {/* Progress bar */}
+            <div className={styles.progressSection}>
+              <div className={styles.progressTrack}>
+                <div className={styles.progressFill} style={{ width: `${(activeStep / 5) * 100}%` }} />
+              </div>
+              <div className={styles.stepLabels}>
+                {steps.map((step) => (
+                  <span
+                    key={step.label}
+                    className={`${styles.stepLabel} ${
+                      step.idx < activeStep ? styles.stepDone :
+                      step.idx === activeStep ? styles.stepActive :
+                      styles.stepMuted
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Status banner */}
+            <div className={styles.statusBanner} style={{ background: cfg.bannerBg }}>
+              <span className={styles.statusDot} style={{ background: cfg.color }} />
+              <p className={styles.statusMsg} style={{ color: cfg.bannerColor }}>{cfg.message}</p>
+            </div>
+
+            {/* Review notes */}
             {submission.review_notes && (
-              <div style={{
-                margin: "0 1.25rem 1rem",
-                padding: "0.75rem 1rem",
-                background: reviewBannerStyle.bg,
-                borderRadius: "0.625rem",
-                fontSize: "0.8125rem",
-                color: reviewBannerStyle.color,
-                lineHeight: 1.5,
-              }}>
-                <strong style={{ display: "block", marginBottom: "0.25rem" }}>Review Notes:</strong>
-                {submission.review_notes}
+              <div className={styles.reviewNotes} style={{ background: cfg.bannerBg, color: cfg.bannerColor }}>
+                <strong>Review Notes:</strong>
+                <span>{submission.review_notes}</span>
               </div>
             )}
 
-            {/* Status-aware CTA buttons */}
+            {/* CTA buttons */}
             <div className={styles.cardBtns}>
               {status === "changes_requested" ? (
-                <Link href="/camera" className={styles.shippingBtn} style={{ textDecoration: "none", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  UPDATE PHOTOS
-                </Link>
+                <Link href="/camera" className={styles.primaryBtn}>UPDATE PHOTOS</Link>
               ) : status === "in_review" ? (
-                <button className={styles.shippingBtn} disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
-                  UNDER REVIEW
-                </button>
+                <button className={styles.primaryBtn} disabled>UNDER REVIEW</button>
               ) : status === "approved" ? (
-                <Link href="/order-detail" className={styles.shippingBtn} style={{ textDecoration: "none", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  VIEW ORDER
-                </Link>
+                <Link href="/order-detail" className={styles.primaryBtn}>VIEW ORDER</Link>
               ) : status === "rejected" ? (
-                <a href="mailto:support@revivedsmiles.com" className={styles.shippingBtn} style={{ textDecoration: "none", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  CONTACT SUPPORT
-                </a>
+                <a href="mailto:support@revivedsmiles.com" className={styles.primaryBtn}>CONTACT SUPPORT</a>
               ) : (
-                <button className={styles.shippingBtn} onClick={handleShippingLabel} disabled={generatingLabel}>
+                <button className={styles.primaryBtn} onClick={handleShippingLabel} disabled={generatingLabel}>
                   {generatingLabel ? "GENERATING…" : "GET SHIPPING LABEL"}
                 </button>
               )}
-              <Link href="/order-detail" className={styles.detailsBtn}>DETAILS</Link>
+              <Link href="/order-detail" className={styles.secondaryBtn}>DETAILS</Link>
             </div>
           </div>
         )}
 
-        {/* Messages */}
+        {/* ── Messages section ── */}
         <h2 className={styles.sectionTitle}>Messages</h2>
 
-        <div className={styles.helpCard} onClick={() => setChatOpen(!chatOpen)} style={{ cursor: "pointer" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: "50%",
-                background: "#0e1b4d", display: "flex", alignItems: "center",
-                justifyContent: "center", color: "#fff", fontSize: "1.125rem",
-                flexShrink: 0,
-              }}>💬</div>
-              <div>
-                <p className={styles.teamName} style={{ margin: 0 }}>Care Team Chat</p>
-                <p className={styles.teamAvail} style={{ margin: 0 }}>
-                  {chatUnreadCount > 0 ? `${chatUnreadCount} new message${chatUnreadCount > 1 ? "s" : ""}` : "Tap to open"}
-                </p>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              {chatUnreadCount > 0 && (
-                <span style={{
-                  display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  minWidth: "1.25rem", height: "1.25rem", borderRadius: "9999px",
-                  background: "#ef4444", color: "#fff", fontSize: "0.6875rem",
-                  fontWeight: 700, padding: "0 0.375rem",
-                }}>{chatUnreadCount}</span>
-              )}
-              <svg width="8" height="14" viewBox="0 0 8 14" fill="none"
-                style={{ transform: chatOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>
-                <path d="M1 1l6 6-6 6" stroke="#8a8a8a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
+        <button
+          type="button"
+          className={styles.chatToggle}
+          onClick={() => setChatOpen(!chatOpen)}
+          aria-expanded={chatOpen}
+        >
+          <div className={styles.chatToggleIcon}>💬</div>
+          <div className={styles.chatToggleText}>
+            <span className={styles.chatToggleLabel}>Care Team Chat</span>
+            <span className={styles.chatToggleHint}>
+              {chatUnreadCount > 0
+                ? `${chatUnreadCount} new message${chatUnreadCount > 1 ? "s" : ""}`
+                : "Tap to open"}
+            </span>
           </div>
-        </div>
+          <div className={styles.chatToggleRight}>
+            {chatUnreadCount > 0 && (
+              <span className={styles.chatBadge}>{chatUnreadCount}</span>
+            )}
+            <svg
+              width="8" height="14" viewBox="0 0 8 14" fill="none"
+              className={`${styles.chatChevron} ${chatOpen ? styles.chatChevronOpen : ""}`}
+            >
+              <path d="M1 1l6 6-6 6" stroke="#8a8a8a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </button>
 
         {chatOpen && submission && (
-          <div className={styles.helpCard} style={{ padding: 0, marginTop: "-0.5rem" }}>
+          <div className={styles.chatPanelWrap}>
             <ChatPanel
               submissionId={submission.id}
               currentRole="patient"
@@ -403,10 +365,16 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* ── Support fallback ── */}
+        <div className={styles.supportRow}>
+          <span className={styles.supportText}>Need more help?</span>
+          <a href="mailto:support@revivedsmiles.com" className={styles.supportLink}>
+            Email support
+          </a>
+        </div>
 
       </div>
 
-      {/* Bottom nav */}
       <BottomNav />
     </main>
   );

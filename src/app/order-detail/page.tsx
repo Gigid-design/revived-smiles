@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
 import { getSupabase } from "@/lib/supabase";
 import { BottomNav } from "@/app/components/BottomNav";
+import { PRODUCTS } from "@/app/context/productConfig";
 
 const CLOSE_BITE_LABELS = [
   "Close bite front",
@@ -123,7 +124,12 @@ export default function OrderDetail() {
   const statusConfig = STATUS_LABELS[status] || STATUS_LABELS.pending;
   const reviewBannerStyle = REVIEW_BANNER_STYLES[status] || REVIEW_BANNER_STYLES.pending;
   const fullName = submission?.name?.trim() || "—";
-  const orderedProduct = submission?.products?.length ? submission.products.join(", ") : "—";
+  const orderedProduct = submission?.products?.length
+    ? submission.products.map((slug) => {
+        const found = PRODUCTS.find((p) => p.id === slug);
+        return found ? found.label : slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      }).join(", ")
+    : "—";
   const userState = submission?.state || "—";
   const toothShade = submission?.white_shade || "—";
   const gumShade = submission?.gum_shade || "—";
@@ -135,7 +141,7 @@ export default function OrderDetail() {
   const aboutRows = [
     { label: "Name",            value: fullName },
     { label: "State",           value: userState },
-    { label: "Ordered Product", value: orderedProduct, underline: true },
+    { label: "Ordered Product", value: orderedProduct },
     { label: "Tooth Shade",     value: toothShade },
     { label: "Gum Shade",       value: gumShade },
   ];

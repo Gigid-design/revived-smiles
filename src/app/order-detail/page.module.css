@@ -3,7 +3,7 @@
   position: relative;
   width: 100%;
   min-height: 100dvh;
-  background: #ffffff;
+  background: #f8f9fb;
   overflow-x: hidden;
 }
 
@@ -12,7 +12,7 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  background: #ffffff;
+  background: #f8f9fb;
   display: flex;
   align-items: center;
   gap: 0.875em;
@@ -43,7 +43,7 @@
 
 /* ── Scrollable content ── */
 .content {
-  padding: 0 0 8em;
+  padding: 0 0 9em;
 }
 
 /* ── Timeline ── */
