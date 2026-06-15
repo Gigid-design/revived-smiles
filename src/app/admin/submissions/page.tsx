@@ -1,0 +1,228 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import styles from "./page.module.css";
+import { StatusBadge } from "../components/StatusBadge";
+import { getSupabase } from "@/lib/supabase";
+import { PRODUCTS } from "@/app/context/productConfig";
+import { useRealtimeContext } from "../AdminShell";
+
+function productLabel(id: string): string {
+  return PRODUCTS.find((p) => p.id === id)?.label ?? id;
+}
+
+interface Submission {
+  id: string;
+  name: string;
+  email: string;
+  state: string;
+  status: string;
+  products: string[];
+  created_at: string;
+}
+
+const PAGE_SIZE = 25;
+const STATUS_OPTIONS = [
+  { value: "", label: "All Statuses" },
+  { value: "pending", label: "Pending" },
+  { value: "in_review", label: "In Review" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+  { value: "changes_requested", label: "Changes Requested" },
+];
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export default function SubmissionsListPage() {
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const { lastEvent } = useRealtimeContext();
+
+  const fetchSubmissions = useCallback(async () => {
+    setLoading(true);
+    const supabase = getSupabase();
+
+    let query = supabase
+      .from("submissions")
+      .select("id, name, email, state, status, products, created_at", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+    if (statusFilter) {
+      query = query.eq("status", statusFilter);
+    }
+
+    if (searchQuery.trim()) {
+      query = query.or(`name.ilike.%${searchQuery.trim()}%,email.ilike.%${searchQuery.trim()}%`);
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error("Failed to fetch submissions:", error);
+      setLoading(false);
+      return;
+    }
+
+    setSubmissions((data ?? []) as Submission[]);
+    setTotalCount(count ?? 0);
+    setLoading(false);
+  }, [page, statusFilter, searchQuery]);
+
+  useEffect(() => {
+    fetchSubmissions();
+  }, [fetchSubmissions, lastEvent]);
+
+  /* Reset page when filters change */
+  useEffect(() => {
+    setPage(0);
+  }, [statusFilter, searchQuery]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const startIdx = page * PAGE_SIZE + 1;
+  const endIdx = Math.min((page + 1) * PAGE_SIZE, totalCount);
+
+  return (
+    <div className={styles.page}>
+      {/* Filter Bar */}
+      <div className={styles.filterBar}>
+        <select
+          className={styles.filterSelect}
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          aria-label="Filter by status"
+        >
+          {STATUS_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+
+        <div className={styles.searchInput}>
+          <span className={styles.searchIcon}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            placeholder="Search by name or email…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search submissions"
+          />
+        </div>
+
+        <span className={styles.resultCount}>
+          {totalCount} submission{totalCount !== 1 ? "s" : ""}
+        </span>
+      </div>
+
+      {/* Table */}
+      <div className={styles.tableCard}>
+        {loading ? (
+          <div className={styles.loading}>Loading submissions…</div>
+        ) : submissions.length === 0 ? (
+          <div className={styles.emptyState}>
+            {searchQuery || statusFilter
+              ? "No submissions match your filters."
+              : "No submissions yet."}
+          </div>
+        ) : (
+          <>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th style={{ width: 40 }}>
+                    <input type="checkbox" className={styles.checkbox} disabled title="Bulk actions coming soon" />
+                  </th>
+                  <th>Patient</th>
+                  <th>State</th>
+                  <th>Products</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {submissions.map((sub) => (
+                  <tr key={sub.id}>
+                    <td>
+                      <input type="checkbox" className={styles.checkbox} aria-label={`Select ${sub.name || sub.email}`} />
+                    </td>
+                    <td>
+                      <div className={styles.nameCell}>
+                        <span className={styles.nameText}>{sub.name || "—"}</span>
+                        <span className={styles.emailText}>{sub.email}</span>
+                      </div>
+                    </td>
+                    <td>{sub.state || "—"}</td>
+                    <td>
+                      {sub.products?.length
+                        ? sub.products.map((p) => (
+                            <span key={p} className={styles.productBadge}>{productLabel(p)}</span>
+                          ))
+                        : "—"}
+                    </td>
+                    <td>
+                      <StatusBadge status={(sub.status || "pending") as "pending"} />
+                    </td>
+                    <td>
+                      <span className={styles.dateText}>
+                        {sub.created_at ? formatDate(sub.created_at) : "—"}
+                      </span>
+                    </td>
+                    <td>
+                      <Link href={`/admin/submissions/${sub.id}`} className={styles.viewBtn}>
+                        View
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className={styles.pagination}>
+                <span className={styles.paginationInfo}>
+                  Showing {startIdx}–{endIdx} of {totalCount}
+                </span>
+                <div className={styles.paginationBtns}>
+                  <button
+                    className={styles.pageBtn}
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                  >
+                    ← Previous
+                  </button>
+                  <button
+                    className={styles.pageBtn}
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={page >= totalPages - 1}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

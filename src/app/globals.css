@@ -154,3 +154,44 @@ p {
 :focus:not(:focus-visible) {
   outline: none;
 }
+
+/* ==========================================================================
+   Admin Portal — Override mobile constraints for desktop admin UI
+   ========================================================================== */
+
+body:has(.adminRoot) {
+  background-color: var(--admin-bg);
+  justify-content: flex-start;
+}
+
+/* Override the 430px mobile lock for admin routes.
+   The :has() on body>* should work, but we also target
+   the wrapper directly in case of intermediate React nodes. */
+body:has(.adminRoot) > * {
+  max-width: 100% !important;
+  background-color: var(--admin-bg) !important;
+  overflow-x: auto !important;
+}
+
+.adminRoot {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+:root {
+  /* Admin Design Tokens */
+  --admin-bg: #f3f5f9;
+  --admin-sidebar-bg: #0e184d;
+  --admin-sidebar-text: #c6dbfe;
+  --admin-sidebar-active: #1990c6;
+  --admin-card-bg: #ffffff;
+  --admin-card-border: #e8e8e4;
+  --admin-primary: #1990c6;
+  --admin-accent: #136f99;
+  --admin-text: #0e184d;
+  --admin-text-muted: #6b7280;
+  --admin-success: #22c55e;
+  --admin-warning: #ebbf20;
+  --admin-danger: #ef4444;
+  --admin-info: #1990c6;
+}

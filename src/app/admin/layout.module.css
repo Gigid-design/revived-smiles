@@ -1,0 +1,70 @@
+/* ==========================================================================
+   Admin Layout Shell
+   ========================================================================== */
+
+.adminLayout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--admin-bg);
+  font-family: var(--font-body);
+  color: var(--admin-text);
+}
+
+.mainColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1400px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .adminLayout {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 1rem;
+  }
+}
+
+/* Global class names used by AdminShell (client component) */
+:global(.admin-main-column) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+:global(.admin-content) {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1400px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  :global(.admin-content) {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :global(.admin-content) {
+    padding: 1rem;
+  }
+}

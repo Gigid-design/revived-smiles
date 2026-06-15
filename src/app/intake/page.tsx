@@ -28,9 +28,9 @@ export default function Intake() {
       </div>
 
       {/* Progress bar */}
-      <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Step 1 of 3" role="progressbar" aria-valuenow={1} aria-valuemin={1} aria-valuemax={3}>
+      <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Step 1 of 5" role="progressbar" aria-valuenow={1} aria-valuemin={1} aria-valuemax={5}>
         <rect x="4" width="298" height="5" rx="2.5" fill="white"/>
-        <rect width="48" height="5" rx="2.5" fill="#0E1B4D"/>
+        <rect width="60" height="5" rx="2.5" fill="#0E1B4D"/>
         <rect x="341" width="23" height="5" rx="2.5" fill="white"/>
         <rect x="310" width="23" height="5" rx="2.5" fill="white"/>
         <rect x="372" width="23" height="5" rx="2.5" fill="white"/>
@@ -41,7 +41,7 @@ export default function Intake() {
         <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/welcome', 'backward')}>
           <Image src="/assets/images/intake-icon-back.svg" alt="" width={20} height={20} />
         </button>
-        <span className={styles.navTitle}>Intake form</span>
+        <span className={styles.navTitle}>Your Name</span>
         <Link href="/" className={styles.navBtn} aria-label="Close form">
           <Image src="/assets/images/intake-icon-close.svg" alt="" width={20} height={20} />
         </Link>

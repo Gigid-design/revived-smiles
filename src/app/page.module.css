@@ -56,14 +56,12 @@
   margin-top: 1em;     /* ~22px gap after heading */
 }
 
-/* Form — input then button
-   In Figma: input top:241px, button top:340px (gap = 12px after 87px input)
-   Margin from subtitle bottom (~195px) to input top (241px) = ~46px */
+/* Form — input then button */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  margin-top: 1.5em;   /* ~24px — gap from subtitle to input */
+  gap: 0.75em;
+  margin-top: 1.5em;
 }
 
 /* Input wrapper — relative so floating label can be positioned inside */
@@ -152,6 +150,34 @@
 
 .submitBtn:hover {
   background-color: #1a2a6b;
+}
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.errorText {
+  font-family: var(--font-body);
+  font-size: 0.8125em;
+  color: #ff6b6b;
+  text-align: center;
+  margin: 0;
+}
+
+.modeToggle {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.875em;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: center;
+  cursor: pointer;
+  padding: 0.5em 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.modeToggle:hover {
+  color: #ffffff;
 }
 
 /* =============================================

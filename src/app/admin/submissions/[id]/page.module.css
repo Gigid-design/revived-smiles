@@ -1,0 +1,486 @@
+/* ==========================================================================
+   Submission Detail / Review Page
+   ========================================================================== */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Back link */
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.backLink:hover {
+  color: var(--admin-primary);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.patientName {
+  font-family: var(--font-heading);
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+/* Two-column layout */
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card */
+.card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.cardHeader {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--admin-card-border);
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.cardBody {
+  padding: 1.25rem;
+}
+
+/* Info rows */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.infoItemFull {
+  composes: infoItem;
+  grid-column: 1 / -1;
+}
+
+.infoLabel {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.infoValue {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--admin-text);
+  font-weight: 500;
+}
+
+/* Product pills */
+.productList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.productPill {
+  display: inline-flex;
+  padding: 0.25rem 0.625rem;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--admin-text);
+}
+
+/* Color swatches */
+.swatchRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid var(--admin-card-border);
+  flex-shrink: 0;
+}
+
+/* Photo Sections */
+.photoSection {
+  margin-bottom: 1.5rem;
+}
+
+.photoSection:last-child {
+  margin-bottom: 0;
+}
+
+.photoSectionTitle {
+  font-family: var(--font-heading);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin-bottom: 0.75rem;
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.photoThumb {
+  position: relative;
+  aspect-ratio: 4/3;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.photoThumb:hover {
+  border-color: var(--admin-primary);
+  box-shadow: 0 2px 8px rgba(25, 144, 198, 0.2);
+}
+
+.photoThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoThumbLabel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.375rem 0.5rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  color: #ffffff;
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.noPhotos {
+  padding: 2rem;
+  text-align: center;
+  color: var(--admin-text-muted);
+  font-size: 0.8125rem;
+  background: var(--admin-bg);
+  border-radius: 8px;
+}
+
+/* Review Actions */
+.actionsCard {
+  composes: card;
+}
+
+.actionsBody {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.notesTextarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border: 1px solid var(--admin-card-border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--admin-text);
+  resize: vertical;
+  background: var(--admin-bg);
+}
+
+.notesTextarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 2px rgba(25, 144, 198, 0.15);
+}
+
+.actionBtns {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-heading);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnApprove {
+  composes: btn;
+  background: var(--admin-success);
+  color: #ffffff;
+}
+
+.btnChanges {
+  composes: btn;
+  background: #f97316;
+  color: #ffffff;
+}
+
+.btnReject {
+  composes: btn;
+  background: var(--admin-danger);
+  color: #ffffff;
+}
+
+/* Existing notes */
+.existingNotes {
+  padding: 0.75rem;
+  background: var(--admin-bg);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  color: var(--admin-text);
+  line-height: 1.5;
+}
+
+.existingNotesLabel {
+  font-weight: 600;
+  font-size: 0.6875rem;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.375rem;
+}
+
+.reviewMeta {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  margin-top: 0.5rem;
+}
+
+/* Loading / Error */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
+}
+
+.error {
+  padding: 3rem;
+  text-align: center;
+  color: var(--admin-danger);
+  font-size: 0.875rem;
+}
+
+/* Teeth list */
+.teethList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.toothBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  background: var(--admin-primary);
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+/* Category tag inside product pill */
+.categoryTag {
+  display: inline-flex;
+  padding: 0.125rem 0.375rem;
+  background: rgba(25, 144, 198, 0.12);
+  color: var(--admin-primary);
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  margin-left: 0.375rem;
+}
+
+/* Missing field indicator */
+.missingField {
+  color: var(--admin-danger);
+  font-weight: 500;
+}
+
+/* Timeline */
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.75rem 1rem;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.timelineItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.timelineItem:not(:last-child)::after {
+  content: '→';
+  color: var(--admin-text-muted);
+  font-size: 0.75rem;
+  margin: 0 0.75rem;
+}
+
+.timelineDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--admin-card-border);
+  flex-shrink: 0;
+}
+
+.timelineDotActive {
+  background: var(--admin-primary);
+}
+
+.timelineText {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  white-space: nowrap;
+}
+
+/* Note templates */
+.noteTemplates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+}
+
+.noteTemplateBtn {
+  padding: 0.375rem 0.625rem;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  color: var(--admin-text);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.noteTemplateBtn:hover {
+  border-color: var(--admin-primary);
+  background: rgba(25, 144, 198, 0.04);
+  color: var(--admin-primary);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+}
+
+.toastSuccess {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.toastError {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

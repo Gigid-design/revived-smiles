@@ -53,38 +53,69 @@ export default function Step6() {
     }
   }
 
+  /** Upload a base64 data-URL image to Supabase Storage, return the public URL */
+  async function uploadBase64Photo(base64: string, prefix: string, index: number): Promise<string> {
+    const blob = await fetch(base64).then((r) => r.blob());
+    const path = `${prefix}/${Date.now()}-${index}.jpg`;
+    const { error } = await supabase.storage
+      .from("impression-photos")
+      .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from("impression-photos").getPublicUrl(path);
+    return urlData.publicUrl;
+  }
+
   async function handleSubmit() {
     if (!allDone || submitting) return;
     setSubmitting(true);
 
     update({ impressionPhotos: photos });
 
-    const { data: row, error } = await supabase
-      .from("submissions")
-      .insert({
-        email: data.email,
-        name: data.name,
-        state: data.state,
-        products: data.products,
-        white_shade: data.whiteShade,
-        gum_shade: data.gumShade,
-        selected_teeth: data.selectedTeeth,
-        teeth_not_sure: data.teethNotSure,
-        impression_photos: photos.map((p) => p.url),
-        status: "pending",
-      })
-      .select("id")
-      .single();
+    try {
+      /* Read teeth photos from localStorage and upload to Storage as URLs */
+      const closeBiteRaw: string[] = JSON.parse(localStorage.getItem("rs_closeBitePhotos") || "[]");
+      const openBiteRaw: string[] = JSON.parse(localStorage.getItem("rs_openBitePhotos") || "[]");
 
-    if (error) {
-      console.error("Submission failed:", error);
+      const closeBiteUrls = await Promise.all(
+        closeBiteRaw.filter(Boolean).map((b64, i) => uploadBase64Photo(b64, "close-bite", i))
+      );
+      const openBiteUrls = await Promise.all(
+        openBiteRaw.filter(Boolean).map((b64, i) => uploadBase64Photo(b64, "open-bite", i))
+      );
+
+      const { data: row, error } = await supabase
+        .from("submissions")
+        .insert({
+          email: data.email,
+          name: data.name,
+          state: data.state,
+          products: data.products,
+          white_shade: data.whiteShade,
+          gum_shade: data.gumShade,
+          selected_teeth: data.selectedTeeth,
+          teeth_not_sure: data.teethNotSure,
+          impression_photos: photos.map((p) => p.url),
+          close_bite_photos: closeBiteUrls,
+          open_bite_photos: openBiteUrls,
+          status: "pending",
+        })
+        .select("id")
+        .single();
+
+      if (error) {
+        console.error("Submission failed:", error);
+        alert("Submission failed. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+
+      update({ submissionId: row.id });
+      navigate("/complete", "forward");
+    } catch (err) {
+      console.error("Submission failed:", err);
       alert("Submission failed. Please try again.");
       setSubmitting(false);
-      return;
     }
-
-    update({ submissionId: row.id });
-    navigate("/complete", "forward");
   }
 
   return (
