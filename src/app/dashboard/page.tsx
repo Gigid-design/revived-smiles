@@ -365,13 +365,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ── Support fallback ── */}
-        <div className={styles.supportRow}>
-          <span className={styles.supportText}>Need more help?</span>
-          <a href="mailto:support@revivedsmiles.com" className={styles.supportLink}>
-            Email support
-          </a>
-        </div>
 
       </div>
 
