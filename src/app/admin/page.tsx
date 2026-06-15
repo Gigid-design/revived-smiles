@@ -49,6 +49,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const adminUser = useAdminUser();
   const { lastEvent } = useRealtimeContext();
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   const fetchData = useCallback(async () => {
     const supabase = getSupabase();
@@ -81,6 +82,20 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchData();
   }, [fetchData, lastEvent]);
+
+  /* Fetch unread message counts */
+  useEffect(() => {
+    async function fetchUnreadCounts() {
+      if (submissions.length === 0) return;
+      const ids = submissions.map((s) => s.id).join(",");
+      try {
+        const res = await fetch(`/api/messages?unreadCounts=${ids}`);
+        const data = await res.json();
+        if (data.counts) setUnreadCounts(data.counts);
+      } catch {}
+    }
+    fetchUnreadCounts();
+  }, [submissions]);
 
   if (loading) {
     return <div className={styles.loading}>Loading dashboard…</div>;
@@ -163,6 +178,7 @@ export default function AdminDashboard() {
                 <th>Products</th>
                 <th>Status</th>
                 <th>Submitted</th>
+                <th>Msgs</th>
                 <th></th>
               </tr>
             </thead>
@@ -190,6 +206,18 @@ export default function AdminDashboard() {
                     <span className={styles.dateText}>
                       {sub.created_at ? formatRelativeDate(sub.created_at) : "—"}
                     </span>
+                  </td>
+                  <td>
+                    {unreadCounts[sub.id] ? (
+                      <span style={{
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        minWidth: "1.25rem", height: "1.25rem", borderRadius: "9999px",
+                        background: "#ef4444", color: "#fff", fontSize: "0.625rem",
+                        fontWeight: 700, padding: "0 0.25rem",
+                      }}>{unreadCounts[sub.id]}</span>
+                    ) : (
+                      <span style={{ color: "#94a3b8", fontSize: "0.75rem" }}>—</span>
+                    )}
                   </td>
                   <td>
                     <Link href={`/admin/submissions/${sub.id}`} className={styles.viewBtn}>

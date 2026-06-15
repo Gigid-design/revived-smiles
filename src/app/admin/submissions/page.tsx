@@ -49,6 +49,7 @@ export default function SubmissionsListPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const { lastEvent } = useRealtimeContext();
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   const fetchSubmissions = useCallback(async () => {
     setLoading(true);
@@ -85,6 +86,20 @@ export default function SubmissionsListPage() {
   useEffect(() => {
     fetchSubmissions();
   }, [fetchSubmissions, lastEvent]);
+
+  /* Fetch unread message counts for visible submissions */
+  useEffect(() => {
+    async function fetchUnreadCounts() {
+      if (submissions.length === 0) return;
+      const ids = submissions.map((s) => s.id).join(",");
+      try {
+        const res = await fetch(`/api/messages?unreadCounts=${ids}`);
+        const data = await res.json();
+        if (data.counts) setUnreadCounts(data.counts);
+      } catch {}
+    }
+    fetchUnreadCounts();
+  }, [submissions, lastEvent]);
 
   /* Reset page when filters change */
   useEffect(() => {
@@ -156,6 +171,7 @@ export default function SubmissionsListPage() {
                   <th>Products</th>
                   <th>Status</th>
                   <th>Submitted</th>
+                  <th>Messages</th>
                   <th></th>
                 </tr>
               </thead>
@@ -186,6 +202,18 @@ export default function SubmissionsListPage() {
                       <span className={styles.dateText}>
                         {sub.created_at ? formatDate(sub.created_at) : "—"}
                       </span>
+                    </td>
+                    <td>
+                      {unreadCounts[sub.id] ? (
+                        <span style={{
+                          display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          minWidth: "1.375rem", height: "1.375rem", borderRadius: "9999px",
+                          background: "#ef4444", color: "#fff", fontSize: "0.6875rem",
+                          fontWeight: 700, padding: "0 0.375rem",
+                        }}>{unreadCounts[sub.id]}</span>
+                      ) : (
+                        <span style={{ color: "#94a3b8", fontSize: "0.75rem" }}>—</span>
+                      )}
                     </td>
                     <td>
                       <Link href={`/admin/submissions/${sub.id}`} className={styles.viewBtn}>
