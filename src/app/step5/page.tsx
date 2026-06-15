@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
+import { getBackForTeethChart, getTotalSteps, getStepNumber } from "../context/productConfig";
 
 /* ── Tooth shape colors ── */
 const DEFAULT = { fill1: "#DCE4F0", fill2: "#E8EEF6", stroke1: "#C8D4E4", stroke2: "#B8C8DC" };
@@ -186,7 +187,7 @@ export default function Step5() {
   const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set());
   const [notSure, setNotSure] = useState(false);
   const { cardRef, navigate } = usePageTransition();
-  const { update } = useSubmission();
+  const { update, data } = useSubmission();
 
   function toggleTooth(num: number) {
     setNotSure(false);
@@ -217,21 +218,32 @@ export default function Step5() {
         <Image src="/assets/images/intake-card-bg.png" alt="" fill style={{ objectFit: "cover", objectPosition: "center top" }} priority sizes="430px" />
       </div>
 
-      {/* Progress bar */}
-      <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Step 3 of 3" role="progressbar" aria-valuenow={3} aria-valuemin={1} aria-valuemax={3}>
-        <rect x="4" width="298" height="5" rx="2.5" fill="white"/>
-        <rect width="302" height="5" rx="2.5" fill="#0E1B4D"/>
-        <rect x="341" width="23" height="5" rx="2.5" fill="white"/>
-        <rect x="310" width="23" height="5" rx="2.5" fill="white"/>
-        <rect x="372" width="23" height="5" rx="2.5" fill="white"/>
-      </svg>
+      {/* Progress bar — dynamic based on product */}
+      {(() => {
+        const productId = data.products[0] || '';
+        const total = getTotalSteps(productId);
+        const current = getStepNumber('teeth-chart', productId);
+        const fillWidth = Math.round((current / total) * 302);
+        return (
+          <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label={`Step ${current} of ${total}`} role="progressbar" aria-valuenow={current} aria-valuemin={1} aria-valuemax={total}>
+            <rect x="4" width="298" height="5" rx="2.5" fill="white"/>
+            <rect width={fillWidth} height="5" rx="2.5" fill="#0E1B4D"/>
+            <rect x="341" width="23" height="5" rx="2.5" fill="white"/>
+            <rect x="310" width="23" height="5" rx="2.5" fill="white"/>
+            <rect x="372" width="23" height="5" rx="2.5" fill="white"/>
+          </svg>
+        );
+      })()}
 
       {/* Nav */}
       <nav className={styles.navBar} aria-label="Form navigation">
-        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/step4', 'backward')}>
+        <button className={styles.navBtn} aria-label="Go back" onClick={() => {
+          const productId = data.products[0] || '';
+          navigate(getBackForTeethChart(productId), 'backward');
+        }}>
           <Image src="/assets/images/intake-icon-back.svg" alt="" width={20} height={20} />
         </button>
-        <span className={styles.navTitle}>Intake form</span>
+        <span className={styles.navTitle}>Tooth Chart</span>
         <Link href="/" className={styles.navBtn} aria-label="Close form">
           <Image src="/assets/images/intake-icon-close.svg" alt="" width={20} height={20} />
         </Link>

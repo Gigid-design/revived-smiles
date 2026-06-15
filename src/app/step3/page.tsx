@@ -6,16 +6,7 @@ import { useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
-
-const PRODUCTS = [
-  "Flexible partial denture",
-  "Acrylic partial denture",
-  "Unilateral partial denture",
-  "Clear partial denture",
-  "Full denture",
-  "Retainer / nightguard",
-  "Revived Veneers",
-];
+import { PRODUCTS, CATEGORY_LABELS, getNextAfterProduct } from "../context/productConfig";
 
 function CheckIcon({ checked }: { checked: boolean }) {
   if (checked) {
@@ -58,9 +49,9 @@ export default function Step3() {
       </div>
 
       {/* Progress bar */}
-      <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Step 2 of 3" role="progressbar" aria-valuenow={2} aria-valuemin={1} aria-valuemax={3}>
+      <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Step 3 of 5" role="progressbar" aria-valuenow={3} aria-valuemin={1} aria-valuemax={5}>
         <rect x="4" width="298" height="5" rx="2.5" fill="white"/>
-        <rect width="172" height="5" rx="2.5" fill="#0E1B4D"/>
+        <rect width="181" height="5" rx="2.5" fill="#0E1B4D"/>
         <rect x="341" width="23" height="5" rx="2.5" fill="white"/>
         <rect x="310" width="23" height="5" rx="2.5" fill="white"/>
         <rect x="372" width="23" height="5" rx="2.5" fill="white"/>
@@ -71,7 +62,7 @@ export default function Step3() {
         <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/step2', 'backward')}>
           <Image src="/assets/images/intake-icon-back.svg" alt="" width={20} height={20} />
         </button>
-        <span className={styles.navTitle}>Intake form</span>
+        <span className={styles.navTitle}>Products</span>
         <Link href="/" className={styles.navBtn} aria-label="Close form">
           <Image src="/assets/images/intake-icon-close.svg" alt="" width={20} height={20} />
         </Link>
@@ -84,17 +75,21 @@ export default function Step3() {
         {/* Scrollable list */}
         <ul className={styles.list} role="listbox" aria-multiselectable="false" aria-label="Select your ordered product">
           {PRODUCTS.map((product) => {
-            const isChecked = selected === product;
+            const isChecked = selected === product.id;
             return (
-              <li key={product}>
+              <li key={product.id}>
                 <button
                   type="button"
                   role="option"
                   aria-selected={isChecked}
                   className={`${styles.item} ${isChecked ? styles.itemActive : ""}`}
-                  onClick={() => select(product)}
+                  onClick={() => select(product.id)}
                 >
-                  <span className={styles.itemLabel}>{product}</span>
+                  <div className={styles.itemContent}>
+                    <span className={styles.itemLabel}>{product.label}</span>
+                    <span className={styles.itemDescription}>{product.description}</span>
+                    <span className={styles.itemBadge}>{CATEGORY_LABELS[product.category]}</span>
+                  </div>
                   <span className={styles.itemCheck}>
                     <CheckIcon checked={isChecked} />
                   </span>
@@ -119,7 +114,7 @@ export default function Step3() {
               const arr = [selected];
               update({ products: arr });
               try { localStorage.setItem('rs_products', JSON.stringify(arr)); } catch {}
-              navigate('/step4', 'forward');
+              navigate(getNextAfterProduct(selected), 'forward');
             }
           }}
         >
