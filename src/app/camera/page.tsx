@@ -21,16 +21,16 @@ interface PillState {
   status: "idle" | "checking" | "pass" | "fail" | "allpass" | "allfail";
 }
 
-const CHECK_IDS = ["blur", "lighting", "visibility", "framing", "angle", "bite", "glare"];
+const FALLBACK_CHECK_IDS = ["teeth_closed", "front_angle", "teeth_exposed", "blur", "lighting", "framing", "glare"];
 
 const TIPS: Record<string, string> = {
-  blur:       "Hold steady — press your elbows against your body or rest your hand on a surface.",
-  lighting:   "Move near a window or turn on the room lights for better brightness.",
-  visibility: "Open wider and gently pull your lips back so all teeth are fully visible.",
-  framing:    "Move closer — your teeth should fill most of the frame.",
-  angle:      "Hold your phone straight in front of your mouth, not from above or below.",
-  bite:       "Bite down gently so your upper and lower teeth touch naturally.",
-  glare:      "Turn off flash and use soft natural light to avoid reflections on your teeth.",
+  teeth_closed:      "Bite down gently so your upper and lower teeth touch naturally.",
+  front_angle:       "Hold your phone straight in front of your mouth, not from above or below.",
+  teeth_exposed:     "Pull your lips back so all your front teeth are fully visible.",
+  blur:              "Hold steady — press your elbows against your body or rest your hand on a surface.",
+  lighting:          "Move near a window or turn on the room lights for better brightness.",
+  framing:           "Move closer — your teeth should fill most of the frame.",
+  glare:             "Turn off flash and use soft natural light to avoid reflections on your teeth.",
 };
 
 export default function Camera() {
@@ -43,8 +43,12 @@ export default function Camera() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [pill, setPill] = useState<PillState | null>(null);
   const [tip, setTip] = useState<string | null>(null);
+  const [checks, setChecks] = useState<Check[]>([]);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const [showExample, setShowExample] = useState(false);
+  const [teethCenter, setTeethCenter] = useState<{ x: number; y: number } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startCamera = useCallback(async (facing: "environment" | "user" = "environment") => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -82,11 +86,12 @@ export default function Camera() {
     const allPass = checks.every((c) => c.pass);
     const failedCheck = checks.find((c) => !c.pass);
 
+    setPill(null);
+    setChecks(checks);
+
     if (allPass) {
-      setPill({ label: "All checks passed", detail: "Ready to submit", status: "allpass" });
       setState("pass");
     } else {
-      setPill({ label: failedCheck!.label, detail: failedCheck!.detail, status: "allfail" });
       setTip(TIPS[failedCheck!.id] ?? null);
       setState("fail");
     }
@@ -110,12 +115,13 @@ export default function Camera() {
       const res = await fetch("/api/analyze-photo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64 }),
+        body: JSON.stringify({ imageBase64: base64, photoType: "close-bite-front" }),
       });
       const data = await res.json();
+      if (data.teethCenter) setTeethCenter(data.teethCenter);
       await runChecks(data.checks);
     } catch {
-      const fallback: Check[] = CHECK_IDS.map((id) => ({
+      const fallback: Check[] = FALLBACK_CHECK_IDS.map((id) => ({
         id, label: id, pass: false, detail: "Could not analyze. Try again.",
       }));
       await runChecks(fallback);
@@ -187,7 +193,7 @@ export default function Camera() {
 
         {/* Viewfinder wrap — pill sits here so it's not clipped by viewfinder overflow */}
         <div className={styles.viewfinderWrap}>
-          <div className={styles.viewfinder} aria-label="Camera viewfinder">
+          <div className={`${styles.viewfinder} ${(state === "pass" || state === "fail") ? styles.viewfinderShrunk : ""}`} aria-label="Camera viewfinder">
             <video
               ref={videoRef}
               className={`${styles.liveVideo} ${state !== "idle" ? styles.hidden : ""} ${facingMode === "user" ? styles.mirrored : ""}`}
@@ -195,7 +201,12 @@ export default function Camera() {
             />
             {capturedImage && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={capturedImage} alt="Captured" className={styles.capturedImg} />
+              <img
+                src={capturedImage}
+                alt="Captured"
+                className={styles.capturedImg}
+                style={teethCenter ? { objectPosition: `${teethCenter.x}% ${teethCenter.y}%` } : undefined}
+              />
             )}
             {cameraError && (
               <div className={styles.cameraError}><p>{cameraError}</p></div>
@@ -206,12 +217,37 @@ export default function Camera() {
             <span className={`${styles.corner} ${styles.cornerBL}`} />
             <span className={`${styles.corner} ${styles.cornerBR}`} />
 
-            {state === "idle" && (
+            {state === "idle" && !showExample && (
               <div className={styles.teethGuide}>
                 <Image src="/assets/images/camera-teeth-guide.png" alt="Teeth alignment guide" width={280} height={140} style={{ width: '100%', height: 'auto' }} unoptimized />
               </div>
             )}
+
+            {/* Example photo overlay */}
+            {showExample && (
+              <div className={styles.exampleOverlay}>
+                <div className={styles.examplePlaceholder}>
+                  <span className={styles.examplePlaceholderText}>Example: Front view</span>
+                  <span className={styles.examplePlaceholderSub}>Teeth closed, lips pulled back</span>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* See Example toggle */}
+          {state === "idle" && (
+            <button
+              className={styles.exampleToggle}
+              onClick={() => setShowExample(!showExample)}
+              type="button"
+            >
+              {showExample ? "Hide Example" : "See Example"}
+            </button>
+          )}
+
+          {/* Result badge on viewfinder */}
+          {state === "pass" && <div className={styles.resultBadgePass}>✓ All checks passed</div>}
+          {state === "fail" && <div className={styles.resultBadgeFail}>✕ Check failed</div>}
 
           {/* Pill outside viewfinder — no overflow clipping */}
           {pill && (
@@ -236,6 +272,24 @@ export default function Camera() {
           )}
         </div>
 
+        {/* Check results list */}
+        {(state === "pass" || state === "fail") && checks.length > 0 && (
+          <div className={styles.checkList}>
+            {checks.map(c => (
+              <div key={c.id} className={`${styles.checkPill} ${c.pass ? styles.checkPillPass : styles.checkPillFail}`}>
+                <div className={styles.checkPillIcon}>
+                  {c.pass ? <span className={styles.checkIconPass}>✓</span> : <span className={styles.checkIconFail}>✕</span>}
+                </div>
+                <div className={styles.checkPillBody}>
+                  <span className={styles.checkPillLabel}>{c.label}</span>
+                  <span className={styles.checkPillDetail}>{c.detail}</span>
+                </div>
+                <span className={styles.checkPillStatus}>{c.pass ? "Pass" : "Fail"}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Tip card — fail state */}
         {state === "fail" && tip && (
           <div className={styles.tipCard}>
@@ -257,9 +311,49 @@ export default function Camera() {
       <div className={styles.controls}>
         {state === "idle" && (
           <>
-            <button className={`${styles.controlBtn} ${styles.controlBtnTimer}`} aria-label="Timer">
-              <Image src="/assets/images/camera-icon-timer.svg" alt="" width={21} height={21} unoptimized />
+            <button className={`${styles.controlBtn} ${styles.controlBtnTimer}`} aria-label="Choose from gallery" onClick={() => fileInputRef.current?.click()}>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#0e1b4d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
             </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const dataUrl = reader.result as string;
+                  const base64 = dataUrl.split(",")[1];
+                  setCapturedImage(dataUrl);
+                  setState("analyzing");
+                  setPill({ label: "Starting scan…", detail: "", status: "checking" });
+                  fetch("/api/analyze-photo", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ imageBase64: base64, photoType: "close-bite-front" }),
+                  })
+                    .then((res) => res.json())
+                    .then((data) => {
+                      if (data.teethCenter) setTeethCenter(data.teethCenter);
+                      return runChecks(data.checks);
+                    })
+                    .catch(() => {
+                      const fallback: Check[] = FALLBACK_CHECK_IDS.map((id) => ({
+                        id, label: id, pass: false, detail: "Could not analyze. Try again.",
+                      }));
+                      runChecks(fallback);
+                    });
+                };
+                reader.readAsDataURL(file);
+                e.target.value = "";
+              }}
+            />
             <button className={`${styles.controlBtn} ${styles.controlBtnFlash}`} aria-label="Flash">
               <Image src="/assets/images/camera-icon-flash.svg" alt="" width={21} height={21} unoptimized />
             </button>
