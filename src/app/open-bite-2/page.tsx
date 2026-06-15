@@ -168,8 +168,10 @@ export default function OpenBite2() {
           steps={[
             { label: "Front" },
             { label: "Side" },
+            { label: "Open" },
+            { label: "Open side" },
           ]}
-          currentStep={1}
+          currentStep={3}
         />
       </div>
 

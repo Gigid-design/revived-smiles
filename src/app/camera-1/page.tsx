@@ -162,7 +162,7 @@ export default function Camera() {
 
       {/* Nav bar */}
       <nav className={styles.navBar}>
-        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/photo-intro', 'backward')}>
+        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/camera', 'backward')}>
           <Image src="/assets/images/camera-icon-back.svg" alt="" width={20} height={20} unoptimized />
         </button>
         <span className={styles.navTitle}>Teeth Photos</span>
@@ -176,8 +176,9 @@ export default function Camera() {
         <PhotoTimeline
           steps={[
             { label: "Front" },
-            { label: "Left side" },
-            { label: "Right side" },
+            { label: "Side" },
+            { label: "Open" },
+            { label: "Open side" },
           ]}
           currentStep={1}
         />
@@ -409,7 +410,7 @@ export default function Camera() {
                 console.error("Photo upload failed:", err);
               }
             }
-            navigate('/open-bite', 'forward');
+            navigate('/open-bite', 'forward');  // step 2 → step 3
           }}>Submit Photo</button>
         )}
       </div>

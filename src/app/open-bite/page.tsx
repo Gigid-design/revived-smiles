@@ -153,7 +153,7 @@ export default function OpenBite() {
 
       {/* Nav bar */}
       <nav className={styles.navBar}>
-        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/camera', 'backward')}>
+        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/camera-1', 'backward')}>
           <Image src="/assets/images/camera-icon-back.svg" alt="" width={20} height={20} unoptimized />
         </button>
         <span className={styles.navTitle}>Teeth Photos</span>
@@ -168,8 +168,10 @@ export default function OpenBite() {
           steps={[
             { label: "Front" },
             { label: "Side" },
+            { label: "Open" },
+            { label: "Open side" },
           ]}
-          currentStep={0}
+          currentStep={2}
         />
       </div>
 

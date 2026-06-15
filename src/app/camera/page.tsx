@@ -176,8 +176,9 @@ export default function Camera() {
         <PhotoTimeline
           steps={[
             { label: "Front" },
-            { label: "Left side" },
-            { label: "Right side" },
+            { label: "Side" },
+            { label: "Open" },
+            { label: "Open side" },
           ]}
           currentStep={0}
         />
@@ -409,7 +410,7 @@ export default function Camera() {
                 console.error("Photo upload failed:", err);
               }
             }
-            navigate('/open-bite', 'forward');
+            navigate('/camera-1', 'forward');
           }}>Submit Photo</button>
         )}
       </div>
