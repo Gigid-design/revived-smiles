@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 
@@ -11,12 +12,9 @@ export default function PhotoIntro() {
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
-      {/* Backgrounds */}
-      <div className={styles.outerBg} aria-hidden="true">
-        <Image src="/assets/images/intake-bg.png" alt="" fill style={{ objectFit: "cover" }} priority sizes="430px" />
-      </div>
-      <div className={styles.cardBg} aria-hidden="true">
-        <Image src="/assets/images/intake-card-bg.png" alt="" fill style={{ objectFit: "cover", objectPosition: "center top" }} priority sizes="430px" />
+      {/* Background */}
+      <div className={styles.bg} aria-hidden="true">
+        <Image src="/assets/images/photo-intro-bg.png" alt="" fill style={{ objectFit: "cover" }} priority sizes="430px" />
       </div>
 
       {/* Progress bar */}
@@ -28,29 +26,39 @@ export default function PhotoIntro() {
         <rect x="372" width="23"  height="5" rx="2.5" fill="white"/>
       </svg>
 
-      {/* Photo guide card */}
-      <div className={styles.photoCard} id="main-content">
+      {/* Nav: back + close */}
+      <button className={styles.backBtn} aria-label="Go back" onClick={() => navigate('/instructions-4', 'backward')}>
+        <Image src="/assets/images/camera-icon-back.svg" alt="" width={20} height={20} unoptimized />
+      </button>
+      <Link href="/" className={styles.closeBtn} aria-label="Close">
+        <Image src="/assets/images/camera-icon-close.svg" alt="" width={20} height={20} unoptimized />
+      </Link>
+
+      {/* Title */}
+      <h1 className={styles.title} id="main-content">Mouth Angles Introduction</h1>
+
+      {/* Photo card */}
+      <div className={styles.photoCard}>
         <Image
-          src="/assets/images/photo-guide-1.jpg"
-          alt="Guide: person taking a photo of their impression kit"
+          src="/assets/images/photo-intro-hero.jpg"
+          alt="Woman taking a selfie photo of her mouth"
           fill
-          style={{ objectFit: "cover", objectPosition: "center top" }}
+          style={{ objectFit: "cover", objectPosition: "72% 15%" }}
           sizes="356px"
           priority
         />
+        {/* Play button */}
         <div className={styles.playBtn} aria-label="Watch guide video">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 5.5L19 12L8 18.5V5.5Z" fill="#0E1B4D"/>
-          </svg>
+          <Image src="/assets/images/photo-intro-play.svg" alt="" width={56} height={56} unoptimized />
         </div>
       </div>
 
-      {/* Take Photos button — same pattern as all other screens */}
+      {/* Take Photos button */}
       <div className={styles.buttonWrapper}>
         <button
           type="button"
           className={styles.btn}
-          onClick={() => navigate('/camera', 'forward')}
+          onClick={() => navigate('/camera-1', 'forward')}
         >
           TAKE PHOTOS
         </button>

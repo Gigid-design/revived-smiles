@@ -1,72 +1,121 @@
+/* ── Screen ── */
 .screen {
   position: relative;
   width: 100%;
-  min-height: 100svh;
+  height: 100dvh;
   overflow: hidden;
 }
 
-.outerBg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-.cardBg  { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+/* ── Background ── */
+.bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
 
-/* Progress bar — same positioning as all intake screens */
+/* ── Progress bar ── */
 .progressBar {
   position: absolute;
   top: 2.3125em;   /* 37px */
-  left: 1.0625em;  /* 17px */
+  left: 1.0625em;
   right: 1.1875em;
   z-index: 3;
   width: calc(100% - 2.25em);
   height: 0.3125em;
 }
 
-/* Photo card: top:153px left:37px width:356px height:569px radius:22px */
+/* ── Back button: left=45px, vertically at ~82px ── */
+.backBtn {
+  position: absolute;
+  top: 5.125em;  /* 82px */
+  left: 2.8125em; /* 45px */
+  z-index: 4;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em;
+  height: 1.25em;
+}
+
+/* ── Close button: right=~45px ── */
+.closeBtn {
+  position: absolute;
+  top: 5.125em;
+  right: 2.8125em;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em;
+  height: 1.25em;
+  text-decoration: none;
+}
+
+/* ── Title: CENTER at 184px (Figma -translate-y-1/2), 34px semibold, white ── */
+.title {
+  position: absolute;
+  top: 184px;
+  left: 45px;
+  right: 40px;
+  z-index: 3;
+  transform: translateY(-50%);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 2.125em; /* 34px */
+  color: #ffffff;
+  text-align: center;
+  line-height: normal;
+  margin: 0;
+}
+
+/* ── Photo card: top=247px, left=37px, 356×500px, radius=22px ── */
 .photoCard {
   position: absolute;
-  top: 9.5625em;    /* 153px */
-  left: 2.3125em;   /* 37px */
-  width: 22.25em;   /* 356px */
-  height: 35.5625em;/* 569px */
-  border-radius: 1.375em; /* 22px */
+  top: 247px;
+  left: 37px;
+  width: 356px;
+  height: 500px;
+  border-radius: 22px;
   overflow: hidden;
   z-index: 3;
 }
 
-/* Centered play button */
+/* ── Play button ── */
 .playBtn {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 3.5em;
-  height: 3.5em;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
+  z-index: 4;
+  cursor: pointer;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  z-index: 4;
-  padding-left: 0.15em; /* optical centering for play triangle */
 }
 
-/* Button wrapper — fixed bottom, same as all other screens */
+/* ── Take Photos button: fixed bottom, 355×56px — matches Figma 35px from bottom ── */
 .buttonWrapper {
   position: fixed;
-  bottom: 0;
+  bottom: 2.1875em; /* 35px */
   left: 50%;
   transform: translateX(-50%);
-  width: min(calc(100% - 2em), 26.375em);
-  padding: 0 1.3125em 2.1875em;
-  z-index: 20;
+  width: 355px;
+  z-index: 4;
 }
 
-/* Button — identical to all other screens */
 .btn {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 3.5em;
+  height: 56px;
   background-color: #0e1b4d;
   color: #ffffff;
   font-family: var(--font-heading);
