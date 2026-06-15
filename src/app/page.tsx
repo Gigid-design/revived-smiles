@@ -13,7 +13,7 @@ gsap.registerPlugin(useGSAP);
 
 export default function Home() {
   const router = useRouter();
-  const { update } = useSubmission();
+  const { update, createDraft } = useSubmission();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -59,12 +59,14 @@ export default function Home() {
 
     try {
       if (mode === "signup") {
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: email.trim(),
           password: password.trim(),
         });
         if (signUpError) throw signUpError;
         update({ email: email.trim() });
+        const userId = signUpData.user?.id;
+        if (userId) await createDraft(email.trim(), userId);
         animateOut("/welcome");
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -76,20 +78,22 @@ export default function Home() {
 
         // Check if user has an existing submission
         const res = await fetch(`/api/lookup?email=${encodeURIComponent(email.trim())}`);
-        const data = await res.json();
+        const lookupData = await res.json();
 
-        if (data.found) {
-          // Populate localStorage for dashboard/order-detail
-          const s = data.submission;
-          try {
-            if (s.name) localStorage.setItem("rs_name", s.name);
-            if (s.state) localStorage.setItem("rs_state", s.state);
-            if (s.products) localStorage.setItem("rs_products", JSON.stringify(s.products));
-            if (s.white_shade) localStorage.setItem("rs_whiteShade", s.white_shade);
-            if (s.gum_shade) localStorage.setItem("rs_gumShade", s.gum_shade);
-          } catch {}
-          animateOut("/dashboard");
+        if (lookupData.found) {
+          const s = lookupData.submission;
+          if (s.status === 'draft') {
+            // Resume draft — store the submission ID and navigate to next incomplete step
+            update({ submissionId: s.id, email: email.trim(), name: s.name || '', state: s.state || '', products: s.products || [] });
+            try { sessionStorage.setItem('rs_submission_id', s.id); } catch {}
+            animateOut("/welcome");
+          } else {
+            animateOut("/dashboard");
+          }
         } else {
+          // No submission found — create a new draft
+          const user = (await supabase.auth.getUser()).data.user;
+          if (user) await createDraft(email.trim(), user.id);
           animateOut("/welcome");
         }
       }
