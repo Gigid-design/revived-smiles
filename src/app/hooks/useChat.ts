@@ -54,10 +54,12 @@ export function useChat(
 
     load();
 
-    /* Subscribe to realtime inserts */
+    /* Subscribe to realtime inserts — unique channel name per effect to avoid
+       Supabase reuse collision in React Strict Mode double-mount */
     const supabase = getSupabase();
+    const channelName = `chat:${submissionId}:${Date.now()}`;
     const channel = supabase
-      .channel(`chat:${submissionId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
@@ -69,7 +71,6 @@ export function useChat(
         (payload) => {
           const msg = payload.new as ChatMessage;
           setMessages((prev) => {
-            // Deduplicate — the optimistic insert may already be there
             if (prev.some((m) => m.id === msg.id)) return prev;
             return [...prev, msg];
           });
