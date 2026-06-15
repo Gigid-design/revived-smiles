@@ -24,10 +24,10 @@ const GUM_SHADES = [
 ];
 
 export default function Step4() {
-  const [whiteShade, setWhiteShade] = useState<string | null>(null);
-  const [gumShade,   setGumShade]   = useState<string | null>(null);
+  const { data, update, patchSubmission } = useSubmission();
+  const [whiteShade, setWhiteShade] = useState<string | null>(data.whiteShade);
+  const [gumShade,   setGumShade]   = useState<string | null>(data.gumShade);
   const { cardRef, navigate } = usePageTransition();
-  const { update, patchSubmission, data } = useSubmission();
 
   const selectedWhite = WHITE_SHADES.find(s => s.id === whiteShade);
   const selectedGum   = GUM_SHADES.find(s => s.id === gumShade);

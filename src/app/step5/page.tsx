@@ -184,10 +184,10 @@ function ToothButton({ tooth, jaw, selected, onToggle }: {
 }
 
 export default function Step5() {
-  const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set());
-  const [notSure, setNotSure] = useState(false);
+  const { data, update, patchSubmission } = useSubmission();
+  const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set(data.selectedTeeth));
+  const [notSure, setNotSure] = useState(data.teethNotSure);
   const { cardRef, navigate } = usePageTransition();
-  const { update, patchSubmission, data } = useSubmission();
 
   function toggleTooth(num: number) {
     setNotSure(false);

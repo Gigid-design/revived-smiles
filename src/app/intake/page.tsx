@@ -8,10 +8,10 @@ import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
 
 export default function Intake() {
-  const [name, setName] = useState("");
+  const { data, update, patchSubmission } = useSubmission();
+  const [name, setName] = useState(data.name || "");
   const hasValue = name.trim().length > 0;
   const { cardRef, navigate } = usePageTransition("fade");
-  const { update, patchSubmission } = useSubmission();
 
   return (
     <main className={styles.screen}>

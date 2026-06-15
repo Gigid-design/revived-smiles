@@ -34,10 +34,10 @@ const STATE_ABBR: Record<string, string> = {
 };
 
 export default function Step2() {
-  const [selected, setSelected] = useState("");
+  const { data, update, patchSubmission } = useSubmission();
+  const [selected, setSelected] = useState(data.state || "");
   const hasValue = selected !== "";
   const { cardRef, navigate } = usePageTransition("fade");
-  const { update, patchSubmission } = useSubmission();
 
   return (
     <main className={styles.screen}>

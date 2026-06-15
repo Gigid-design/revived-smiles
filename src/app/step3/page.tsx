@@ -26,9 +26,9 @@ function CheckIcon({ checked }: { checked: boolean }) {
 }
 
 export default function Step3() {
-  const [selected, setSelected] = useState<string | null>(null);
+  const { data, update, patchSubmission } = useSubmission();
+  const [selected, setSelected] = useState<string | null>(data.products[0] || null);
   const { cardRef, navigate } = usePageTransition();
-  const { update, patchSubmission } = useSubmission();
 
   function select(product: string) {
     setSelected(product);

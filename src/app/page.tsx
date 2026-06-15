@@ -51,6 +51,20 @@ export default function Home() {
     });
   });
 
+  /** Given a draft submission row, determine the next incomplete step */
+  function getResumeRoute(s: Record<string, unknown>): string {
+    if (!s.name) return "/intake";
+    if (!s.state) return "/step2";
+    if (!s.products || (s.products as string[]).length === 0) return "/step3";
+    // step4 (shades) and step5 (teeth) are optional depending on product
+    // If they got past products, check photos
+    if (!s.close_bite_photos || (s.close_bite_photos as string[]).length === 0) return "/photo-intro";
+    if (!s.open_bite_photos || (s.open_bite_photos as string[]).length === 0) return "/open-bite";
+    if (!s.impression_photos || (s.impression_photos as string[]).length === 0) return "/instructions";
+    // Everything filled — should have been submitted
+    return "/dashboard";
+  }
+
   const handleSubmit = contextSafe(async (e: FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) return;
@@ -83,10 +97,20 @@ export default function Home() {
         if (lookupData.found) {
           const s = lookupData.submission;
           if (s.status === 'draft') {
-            // Resume draft — store the submission ID and navigate to next incomplete step
-            update({ submissionId: s.id, email: email.trim(), name: s.name || '', state: s.state || '', products: s.products || [] });
+            // Resume draft — restore context and navigate to next incomplete step
+            update({
+              submissionId: s.id,
+              email: email.trim(),
+              name: s.name || '',
+              state: s.state || '',
+              products: s.products || [],
+              whiteShade: s.white_shade || null,
+              gumShade: s.gum_shade || null,
+              selectedTeeth: s.selected_teeth || [],
+              teethNotSure: s.teeth_not_sure || false,
+            });
             try { sessionStorage.setItem('rs_submission_id', s.id); } catch {}
-            animateOut("/welcome");
+            animateOut(getResumeRoute(s));
           } else {
             animateOut("/dashboard");
           }
