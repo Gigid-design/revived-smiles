@@ -201,7 +201,7 @@ Rules:
 - If the image is clearly not a photo of teeth/mouth at all (e.g., a random object, a landscape), fail ALL checks`;
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: "claude-sonnet-4-6",
     max_tokens: 1024,
     messages: [
       {

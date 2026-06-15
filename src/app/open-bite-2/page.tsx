@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRef, useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
+import PhotoTimeline from "../components/PhotoTimeline";
 import { useSubmission } from "../context/SubmissionContext";
 import { getSupabase } from "@/lib/supabase";
 
@@ -156,29 +157,31 @@ export default function OpenBite2() {
         <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/open-bite', 'backward')}>
           <Image src="/assets/images/camera-icon-back.svg" alt="" width={20} height={20} unoptimized />
         </button>
-        <span className={styles.navTitle}>Mouth Angles - Open Bite</span>
+        <span className={styles.navTitle}>Teeth Photos</span>
         <Link href="/" className={styles.navBtn} aria-label="Close">
           <Image src="/assets/images/camera-icon-close.svg" alt="" width={20} height={20} unoptimized />
         </Link>
       </nav>
 
       {/* Timeline */}
-      <Image
-        src="/assets/images/camera-timeline.svg"
-        alt="Steps: Front, Left side"
-        width={430} height={64}
-        className={styles.timeline}
-        unoptimized priority
-      />
+      <div className={styles.timeline}>
+        <PhotoTimeline
+          steps={[
+            { label: "Front" },
+            { label: "Side" },
+          ]}
+          currentStep={1}
+        />
+      </div>
 
       {/* White card */}
       <div className={styles.card} id="main-content">
 
         <div className={styles.cardHeader}>
           <div className={styles.cardHeaderText}>
-            <h1 className={styles.cardTitle}>Open bite — Left side</h1>
+            <h1 className={styles.cardTitle}>Side view — mouth open</h1>
             <p className={styles.cardSubtitle}>
-              {state === "idle" && "Keep mouth wide open. Turn head to show your side teeth clearly."}
+              {state === "idle" && "Keep your mouth open wide. Turn your head to show one side."}
               {state === "analyzing" && "AI is scanning your photo…"}
               {state === "pass" && "All checks passed! Ready to submit."}
               {state === "fail" && "A few things need fixing. Retake to try again."}
