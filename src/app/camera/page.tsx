@@ -24,10 +24,10 @@ interface PillState {
   status: "idle" | "checking" | "pass" | "fail" | "allpass" | "allfail";
 }
 
-const FALLBACK_CHECK_IDS = ["mouth_closed", "front_view", "teeth_exposed", "blur", "lighting", "framing", "glare"];
+const FALLBACK_CHECK_IDS = ["teeth_together", "front_view", "teeth_exposed", "blur", "lighting", "framing", "glare"];
 
 const TIPS: Record<string, string> = {
-  mouth_closed:      "Bite down gently so your upper and lower teeth touch naturally.",
+  teeth_together:    "Bite down gently so your teeth touch — keep your lips pulled back so we can see.",
   front_view:        "Hold your phone straight in front of your mouth, not from the side.",
   teeth_exposed:     "Pull your lips back so all your front teeth are fully visible.",
   blur:              "Hold steady — press your elbows against your body or rest your hand on a surface.",

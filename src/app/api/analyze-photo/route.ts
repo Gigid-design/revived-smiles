@@ -27,14 +27,14 @@ const PHOTO_TYPES: Record<string, PhotoTypeSpec> = {
   "close-bite-front": {
     label: "Close Bite — Front View",
     pose_description:
-      "The patient should have their teeth CLOSED — biting down naturally with upper teeth resting on lower teeth. " +
-      "The photo is taken straight-on from the front. Lips are pulled back to expose the teeth and gums. " +
-      "You should see both upper and lower rows of teeth with no gap between them.",
+      "The patient should be BITING DOWN — upper teeth resting on lower teeth in a natural bite. " +
+      "IMPORTANT: The lips must be PULLED BACK to expose the teeth and gums — this is NOT a closed-lip photo. " +
+      "The photo is taken straight-on from the front. You should see both rows of teeth touching with no gap between them.",
     content_checks: [
       {
-        id: "mouth_closed",
-        label: "Mouth closed",
-        requirement: "Upper and lower teeth must be biting together with no visible gap. If the mouth is open or teeth are apart, fail.",
+        id: "teeth_together",
+        label: "Teeth together",
+        requirement: "Upper and lower teeth must be biting together with no visible gap between them. The lips should be OPEN and pulled back — you need to SEE the teeth touching. If teeth are apart or mouth is wide open, fail. But do NOT fail just because lips are open — lips MUST be open to show the bite.",
       },
       {
         id: "front_view",
@@ -51,15 +51,16 @@ const PHOTO_TYPES: Record<string, PhotoTypeSpec> = {
   "close-bite-side": {
     label: "Close Bite — Side View",
     pose_description:
-      "The patient should have their teeth CLOSED — biting down naturally. " +
+      "The patient should be BITING DOWN — teeth together in a natural bite. " +
       "The photo is taken from the SIDE so you can see how the upper and lower back teeth (premolars and molars) meet. " +
-      "The camera is angled roughly 45-90° from the front. Lips and cheek are pulled back to expose the side teeth. " +
+      "Lips and cheek are pulled back to expose the side teeth. " +
+      "IMPORTANT: Lips being open/pulled back is CORRECT — we need to see the teeth. " +
       "The key is that the back teeth are visible — it does not matter which side (left or right).",
     content_checks: [
       {
-        id: "mouth_closed",
-        label: "Mouth closed",
-        requirement: "Upper and lower teeth must be biting together. If the mouth is open or teeth are apart, fail.",
+        id: "teeth_together",
+        label: "Teeth together",
+        requirement: "Upper and lower teeth must be biting together. The lips should be pulled back so the bite is visible. If teeth are apart or mouth is wide open, fail. Do NOT fail because lips are open — lips MUST be open to show the teeth.",
       },
       {
         id: "side_view",
