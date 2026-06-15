@@ -8,6 +8,7 @@ import { useGSAP } from "@gsap/react";
 import styles from "./page.module.css";
 import { useSubmission } from "./context/SubmissionContext";
 import { supabase } from "../lib/supabase";
+import { PRODUCTS } from "./context/productConfig";
 
 gsap.registerPlugin(useGSAP);
 
@@ -53,15 +54,33 @@ export default function Home() {
 
   /** Given a draft submission row, determine the next incomplete step */
   function getResumeRoute(s: Record<string, unknown>): string {
+    // 1. Basic info
     if (!s.name) return "/intake";
     if (!s.state) return "/step2";
-    if (!s.products || (s.products as string[]).length === 0) return "/step3";
-    // step4 (shades) and step5 (teeth) are optional depending on product
-    // If they got past products, check photos
-    if (!s.close_bite_photos || (s.close_bite_photos as string[]).length === 0) return "/photo-intro";
-    if (!s.open_bite_photos || (s.open_bite_photos as string[]).length === 0) return "/open-bite";
-    if (!s.impression_photos || (s.impression_photos as string[]).length === 0) return "/instructions";
-    // Everything filled — should have been submitted
+
+    const products = (s.products as string[] | null) ?? [];
+    if (products.length === 0) return "/step3";
+
+    // 2. Product-conditional steps
+    const productId = products[0];
+    const config = PRODUCTS.find((p) => p.id === productId);
+    if (config?.needsShade && !s.white_shade) return "/step4";
+    if (config?.needsTeethChart && !(s.selected_teeth as number[] | null)?.length && !s.teeth_not_sure) return "/step5";
+
+    // 3. Bite photos — check each slot individually
+    const closeBite = (s.close_bite_photos as string[] | null) ?? [];
+    const openBite = (s.open_bite_photos as string[] | null) ?? [];
+
+    if (!closeBite[0]) return "/photo-intro";   // close bite front not taken
+    if (!closeBite[1]) return "/camera-1";       // close bite left not taken
+    if (!openBite[0]) return "/open-bite";       // open bite front not taken
+    if (!openBite[1]) return "/open-bite-2";     // open bite left not taken
+
+    // 4. Impression photos
+    const impressions = (s.impression_photos as string[] | null) ?? [];
+    if (impressions.length < 4) return "/instructions";
+
+    // Everything filled — should have been submitted already
     return "/dashboard";
   }
 
