@@ -27,7 +27,7 @@ export default function Step4() {
   const [whiteShade, setWhiteShade] = useState<string | null>(null);
   const [gumShade,   setGumShade]   = useState<string | null>(null);
   const { cardRef, navigate } = usePageTransition();
-  const { update, data } = useSubmission();
+  const { update, patchSubmission, data } = useSubmission();
 
   const selectedWhite = WHITE_SHADES.find(s => s.id === whiteShade);
   const selectedGum   = GUM_SHADES.find(s => s.id === gumShade);
@@ -140,7 +140,7 @@ export default function Step4() {
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
           onClick={() => {
             update({ whiteShade, gumShade });
-            try { if (whiteShade) localStorage.setItem('rs_whiteShade', whiteShade); if (gumShade) localStorage.setItem('rs_gumShade', gumShade); } catch {}
+            patchSubmission({ white_shade: whiteShade, gum_shade: gumShade });
             const productId = data.products[0] || '';
             navigate(getNextAfterShade(productId), 'forward');
           }}>

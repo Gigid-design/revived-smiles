@@ -11,7 +11,7 @@ export default function Intake() {
   const [name, setName] = useState("");
   const hasValue = name.trim().length > 0;
   const { cardRef, navigate } = usePageTransition("fade");
-  const { update } = useSubmission();
+  const { update, patchSubmission } = useSubmission();
 
   return (
     <main className={styles.screen}>
@@ -78,7 +78,7 @@ export default function Intake() {
             if (hasValue) {
               const trimmed = name.trim();
               update({ name: trimmed });
-              try { localStorage.setItem('rs_name', trimmed); } catch {}
+              patchSubmission({ name: trimmed });
               navigate('/step2', 'forward');
             }
           }}

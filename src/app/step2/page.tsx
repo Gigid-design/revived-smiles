@@ -37,7 +37,7 @@ export default function Step2() {
   const [selected, setSelected] = useState("");
   const hasValue = selected !== "";
   const { cardRef, navigate } = usePageTransition("fade");
-  const { update } = useSubmission();
+  const { update, patchSubmission } = useSubmission();
 
   return (
     <main className={styles.screen}>
@@ -117,7 +117,7 @@ export default function Step2() {
         <button
           type="button"
           className={`${styles.btn} ${hasValue ? styles.btnActive : ""}`}
-          onClick={() => { if (hasValue) { update({ state: selected }); try { localStorage.setItem('rs_state', selected); } catch {} navigate('/step3', 'forward'); } }}
+          onClick={() => { if (hasValue) { update({ state: selected }); patchSubmission({ state: selected }); navigate('/step3', 'forward'); } }}
         >
           CONTINUE
         </button>

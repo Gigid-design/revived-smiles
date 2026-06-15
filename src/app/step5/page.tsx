@@ -187,7 +187,7 @@ export default function Step5() {
   const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set());
   const [notSure, setNotSure] = useState(false);
   const { cardRef, navigate } = usePageTransition();
-  const { update, data } = useSubmission();
+  const { update, patchSubmission, data } = useSubmission();
 
   function toggleTooth(num: number) {
     setNotSure(false);
@@ -303,7 +303,9 @@ export default function Step5() {
       <div className={styles.buttonWrapper}>
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
           onClick={() => {
-          update({ selectedTeeth: [...selectedTeeth], teethNotSure: notSure });
+          const teeth = [...selectedTeeth];
+          update({ selectedTeeth: teeth, teethNotSure: notSure });
+          patchSubmission({ selected_teeth: teeth, teeth_not_sure: notSure });
           navigate('/photo-intro', 'forward');
         }}
         >CONTINUE</button>

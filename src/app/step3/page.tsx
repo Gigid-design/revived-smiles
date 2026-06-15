@@ -28,7 +28,7 @@ function CheckIcon({ checked }: { checked: boolean }) {
 export default function Step3() {
   const [selected, setSelected] = useState<string | null>(null);
   const { cardRef, navigate } = usePageTransition();
-  const { update } = useSubmission();
+  const { update, patchSubmission } = useSubmission();
 
   function select(product: string) {
     setSelected(product);
@@ -113,7 +113,7 @@ export default function Step3() {
             if (hasSelection && selected) {
               const arr = [selected];
               update({ products: arr });
-              try { localStorage.setItem('rs_products', JSON.stringify(arr)); } catch {}
+              patchSubmission({ products: arr });
               navigate(getNextAfterProduct(selected), 'forward');
             }
           }}
