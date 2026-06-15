@@ -58,7 +58,7 @@ export default function PhotoIntro() {
         <button
           type="button"
           className={styles.btn}
-          onClick={() => navigate('/camera-1', 'forward')}
+          onClick={() => navigate('/camera', 'forward')}
         >
           TAKE PHOTOS
         </button>
