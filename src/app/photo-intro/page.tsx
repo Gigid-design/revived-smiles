@@ -34,22 +34,87 @@ export default function PhotoIntro() {
         <Image src="/assets/images/camera-icon-close.svg" alt="" width={20} height={20} unoptimized />
       </Link>
 
-      {/* Title */}
-      <h1 className={styles.title} id="main-content">Mouth Angles Introduction</h1>
+      {/* Scrollable content card */}
+      <div className={styles.contentCard} id="main-content">
+        <h1 className={styles.heading}>What You&apos;ll Capture</h1>
+        <p className={styles.subtitle}>
+          We need 5 photos of your teeth from different angles so our lab can craft a perfect fit.
+        </p>
 
-      {/* Photo card */}
-      <div className={styles.photoCard}>
-        <Image
-          src="/assets/images/photo-intro-hero.jpg"
-          alt="Woman taking a selfie photo of her mouth"
-          fill
-          style={{ objectFit: "cover", objectPosition: "72% 15%" }}
-          sizes="356px"
-          priority
-        />
-        {/* Play button */}
-        <div className={styles.playBtn} aria-label="Watch guide video">
-          <Image src="/assets/images/photo-intro-play.svg" alt="" width={56} height={56} unoptimized />
+        {/* Photo count summary */}
+        <div className={styles.summaryRow}>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryIcon}>😁</span>
+            <span className={styles.summaryLabel}>Close Bite</span>
+            <span className={styles.summaryCount}>3 photos</span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryIcon}>😮</span>
+            <span className={styles.summaryLabel}>Open Bite</span>
+            <span className={styles.summaryCount}>2 photos</span>
+          </div>
+        </div>
+
+        {/* Section: Close Bite */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <span className={styles.sectionEmoji}>📸</span>
+            <div>
+              <p className={styles.sectionTitle}>Close Bite</p>
+              <p className={styles.sectionDesc}>Front, left &amp; right side with teeth closed</p>
+            </div>
+          </div>
+          <div className={styles.exampleRow}>
+            <div className={styles.exampleCard}>
+              <div className={styles.examplePlaceholder}>
+                <span className={styles.placeholderLabel}>Front</span>
+              </div>
+            </div>
+            <div className={styles.exampleCard}>
+              <div className={styles.examplePlaceholder}>
+                <span className={styles.placeholderLabel}>Left Side</span>
+              </div>
+            </div>
+            <div className={styles.exampleCard}>
+              <div className={styles.examplePlaceholder}>
+                <span className={styles.placeholderLabel}>Right Side</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section: Open Bite */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <span className={styles.sectionEmoji}>📸</span>
+            <div>
+              <p className={styles.sectionTitle}>Open Bite</p>
+              <p className={styles.sectionDesc}>Front &amp; left side with mouth wide open</p>
+            </div>
+          </div>
+          <div className={styles.exampleRow}>
+            <div className={styles.exampleCard}>
+              <div className={styles.examplePlaceholder}>
+                <span className={styles.placeholderLabel}>Front</span>
+              </div>
+            </div>
+            <div className={styles.exampleCard}>
+              <div className={styles.examplePlaceholder}>
+                <span className={styles.placeholderLabel}>Left Side</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tips */}
+        <div className={styles.tipsCard}>
+          <p className={styles.tipsTitle}>💡 Tips for best results</p>
+          <ul className={styles.tipsList}>
+            <li>Stand near a window or bright light</li>
+            <li>Hold your phone steady with both hands</li>
+            <li>Pull your lips back so all teeth are visible</li>
+            <li>Have someone else take the photo if possible</li>
+          </ul>
         </div>
       </div>
 
