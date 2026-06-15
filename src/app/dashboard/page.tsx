@@ -7,11 +7,15 @@ import styles from "./page.module.css";
 
 export default function Dashboard() {
   const [firstName, setFirstName] = useState("Angela");
+  const [productLabel, setProductLabel] = useState("Acrylic partial denture");
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('rs_name');
-      if (stored) setFirstName(stored.trim().split(" ")[0]);
+      const name = localStorage.getItem('rs_name');
+      if (name) setFirstName(name.trim().split(" ")[0]);
+
+      const products = JSON.parse(localStorage.getItem('rs_products') || '[]') as string[];
+      if (products.length > 0) setProductLabel(products.join(", "));
     } catch {}
   }, []);
 
@@ -48,8 +52,8 @@ export default function Dashboard() {
           {/* Title */}
           <h2 className={styles.cardTitle}>Next step: Ship back<br />your impression kit</h2>
 
-          {/* Subtitle */}
-          <p className={styles.cardSub}>Acrylic partial denture</p>
+          {/* Subtitle — mapped from ordered product selection */}
+          <p className={styles.cardSub}>{productLabel}</p>
 
           {/* Product image */}
           <div className={styles.productImgWrap}>

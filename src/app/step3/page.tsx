@@ -35,20 +35,15 @@ function CheckIcon({ checked }: { checked: boolean }) {
 }
 
 export default function Step3() {
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<string | null>(null);
   const { cardRef, navigate } = usePageTransition();
   const { update } = useSubmission();
 
-  function toggle(product: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(product)) next.delete(product);
-      else next.add(product);
-      return next;
-    });
+  function select(product: string) {
+    setSelected(product);
   }
 
-  const hasSelection = selected.size > 0;
+  const hasSelection = selected !== null;
 
   return (
     <main className={styles.screen}>
@@ -87,9 +82,9 @@ export default function Step3() {
         <h1 className={styles.cardTitle}>Your ordered product</h1>
 
         {/* Scrollable list */}
-        <ul className={styles.list} role="listbox" aria-multiselectable="true" aria-label="Select your ordered product">
+        <ul className={styles.list} role="listbox" aria-multiselectable="false" aria-label="Select your ordered product">
           {PRODUCTS.map((product) => {
-            const isChecked = selected.has(product);
+            const isChecked = selected === product;
             return (
               <li key={product}>
                 <button
@@ -97,7 +92,7 @@ export default function Step3() {
                   role="option"
                   aria-selected={isChecked}
                   className={`${styles.item} ${isChecked ? styles.itemActive : ""}`}
-                  onClick={() => toggle(product)}
+                  onClick={() => select(product)}
                 >
                   <span className={styles.itemLabel}>{product}</span>
                   <span className={styles.itemCheck}>
@@ -119,7 +114,14 @@ export default function Step3() {
         <button
           type="button"
           className={`${styles.btn} ${hasSelection ? styles.btnActive : ""}`}
-          onClick={() => { if (hasSelection) { update({ products: [...selected] }); navigate('/step4', 'forward'); } }}
+          onClick={() => {
+            if (hasSelection && selected) {
+              const arr = [selected];
+              update({ products: arr });
+              try { localStorage.setItem('rs_products', JSON.stringify(arr)); } catch {}
+              navigate('/step4', 'forward');
+            }
+          }}
         >
           CONTINUE
         </button>

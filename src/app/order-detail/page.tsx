@@ -20,11 +20,12 @@ export default function OrderDetail() {
   const [closeBitePhotos, setCloseBitePhotos] = useState<string[]>([]);
   const [openBitePhotos, setOpenBitePhotos] = useState<string[]>([]);
   const [fullName, setFullName] = useState("—");
+  const [orderedProduct, setOrderedProduct] = useState("—");
 
   const aboutRows = [
     { label: "Name",            value: fullName },
     { label: "State",           value: "California" },
-    { label: "Ordered Product", value: "Acrylic Partial Denture, Retainer", underline: true },
+    { label: "Ordered Product", value: orderedProduct, underline: true },
     { label: "Tooth Shade",     value: "A2" },
     { label: "Gum Shade",       value: "G3" },
   ];
@@ -37,6 +38,9 @@ export default function OrderDetail() {
       setOpenBitePhotos(open);
       const name = localStorage.getItem('rs_name');
       if (name) setFullName(name.trim());
+
+      const products = JSON.parse(localStorage.getItem('rs_products') || '[]') as string[];
+      if (products.length > 0) setOrderedProduct(products.join(", "));
     } catch {}
   }, []);
   return (
@@ -50,7 +54,7 @@ export default function OrderDetail() {
             <path d="M7.5 1.5L1.5 7.5l6 6" stroke="#0e1b4d" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </Link>
-        <h1 className={styles.title}>Acrylic Partial Denture</h1>
+        <h1 className={styles.title}>{orderedProduct !== "—" ? orderedProduct : "Acrylic Partial Denture"}</h1>
       </header>
 
       {/* Scrollable content */}
