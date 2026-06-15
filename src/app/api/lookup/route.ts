@@ -13,13 +13,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ found: false });
   }
 
-  const { data: row, error } = await supabase
+  // Return the most recent non-draft submission; if none, return any draft
+  let { data: row, error } = await supabase
     .from("submissions")
     .select("*")
     .eq("email", email)
+    .neq("status", "draft")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // If no completed submission, check for a draft to resume
+  if (!row && !error) {
+    const draft = await supabase
+      .from("submissions")
+      .select("*")
+      .eq("email", email)
+      .eq("status", "draft")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    row = draft.data;
+    error = draft.error;
+  }
 
   if (error || !row) {
     return NextResponse.json({ found: false });
