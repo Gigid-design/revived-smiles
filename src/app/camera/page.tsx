@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRef, useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
+import { useSubmission } from "../context/SubmissionContext";
+import { getSupabase } from "@/lib/supabase";
 
 type State = "idle" | "analyzing" | "pass" | "fail";
 
@@ -21,11 +23,11 @@ interface PillState {
   status: "idle" | "checking" | "pass" | "fail" | "allpass" | "allfail";
 }
 
-const FALLBACK_CHECK_IDS = ["teeth_closed", "front_angle", "teeth_exposed", "blur", "lighting", "framing", "glare"];
+const FALLBACK_CHECK_IDS = ["mouth_closed", "front_view", "teeth_exposed", "blur", "lighting", "framing", "glare"];
 
 const TIPS: Record<string, string> = {
-  teeth_closed:      "Bite down gently so your upper and lower teeth touch naturally.",
-  front_angle:       "Hold your phone straight in front of your mouth, not from above or below.",
+  mouth_closed:      "Bite down gently so your upper and lower teeth touch naturally.",
+  front_view:        "Hold your phone straight in front of your mouth, not from the side.",
   teeth_exposed:     "Pull your lips back so all your front teeth are fully visible.",
   blur:              "Hold steady — press your elbows against your body or rest your hand on a surface.",
   lighting:          "Move near a window or turn on the room lights for better brightness.",
@@ -35,6 +37,7 @@ const TIPS: Record<string, string> = {
 
 export default function Camera() {
   const { navigate } = usePageTransition();
+  const { data } = useSubmission();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -179,7 +182,7 @@ export default function Camera() {
           <div className={styles.cardHeaderText}>
             <h1 className={styles.cardTitle}>Close bite</h1>
             <p className={styles.cardSubtitle}>
-              {state === "idle" && "Align teeth to the oval guide, then hold steady to capture"}
+              {state === "idle" && "Bite down naturally and pull lips back. Hold steady to capture."}
               {state === "analyzing" && "AI is scanning your photo…"}
               {state === "pass" && "All checks passed! Ready to submit."}
               {state === "fail" && "A few things need fixing. Retake to try again."}
@@ -378,7 +381,28 @@ export default function Camera() {
           <button className={styles.retakeBtn} onClick={retake}>Retake Photo</button>
         )}
         {state === "pass" && (
-          <button className={styles.submitBtn} onClick={() => navigate('/open-bite', 'forward')}>Submit Photo</button>
+          <button className={styles.submitBtn} onClick={async () => {
+            if (capturedImage) {
+              try {
+                const supabase = getSupabase();
+                const blob = await fetch(capturedImage).then(r => r.blob());
+                const path = `close-bite/${Date.now()}-left.jpg`;
+                await supabase.storage.from("impression-photos").upload(path, blob, { contentType: "image/jpeg", upsert: true });
+                const { data: urlData } = supabase.storage.from("impression-photos").getPublicUrl(path);
+
+                const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
+                if (id) {
+                  const { data: row } = await supabase.from("submissions").select("close_bite_photos").eq("id", id).single();
+                  const photos = row?.close_bite_photos || [];
+                  photos[1] = urlData.publicUrl;
+                  await supabase.from("submissions").update({ close_bite_photos: photos }).eq("id", id);
+                }
+              } catch (err) {
+                console.error("Photo upload failed:", err);
+              }
+            }
+            navigate('/open-bite', 'forward');
+          }}>Submit Photo</button>
         )}
       </div>
     </main>

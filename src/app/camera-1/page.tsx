@@ -6,6 +6,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
+import { getSupabase } from "@/lib/supabase";
 
 type State = "idle" | "analyzing" | "pass" | "fail";
 
@@ -22,12 +23,12 @@ interface PillState {
   status: "idle" | "checking" | "pass" | "fail" | "allpass" | "allfail";
 }
 
-const FALLBACK_CHECK_IDS = ["teeth_closed", "side_angle", "side_teeth_visible", "blur", "lighting", "framing", "glare"];
+const FALLBACK_CHECK_IDS = ["mouth_closed", "side_view", "back_teeth_visible", "blur", "lighting", "framing", "glare"];
 
 const TIPS: Record<string, string> = {
-  teeth_closed:        "Bite down gently so your upper and lower teeth touch naturally.",
-  side_angle:          "Turn your head so the camera sees your left-side teeth clearly.",
-  side_teeth_visible:  "Pull your cheek back to expose the premolars and molars on the left side.",
+  mouth_closed:         "Bite down gently so your upper and lower teeth touch naturally.",
+  side_view:            "Turn your head so the camera sees your side teeth, not the front.",
+  back_teeth_visible:   "Pull your cheek back to expose your back teeth (premolars and molars).",
   blur:                "Hold steady — press your elbows against your body or rest your hand on a surface.",
   lighting:            "Move near a window or turn on the room lights for better brightness.",
   framing:             "Move closer — your teeth should fill most of the frame.",
@@ -36,7 +37,7 @@ const TIPS: Record<string, string> = {
 
 export default function Camera() {
   const { navigate } = usePageTransition();
-  const { update, data } = useSubmission();
+  const { data } = useSubmission();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -117,7 +118,7 @@ export default function Camera() {
       const res = await fetch("/api/analyze-photo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64, photoType: "close-bite-left" }),
+        body: JSON.stringify({ imageBase64: base64, photoType: "close-bite-side" }),
       });
       const data = await res.json();
       if (data.teethCenter) setTeethCenter(data.teethCenter);
@@ -181,7 +182,7 @@ export default function Camera() {
           <div className={styles.cardHeaderText}>
             <h1 className={styles.cardTitle}>Close bite</h1>
             <p className={styles.cardSubtitle}>
-              {state === "idle" && "Align teeth to the oval guide, then hold steady to capture"}
+              {state === "idle" && "Keep teeth together. Turn head to show your side teeth clearly."}
               {state === "analyzing" && "AI is scanning your photo…"}
               {state === "pass" && "All checks passed! Ready to submit."}
               {state === "fail" && "A few things need fixing. Retake to try again."}
@@ -338,7 +339,7 @@ export default function Camera() {
                   fetch("/api/analyze-photo", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ imageBase64: base64, photoType: "close-bite-left" }),
+                    body: JSON.stringify({ imageBase64: base64, photoType: "close-bite-side" }),
                   })
                     .then((res) => res.json())
                     .then((data) => {
@@ -380,14 +381,25 @@ export default function Camera() {
           <button className={styles.retakeBtn} onClick={retake}>Retake Photo</button>
         )}
         {state === "pass" && (
-          <button className={styles.submitBtn} onClick={() => {
-            // Save close bite front photo to localStorage
+          <button className={styles.submitBtn} onClick={async () => {
             if (capturedImage) {
               try {
-                const stored = JSON.parse(localStorage.getItem('rs_closeBitePhotos') || '[]');
-                stored[0] = capturedImage;
-                localStorage.setItem('rs_closeBitePhotos', JSON.stringify(stored));
-              } catch {}
+                const supabase = getSupabase();
+                const blob = await fetch(capturedImage).then(r => r.blob());
+                const path = `close-bite/${Date.now()}-front.jpg`;
+                await supabase.storage.from("impression-photos").upload(path, blob, { contentType: "image/jpeg", upsert: true });
+                const { data: urlData } = supabase.storage.from("impression-photos").getPublicUrl(path);
+
+                const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
+                if (id) {
+                  const { data: row } = await supabase.from("submissions").select("close_bite_photos").eq("id", id).single();
+                  const photos = row?.close_bite_photos || [];
+                  photos[0] = urlData.publicUrl;
+                  await supabase.from("submissions").update({ close_bite_photos: photos }).eq("id", id);
+                }
+              } catch (err) {
+                console.error("Photo upload failed:", err);
+              }
             }
             navigate('/open-bite', 'forward');
           }}>Submit Photo</button>

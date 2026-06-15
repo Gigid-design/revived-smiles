@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRef, useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
+import { useSubmission } from "../context/SubmissionContext";
+import { getSupabase } from "@/lib/supabase";
 
 type State = "idle" | "analyzing" | "pass" | "fail";
 
@@ -21,11 +23,11 @@ interface PillState {
   status: "idle" | "checking" | "pass" | "fail" | "allpass" | "allfail";
 }
 
-const FALLBACK_CHECK_IDS = ["mouth_open", "front_angle", "arches_visible", "blur", "lighting", "framing", "glare"];
+const FALLBACK_CHECK_IDS = ["mouth_open", "front_view", "arches_visible", "blur", "lighting", "framing", "glare"];
 
 const TIPS: Record<string, string> = {
   mouth_open:        "Open your mouth as wide as you comfortably can — we need to see inside.",
-  front_angle:       "Hold your phone straight in front of your open mouth, not from the side.",
+  front_view:        "Hold your phone straight in front of your open mouth, not from the side.",
   arches_visible:    "Open wider so both the upper and lower rows of teeth are visible.",
   blur:              "Hold steady — press your elbows against your body or rest your hand on a surface.",
   lighting:          "Move near a window or turn on the room lights for better brightness.",
@@ -35,6 +37,7 @@ const TIPS: Record<string, string> = {
 
 export default function OpenBite() {
   const { navigate } = usePageTransition();
+  const { data } = useSubmission();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -175,7 +178,7 @@ export default function OpenBite() {
           <div className={styles.cardHeaderText}>
             <h1 className={styles.cardTitle}>Open bite</h1>
             <p className={styles.cardSubtitle}>
-              {state === "idle" && "Align teeth to the oval guide, then hold steady to capture"}
+              {state === "idle" && "Open your mouth wide so we can see all your teeth inside."}
               {state === "analyzing" && "AI is scanning your photo…"}
               {state === "pass" && "All checks passed! Ready to submit."}
               {state === "fail" && "A few things need fixing. Retake to try again."}
@@ -379,14 +382,25 @@ export default function OpenBite() {
           }}>Retake Photo</button>
         )}
         {state === "pass" && (
-          <button className={styles.submitBtn} onClick={() => {
-            // Save open bite front photo to localStorage
+          <button className={styles.submitBtn} onClick={async () => {
             if (capturedImage) {
               try {
-                const stored = JSON.parse(localStorage.getItem('rs_openBitePhotos') || '[]');
-                stored[0] = capturedImage;
-                localStorage.setItem('rs_openBitePhotos', JSON.stringify(stored));
-              } catch {}
+                const supabase = getSupabase();
+                const blob = await fetch(capturedImage).then(r => r.blob());
+                const path = `open-bite/${Date.now()}-front.jpg`;
+                await supabase.storage.from("impression-photos").upload(path, blob, { contentType: "image/jpeg", upsert: true });
+                const { data: urlData } = supabase.storage.from("impression-photos").getPublicUrl(path);
+
+                const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
+                if (id) {
+                  const { data: row } = await supabase.from("submissions").select("open_bite_photos").eq("id", id).single();
+                  const photos = row?.open_bite_photos || [];
+                  photos[0] = urlData.publicUrl;
+                  await supabase.from("submissions").update({ open_bite_photos: photos }).eq("id", id);
+                }
+              } catch (err) {
+                console.error("Photo upload failed:", err);
+              }
             }
             navigate('/open-bite-2', 'forward');
           }}>Submit Photo</button>
