@@ -25,6 +25,18 @@ const STATUS_LABELS: Record<string, { label: string; bg: string; color: string }
   rejected: { label: "Rejected", bg: "#fee2e2", color: "#991b1b" },
 };
 
+interface SubmissionRow {
+  name: string;
+  state: string;
+  products: string[];
+  white_shade: string | null;
+  gum_shade: string | null;
+  status: string;
+  review_notes: string | null;
+  close_bite_photos: string[];
+  open_bite_photos: string[];
+}
+
 export default function OrderDetail() {
   const [closeBitePhotos, setCloseBitePhotos] = useState<string[]>([]);
   const [openBitePhotos, setOpenBitePhotos] = useState<string[]>([]);
@@ -45,50 +57,52 @@ export default function OrderDetail() {
   ];
 
   useEffect(() => {
-    try {
-      const close = JSON.parse(localStorage.getItem('rs_closeBitePhotos') || '[]');
-      setCloseBitePhotos(close);
-      const open = JSON.parse(localStorage.getItem('rs_openBitePhotos') || '[]');
-      setOpenBitePhotos(open);
-      const name = localStorage.getItem('rs_name');
-      if (name) setFullName(name.trim());
-
-      const products = JSON.parse(localStorage.getItem('rs_products') || '[]') as string[];
-      if (products.length > 0) setOrderedProduct(products.join(", "));
-
-      const state = localStorage.getItem('rs_state');
-      if (state) setUserState(state);
-
-      const white = localStorage.getItem('rs_whiteShade');
-      if (white) setToothShade(white);
-
-      const gum = localStorage.getItem('rs_gumShade');
-      if (gum) setGumShade(gum);
-    } catch {}
-
-    /* Fetch latest submission status */
-    async function fetchStatus() {
+    async function fetchSubmission() {
       try {
-        const email = localStorage.getItem('rs_email');
-        if (!email) return;
-
         const supabase = getSupabase();
-        const { data } = await supabase
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const cols = "name, state, products, white_shade, gum_shade, status, review_notes, close_bite_photos, open_bite_photos";
+
+        // Try user_id first, fall back to email for pre-migration submissions
+        let { data } = await supabase
           .from("submissions")
-          .select("status, review_notes")
-          .eq("email", email)
+          .select(cols)
+          .eq("user_id", user.id)
+          .neq("status", "draft")
           .order("created_at", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
+
+        if (!data && user.email) {
+          const fallback = await supabase
+            .from("submissions")
+            .select(cols)
+            .eq("email", user.email)
+            .neq("status", "draft")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          data = fallback.data;
+        }
 
         if (data) {
-          setStatus(data.status || "pending");
-          setReviewNotes(data.review_notes || "");
+          const row = data as SubmissionRow;
+          if (row.name) setFullName(row.name.trim());
+          if (row.state) setUserState(row.state);
+          if (row.products?.length) setOrderedProduct(row.products.join(", "));
+          if (row.white_shade) setToothShade(row.white_shade);
+          if (row.gum_shade) setGumShade(row.gum_shade);
+          setStatus(row.status || "pending");
+          setReviewNotes(row.review_notes || "");
+          setCloseBitePhotos(row.close_bite_photos || []);
+          setOpenBitePhotos(row.open_bite_photos || []);
         }
       } catch {}
     }
 
-    fetchStatus();
+    fetchSubmission();
   }, []);
 
   const statusConfig = STATUS_LABELS[status] || STATUS_LABELS.pending;

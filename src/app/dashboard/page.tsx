@@ -6,7 +6,11 @@ import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { getSupabase } from "@/lib/supabase";
 
-interface SubmissionStatus {
+interface SubmissionData {
+  id: string;
+  name: string;
+  email: string;
+  products: string[];
   status: string;
   review_notes: string | null;
   reviewed_at: string | null;
@@ -52,39 +56,46 @@ const STEP_MAP: Record<string, number> = {
 export default function Dashboard() {
   const [firstName, setFirstName] = useState("there");
   const [productLabel, setProductLabel] = useState("Acrylic partial denture");
-  const [submission, setSubmission] = useState<SubmissionStatus | null>(null);
+  const [submission, setSubmission] = useState<SubmissionData | null>(null);
 
   useEffect(() => {
-    try {
-      const name = localStorage.getItem('rs_name');
-      if (name) setFirstName(name.trim().split(" ")[0]);
-
-      const products = JSON.parse(localStorage.getItem('rs_products') || '[]') as string[];
-      if (products.length > 0) setProductLabel(products.join(", "));
-    } catch {}
-
-    /* Fetch submission status from Supabase */
-    async function fetchStatus() {
+    async function fetchSubmission() {
       try {
-        const email = localStorage.getItem('rs_email');
-        if (!email) return;
-
         const supabase = getSupabase();
-        const { data } = await supabase
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Try user_id first, fall back to email for pre-migration submissions
+        let { data } = await supabase
           .from("submissions")
-          .select("status, review_notes, reviewed_at, created_at")
-          .eq("email", email)
+          .select("id, name, email, products, status, review_notes, reviewed_at, created_at")
+          .eq("user_id", user.id)
+          .neq("status", "draft")
           .order("created_at", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
+
+        if (!data && user.email) {
+          const fallback = await supabase
+            .from("submissions")
+            .select("id, name, email, products, status, review_notes, reviewed_at, created_at")
+            .eq("email", user.email)
+            .neq("status", "draft")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          data = fallback.data;
+        }
 
         if (data) {
-          setSubmission(data as SubmissionStatus);
+          setSubmission(data as SubmissionData);
+          if (data.name) setFirstName(data.name.trim().split(" ")[0]);
+          if (data.products?.length) setProductLabel(data.products.join(", "));
         }
       } catch {}
     }
 
-    fetchStatus();
+    fetchSubmission();
   }, []);
 
   const status = submission?.status || "pending";
