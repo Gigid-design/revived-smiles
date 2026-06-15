@@ -182,10 +182,10 @@ export default function SubmissionsListPage() {
                       <input type="checkbox" className={styles.checkbox} aria-label={`Select ${sub.name || sub.email}`} />
                     </td>
                     <td>
-                      <div className={styles.nameCell}>
+                      <Link href={`/admin/submissions/${sub.id}`} className={styles.nameCell} style={{ textDecoration: "none" }}>
                         <span className={styles.nameText}>{sub.name || "—"}</span>
                         <span className={styles.emailText}>{sub.email}</span>
-                      </div>
+                      </Link>
                     </td>
                     <td>{sub.state || "—"}</td>
                     <td>

@@ -218,6 +218,62 @@
 /* Review Actions */
 .actionsCard {
   composes: card;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Tabs ── */
+.tabBar {
+  display: flex;
+  border-bottom: 1px solid var(--admin-card-border);
+}
+
+.tab {
+  flex: 1;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--admin-text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.tab:hover {
+  color: var(--admin-text);
+}
+
+.tabActive {
+  color: var(--admin-text);
+  border-bottom-color: var(--admin-primary);
+}
+
+.tabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0 0.375rem;
+}
+
+.chatTabBody {
+  flex: 1;
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
 }
 
 .actionsBody {

@@ -76,6 +76,7 @@ export default function SubmissionDetailPage() {
   const [saving, setSaving] = useState(false);
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [activeTab, setActiveTab] = useState<"review" | "chat">("review");
   const { unreadCount } = useChat(id, "admin", adminUser?.name ?? "Admin");
 
   useEffect(() => {
@@ -344,9 +345,29 @@ export default function SubmissionDetailPage() {
             </div>
           </div>
 
-          {/* Review Actions */}
+          {/* Review + Chat Tabs */}
           <div className={styles.actionsCard}>
-            <div className={styles.cardHeader}>Review Actions</div>
+            <div className={styles.tabBar}>
+              <button
+                type="button"
+                className={`${styles.tab} ${activeTab === "review" ? styles.tabActive : ""}`}
+                onClick={() => setActiveTab("review")}
+              >
+                Review Actions
+              </button>
+              <button
+                type="button"
+                className={`${styles.tab} ${activeTab === "chat" ? styles.tabActive : ""}`}
+                onClick={() => setActiveTab("chat")}
+              >
+                Chat
+                {unreadCount > 0 && (
+                  <span className={styles.tabBadge}>{unreadCount}</span>
+                )}
+              </button>
+            </div>
+
+            {activeTab === "review" && (
             <div className={styles.actionsBody}>
               {/* Existing notes display */}
               {submission.review_notes && (
@@ -422,6 +443,17 @@ export default function SubmissionDetailPage() {
                 </button>
               </div>
             </div>
+            )}
+
+            {activeTab === "chat" && (
+              <div className={styles.chatTabBody}>
+                <ChatPanel
+                  submissionId={submission?.id ?? null}
+                  currentRole="admin"
+                  currentName={adminUser?.name ?? "Admin"}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -501,35 +533,7 @@ export default function SubmissionDetailPage() {
             </div>
           </div>
 
-          {/* Chat with Patient */}
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              Chat with Patient
-              {unreadCount > 0 && (
-                <span style={{
-                  marginLeft: "0.5rem",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minWidth: "1.25rem",
-                  height: "1.25rem",
-                  borderRadius: "9999px",
-                  background: "#ef4444",
-                  color: "#fff",
-                  fontSize: "0.6875rem",
-                  fontWeight: 700,
-                  padding: "0 0.375rem",
-                }}>{unreadCount}</span>
-              )}
-            </div>
-            <div style={{ padding: 0 }}>
-              <ChatPanel
-                submissionId={submission?.id ?? null}
-                currentRole="admin"
-                currentName={adminUser?.name ?? "Admin"}
-              />
-            </div>
-          </div>
+
         </div>
       </div>
 

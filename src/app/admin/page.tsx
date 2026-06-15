@@ -186,10 +186,10 @@ export default function AdminDashboard() {
               {recentSubmissions.map((sub) => (
                 <tr key={sub.id}>
                   <td>
-                    <div className={styles.nameCell}>
+                    <Link href={`/admin/submissions/${sub.id}`} className={styles.nameCell} style={{ textDecoration: "none" }}>
                       <span className={styles.nameText}>{sub.name || "—"}</span>
                       <span className={styles.emailText}>{sub.email}</span>
-                    </div>
+                    </Link>
                   </td>
                   <td>{sub.state || "—"}</td>
                   <td>
