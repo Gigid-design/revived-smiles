@@ -25,101 +25,78 @@ interface PhotoTypeSpec {
 
 const PHOTO_TYPES: Record<string, PhotoTypeSpec> = {
   "close-bite-front": {
-    label: "Close Bite — Front View",
+    label: "Front View — Teeth Showing",
     pose_description:
       "The patient shows their front teeth from a straight-on angle. Lips are pulled back to expose the teeth. " +
-      "Ideally the teeth are biting together, but a natural smile showing both upper and lower teeth is also acceptable. " +
-      "IMPORTANT: The lips must be PULLED BACK — this is NOT a closed-lip photo. Both rows of teeth must be visible.",
+      "A natural bite or a smile are both fine — what matters is that front teeth on both upper and lower jaw are visible. " +
+      "This is NOT a closed-lip photo — the teeth must be showing.",
     content_checks: [
       {
         id: "teeth_visible",
-        label: "Teeth visible",
-        requirement: "Both upper and lower front teeth must be clearly visible with lips pulled back. A natural bite (teeth together) or a smile (slight gap) are BOTH acceptable — as long as you can see both rows of teeth. Fail only if teeth are not visible, lips are closed, or only one row is showing.",
+        label: "Teeth showing",
+        requirement: "Both upper and lower front teeth must be visible. A bite, a smile, or lips pulled back with a retractor are all acceptable. Fail ONLY if: lips are closed hiding teeth, only gums are showing, or teeth are too blurry to make out.",
       },
       {
         id: "front_view",
-        label: "Front view",
-        requirement: "The photo must show the teeth head-on from the front. You should see roughly equal amounts of the left and right sides of the mouth. If the photo is angled to show mostly one side, fail.",
-      },
-      {
-        id: "teeth_exposed",
-        label: "Teeth exposed",
-        requirement: "The front teeth (incisors and canines) on both upper and lower jaw must be clearly visible. If lips are covering the teeth, fail.",
+        label: "Front angle",
+        requirement: "The photo should be roughly from the front — showing both sides of the mouth. A perfectly straight angle is not required; slightly off-center is fine. Fail only if the photo clearly shows just one side of the mouth.",
       },
     ],
   },
   "close-bite-side": {
-    label: "Close Bite — Side View",
+    label: "Side View — Teeth Showing",
     pose_description:
-      "The patient shows their side teeth. The photo is taken from the SIDE so you can see the back teeth (premolars and molars). " +
-      "Lips and cheek are pulled back to expose the side teeth. " +
-      "Ideally teeth are biting together, but a slight gap is acceptable as long as side teeth are clearly visible. " +
-      "The key is that the back teeth are visible — it does not matter which side (left or right).",
+      "The patient shows their teeth from the side. The camera is angled so you can see teeth beyond just the front incisors. " +
+      "Lips or cheek are pulled back to expose the side teeth. A bite or slight gap are both fine. " +
+      "It does not matter which side (left or right).",
     content_checks: [
       {
         id: "teeth_visible",
-        label: "Teeth visible",
-        requirement: "Side teeth must be clearly visible with lips/cheek pulled back. A natural bite or slight gap are BOTH acceptable. Fail only if teeth are not visible or lips are closed.",
+        label: "Teeth showing",
+        requirement: "Teeth must be clearly visible with lips or cheek pulled back. A bite or slight gap are both fine. Fail only if teeth are hidden behind closed lips or the photo doesn't show teeth at all.",
       },
       {
-        id: "side_view",
-        label: "Side view",
-        requirement: "The photo must be taken from the side — NOT straight-on from the front. The back teeth (premolars/molars) should be more prominent than the front teeth. If the photo is a front view showing both sides equally, fail.",
-      },
-      {
-        id: "back_teeth_visible",
-        label: "Back teeth visible",
-        requirement: "Premolars and/or molars must be clearly visible in the photo. The cheek or lips should be pulled back to expose them. If you can only see front teeth (incisors), fail.",
+        id: "side_angle",
+        label: "Side angle",
+        requirement: "The photo should be taken from an angle — not perfectly straight-on from the front. You should see some of the side teeth (premolars or canines beyond the front incisors). A 30-90° angle from the front is fine. Fail only if it's a straight front-on view showing both sides equally.",
       },
     ],
   },
   "open-bite-front": {
-    label: "Open Bite — Front View",
+    label: "Front View — Mouth Open",
     pose_description:
-      "The patient should have their mouth WIDE OPEN — jaw dropped, clear gap between upper and lower teeth. " +
-      "The photo is taken straight-on from the front so you can see inside the mouth. " +
-      "Both the upper arch (top row of teeth) and lower arch (bottom row) should be visible. " +
-      "This lets the lab see the arch shape, tooth alignment, and any gaps or missing teeth.",
+      "The patient has their mouth open so you can see inside. The photo is from the front. " +
+      "The mouth doesn't need to be extremely wide — just open enough to see the upper teeth and some of the lower teeth or gums. " +
+      "This helps the lab see tooth alignment, spacing, and any missing teeth.",
     content_checks: [
       {
         id: "mouth_open",
         label: "Mouth open",
-        requirement: "The mouth must be clearly wide open with a visible gap between upper and lower teeth. If the teeth are together or nearly touching, fail.",
+        requirement: "The mouth must be open with a visible gap between upper and lower teeth. It doesn't need to be extremely wide — a comfortable open is fine. Fail only if the teeth are together with no gap, or if the mouth is barely open and you can't see inside.",
       },
       {
         id: "front_view",
-        label: "Front view",
-        requirement: "The photo must show the open mouth from the front (head-on). You should see roughly equal amounts of both sides. If the photo is angled to one side, fail.",
-      },
-      {
-        id: "arches_visible",
-        label: "Arches visible",
-        requirement: "Both the upper row of teeth and lower row of teeth should be visible inside the open mouth. If you can only see one row or none, fail.",
+        label: "Front angle",
+        requirement: "The photo should be roughly from the front. Slightly off-center is acceptable. Fail only if the photo is clearly from the side.",
       },
     ],
   },
   "open-bite-side": {
-    label: "Open Bite — Side View",
+    label: "Side View — Mouth Open",
     pose_description:
-      "The patient should have their mouth WIDE OPEN. The photo is taken from the SIDE so you can see " +
-      "the back teeth (premolars and molars) with the mouth open. The camera is angled roughly 45-90° from the front. " +
-      "Lips and cheek are pulled back. It does not matter which side (left or right) — the key is that " +
-      "back teeth are visible with the mouth open.",
+      "The patient has their mouth open and the photo is taken from the side. " +
+      "Lips or cheek are pulled back so side teeth are visible with the mouth open. " +
+      "The mouth doesn't need to be extremely wide. It does not matter which side (left or right).",
     content_checks: [
       {
         id: "mouth_open",
         label: "Mouth open",
-        requirement: "The mouth must be clearly open with a gap between upper and lower teeth. If the teeth are together, fail.",
+        requirement: "The mouth must be open with a visible gap. A comfortable open is fine — it doesn't need to be extremely wide. Fail only if teeth are together with no gap.",
       },
       {
-        id: "side_view",
-        label: "Side view",
-        requirement: "The photo must be taken from the side, NOT straight-on. The back teeth should be more prominent than the front teeth. If it is a front view, fail.",
-      },
-      {
-        id: "back_teeth_visible",
-        label: "Back teeth visible",
-        requirement: "Premolars and/or molars must be clearly visible with the mouth open. If you can only see front teeth, fail.",
+        id: "side_angle",
+        label: "Side angle",
+        requirement: "The photo should be taken from an angle, not straight-on from the front. You should see some side teeth. A 30-90° angle is fine. Fail only if it's a straight front-on view.",
       },
     ],
   },

@@ -24,12 +24,11 @@ interface PillState {
   status: "idle" | "checking" | "pass" | "fail" | "allpass" | "allfail";
 }
 
-const FALLBACK_CHECK_IDS = ["teeth_visible", "side_view", "back_teeth_visible", "blur", "lighting", "framing", "glare"];
+const FALLBACK_CHECK_IDS = ["teeth_visible", "side_angle", "blur", "lighting", "framing", "glare"];
 
 const TIPS: Record<string, string> = {
-  teeth_visible:        "Pull your cheek back so we can see your side teeth clearly.",
-  side_view:            "Turn your head so the camera sees your side teeth, not the front.",
-  back_teeth_visible:   "Pull your cheek back to expose your back teeth (premolars and molars).",
+  teeth_visible:     "Pull your cheek back so we can see your side teeth clearly.",
+  side_angle:        "Turn your head a bit so the camera sees your teeth from the side.",
   blur:                "Hold steady — press your elbows against your body or rest your hand on a surface.",
   lighting:            "Move near a window or turn on the room lights for better brightness.",
   framing:             "Move closer — your teeth should fill most of the frame.",

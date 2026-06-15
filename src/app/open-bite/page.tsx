@@ -24,12 +24,11 @@ interface PillState {
   status: "idle" | "checking" | "pass" | "fail" | "allpass" | "allfail";
 }
 
-const FALLBACK_CHECK_IDS = ["mouth_open", "front_view", "arches_visible", "blur", "lighting", "framing", "glare"];
+const FALLBACK_CHECK_IDS = ["mouth_open", "front_view", "blur", "lighting", "framing", "glare"];
 
 const TIPS: Record<string, string> = {
-  mouth_open:        "Open your mouth as wide as you comfortably can — we need to see inside.",
-  front_view:        "Hold your phone straight in front of your open mouth, not from the side.",
-  arches_visible:    "Open wider so both the upper and lower rows of teeth are visible.",
+  mouth_open:        "Open your mouth comfortably — we need to see your teeth inside.",
+  front_view:        "Hold your phone in front of your face, not from the side.",
   blur:              "Hold steady — press your elbows against your body or rest your hand on a surface.",
   lighting:          "Move near a window or turn on the room lights for better brightness.",
   framing:           "Move closer — your teeth should fill most of the frame.",
