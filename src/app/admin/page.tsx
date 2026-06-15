@@ -56,6 +56,7 @@ export default function AdminDashboard() {
     const { data, error } = await supabase
       .from("submissions")
       .select("id, name, email, state, status, products, created_at")
+      .neq("status", "draft")
       .order("created_at", { ascending: false });
 
     if (error) {

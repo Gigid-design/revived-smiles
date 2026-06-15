@@ -57,6 +57,7 @@ export default function SubmissionsListPage() {
     let query = supabase
       .from("submissions")
       .select("id, name, email, state, status, products, created_at", { count: "exact" })
+      .neq("status", "draft")
       .order("created_at", { ascending: false })
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 

@@ -26,7 +26,9 @@ export function useRealtimeSubmissions() {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "submissions" },
         (payload) => {
-          const row = payload.new as { name?: string; id?: string };
+          const row = payload.new as { name?: string; id?: string; status?: string };
+          // Ignore draft submissions — only toast on pending+ statuses
+          if (row.status === "draft") return;
           setNewSubmission({ name: row.name || "New Patient", id: row.id || "" });
           setLastEvent(Date.now());
 
