@@ -1,0 +1,194 @@
+/* ── Screen ── */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── Background ── */
+.bgWrap {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ── Content ── */
+.content {
+  position: relative;
+  z-index: 1;
+  padding: 3.25em 1.5em 2em;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* ── Back link ── */
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--font-body);
+  font-size: 0.875em;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  margin-bottom: 2em;
+  width: fit-content;
+}
+.backLink:hover { color: #ffffff; }
+
+/* ── Heading ── */
+.heading {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 2em;
+  color: #ffffff;
+  line-height: 1.175;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+/* ── Subtitle ── */
+.subtitle {
+  font-family: var(--font-body);
+  font-size: 1em;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+  margin: 0.75em 0 0;
+}
+
+/* ── Form ── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  margin-top: 2em;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  height: 5.4375em;
+  background: #ffffff;
+  border: 2px solid #e8e8e4;
+  border-radius: 1.25em;
+  padding-top: 1.875em;
+  padding-bottom: 0.5em;
+  padding-inline: 1.125em;
+  font-family: var(--font-body);
+  font-size: 1.0625em;
+  font-weight: 500;
+  color: #0e1b4d;
+  outline: none;
+}
+
+.floatingLabel {
+  position: absolute;
+  left: 1.125em;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-body);
+  font-size: 1.0625em;
+  font-weight: 400;
+  color: #8a8a8a;
+  pointer-events: none;
+  transition: top 0.15s ease, font-size 0.15s ease, color 0.15s ease;
+  transform-origin: left center;
+}
+
+.input:focus ~ .floatingLabel,
+.input:not(:placeholder-shown) ~ .floatingLabel {
+  top: 1.0em;
+  transform: translateY(0);
+  font-size: 0.8125em;
+  font-weight: 400;
+  color: #8a8a8a;
+}
+
+.input:focus {
+  background: #ffffff;
+  border-color: #c6dbfe;
+}
+
+.input:not(:placeholder-shown):not(:focus) {
+  background: #ffffff;
+  border-color: #c6dbfe;
+}
+
+/* ── Submit ── */
+.submitBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 3.5em;
+  margin-top: 1.5em;
+  background-color: #0e1b4d;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  line-height: 1.543;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+.submitBtn:hover { background-color: #1a2a6b; }
+.submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Error ── */
+.errorText {
+  font-family: var(--font-body);
+  font-size: 0.8125em;
+  color: #ff6b6b;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Success / Sent state ── */
+.sentState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 2em;
+}
+
+.sentIcon {
+  width: 72px;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5em;
+}
+
+.hintText {
+  font-family: var(--font-body);
+  font-size: 0.875em;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 1.5em 0 0;
+  line-height: 1.5;
+}
+
+.resendBtn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-body);
+  font-size: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  padding: 0;
+}
+.resendBtn:hover { color: #ffffff; }

@@ -164,6 +164,20 @@
   margin: 0;
 }
 
+.forgotLink {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.8125em;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-top: 0.25em;
+}
+.forgotLink:hover {
+  color: #ffffff;
+}
+
 .modeToggle {
   background: none;
   border: none;

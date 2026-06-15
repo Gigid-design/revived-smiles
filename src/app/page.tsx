@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useRef, useState } from "react";
 import gsap from "gsap";
@@ -213,6 +214,11 @@ export default function Home() {
           <button type="submit" className={styles.submitBtn} disabled={loading}>
             {loading ? (mode === "signin" ? "Signing in…" : "Creating account…") : (mode === "signin" ? "SIGN IN" : "CREATE ACCOUNT")}
           </button>
+          {mode === "signin" && (
+            <Link href="/forgot-password" className={styles.forgotLink}>
+              Forgot your password?
+            </Link>
+          )}
           <button
             type="button"
             className={styles.modeToggle}
