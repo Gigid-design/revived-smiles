@@ -6,8 +6,7 @@ import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { getSupabase } from "@/lib/supabase";
 import { BottomNav } from "@/app/components/BottomNav";
-import { ChatPanel } from "@/app/components/ChatPanel";
-import { useChat } from "@/app/hooks/useChat";
+import { FloatingChat } from "@/app/components/FloatingChat";
 import { PRODUCTS } from "@/app/context/productConfig";
 
 interface SubmissionData {
@@ -92,9 +91,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [chatOpen, setChatOpen] = useState(false);
   const patientName = submission?.name || firstName;
-  const { unreadCount: chatUnreadCount } = useChat(submission?.id ?? null, "patient", patientName);
 
   useEffect(() => {
     async function fetchSubmission() {
@@ -324,49 +321,11 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ── Messages section ── */}
-        <h2 className={styles.sectionTitle}>Messages</h2>
-
-        <button
-          type="button"
-          className={styles.chatToggle}
-          onClick={() => setChatOpen(!chatOpen)}
-          aria-expanded={chatOpen}
-        >
-          <div className={styles.chatToggleIcon}>💬</div>
-          <div className={styles.chatToggleText}>
-            <span className={styles.chatToggleLabel}>Care Team Chat</span>
-            <span className={styles.chatToggleHint}>
-              {chatUnreadCount > 0
-                ? `${chatUnreadCount} new message${chatUnreadCount > 1 ? "s" : ""}`
-                : "Tap to open"}
-            </span>
-          </div>
-          <div className={styles.chatToggleRight}>
-            {chatUnreadCount > 0 && (
-              <span className={styles.chatBadge}>{chatUnreadCount}</span>
-            )}
-            <svg
-              width="8" height="14" viewBox="0 0 8 14" fill="none"
-              className={`${styles.chatChevron} ${chatOpen ? styles.chatChevronOpen : ""}`}
-            >
-              <path d="M1 1l6 6-6 6" stroke="#8a8a8a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-        </button>
-
-        {chatOpen && submission && (
-          <div className={styles.chatPanelWrap}>
-            <ChatPanel
-              submissionId={submission.id}
-              currentRole="patient"
-              currentName={patientName}
-            />
-          </div>
-        )}
-
 
       </div>
+
+      {/* Floating chat button */}
+      <FloatingChat submissionId={submission?.id ?? null} patientName={patientName} />
 
       <BottomNav />
     </main>
