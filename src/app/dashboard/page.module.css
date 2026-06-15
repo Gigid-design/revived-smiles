@@ -11,10 +11,23 @@
 .content {
   position: relative;
   z-index: 1;
-  padding: 3.875em 1em 7em;
+  padding: 0 1em 8em;
   display: flex;
   flex-direction: column;
-  gap: 0;
+}
+
+/* ── Top bar: logo + notification ── */
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 2.625em;   /* 42px */
+  margin-bottom: 0;
+}
+
+.notifBtn {
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 /* ── Greeting ── */
@@ -25,22 +38,22 @@
   color: #0e1b4d;
   line-height: 1.175;
   letter-spacing: -0.02em;
-  margin: 0 0 1.125rem 0.625rem;
+  margin: 0.875rem 0 0 0.625rem;  /* top=98px from screen, accounting for topBar */
 }
 
-/* ── Order status card — matches Figma 212:417 exactly ── */
+/* ── Order status card — 398×341px ── */
 .card {
   position: relative;
   background: #ffffff;
-  border-radius: 1.25em;        /* 20px */
+  border-radius: 1.25em;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  overflow: hidden;
-  height: 16.375em;             /* 262px */
-  margin-bottom: 1.875em;
+  height: 341px;
+  margin-top: 20px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
-/* Title: top=20px, left=20px, width=244px, 20px semibold */
+/* Title: top=20px, left=20px, w=244px, 20px semibold */
 .cardTitle {
   position: absolute;
   top: 20px;
@@ -48,19 +61,19 @@
   width: 244px;
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 1.25em;            /* 20px */
-  color: #111111;
-  line-height: 1.3;
+  font-size: 1.25em;
+  color: #0e1b4d;
+  line-height: normal;
   margin: 0;
 }
 
 /* Subtitle: top=89px, left=20px, 16px regular */
 .cardSub {
   position: absolute;
-  top: 5.5625em;                /* 89px */
-  left: 1.25em;
+  top: 89px;
+  left: 20px;
   font-family: var(--font-heading);
-  font-size: 1em;               /* 16px */
+  font-size: 1em;
   font-weight: 400;
   color: #8a8a8a;
   margin: 0;
@@ -68,85 +81,149 @@
   white-space: nowrap;
 }
 
-/* Product image box: top=20px, left=279px, 99×88px, bg #f5f0e8, rx=11px */
+/* Product image: top=20px, left=279px, 99×88px */
 .productImgWrap {
   position: absolute;
-  top: 1.25em;                  /* 20px */
-  left: 17.4375em;              /* 279px */
-  width: 6.2163em;              /* 99.46px */
-  height: 5.5256em;             /* 88.41px */
+  top: 20px;
+  left: 279px;
+  width: 99.462px;
+  height: 88.41px;
   background: #f5f0e8;
-  border-radius: 0.6907em;      /* 11.05px */
+  border-radius: 11.051px;
   overflow: hidden;
 }
 
-/* Progress track: top=127px, left=20px, width=358px, h=4px */
+/* Progress track: top=128px */
 .progressTrack {
   position: absolute;
-  top: 7.9375em;                /* 127px */
-  left: 1.25em;                 /* 20px */
-  width: 22.375em;              /* 358px */
-  height: 0.25em;               /* 4px */
-  background: #e8e8e4;
-  border-radius: 0.138em;
+  top: 128px;
+  left: 20px;
+  width: 358px;
+  height: 4px;
+  background: #eeeff3;
+  border-radius: 4px;
   overflow: hidden;
 }
 .progressFill {
   height: 100%;
-  width: 59.56%;                /* 213.29/358 */
+  width: 171px;   /* ~48% — up to "Ship Kit" */
   background: linear-gradient(90deg, #c6dcfe 0%, #0e184d 100%);
-  border-radius: inherit;
+  border-radius: 2px;
 }
 
-/* Step labels: top=142px, absolute positions matching Figma */
+/* Step labels: top=142px, 10px medium, gap=28px */
 .stepLabels {
   position: absolute;
-  top: 8.875em;                 /* 142px */
-  left: 1.25em;                 /* 20px */
-  width: 22.375em;              /* 358px */
+  top: 142px;
+  left: 20px;
+  display: flex;
+  gap: 28px;
+  align-items: center;
 }
 .stepLabel {
-  position: absolute;
   font-family: var(--font-heading);
-  font-size: 0.75em;            /* 12px */
-  line-height: 1.66;
+  font-size: 0.625em;   /* 10px */
+  font-weight: 500;
   white-space: nowrap;
-  top: 0;
+  line-height: normal;
 }
-.stepMedium  { font-weight: 500; color: #111111; }
-.stepRegular { font-weight: 400; color: #111111; }
-.stepMuted   { font-weight: 400; color: #e8e8e4; }
+.stepGreen  { color: #4caf50; }
+.stepActive { color: #0d2260; font-weight: 600; }
+.stepMuted  { color: #aaaaaa; }
 
-/* Exact left positions from Figma (px, relative to track start at left=20px) */
-.stepLabel:nth-child(1) { left: 0; }        /* Ordered: 19.69-20 ≈ 0 */
-.stepIntake             { left: 74.69px; }  /* Intake Form: 94.69-20 */
-.stepTeam               { left: 160px; }   /* Team Review: 180-20 */
-.stepStart              { left: 244px; }   /* Start The Treatment: 264-20 */
-
-/* VIEW MORE button: top=186px, centered, w=358px, h=56px */
-.viewMoreBtn {
+/* Info banner: top=174px, left=20px, w=358px */
+.infoBanner {
   position: absolute;
-  top: 186px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 174px;
+  left: 20px;
   width: 358px;
-  height: 56px;
+  background: #f0f3ff;
+  border-radius: 12px;
+  padding: 10px 14px;
   display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+
+.infoIconWrap {
+  flex-shrink: 0;
+}
+
+.infoText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.infoTitle {
+  font-family: var(--font-heading);
+  font-size: 0.75em;    /* 12px */
+  font-weight: 600;
+  color: #0d2260;
+  margin: 0;
+  white-space: nowrap;
+  line-height: 18px;
+}
+
+.infoSub {
+  font-family: var(--font-heading);
+  font-size: 0.6875em;  /* 11px */
+  font-weight: 400;
+  color: #6b7280;
+  margin: 0;
+  line-height: 15.4px;
+}
+
+/* Buttons row: top=265px */
+.cardBtns {
+  position: absolute;
+  top: 265px;
+  left: 20px;
+  display: flex;
+  gap: 9px;
   align-items: center;
-  justify-content: center;
+}
+
+.shippingBtn {
+  width: 250px;
+  height: 56px;
   background: #0e1b4d;
   color: #ffffff;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.875em;           /* 14px */
-  letter-spacing: 0.05em;
+  font-size: 0.875em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   border: none;
   border-radius: 9999px;
   cursor: pointer;
-  text-decoration: none;
+  white-space: nowrap;
 }
-.viewMoreBtn:hover { background: #1a2a6b; }
+.shippingBtn:hover { background: #1a2a6b; }
+
+.detailsBtn {
+  width: 99px;
+  height: 56px;
+  background: transparent;
+  color: #0d2260;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 0.909px solid #d1d5db;
+  border-radius: 9999px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.detailsBtn:hover { background: #f5f6fa; }
 
 /* ── Section title ── */
 .sectionTitle {
@@ -155,64 +232,60 @@
   font-size: 1.875em;
   color: #0e1b4d;
   letter-spacing: -0.02em;
-  margin: 0 0 0.875rem 0.625rem;
+  margin: 1.5rem 0 0.875rem 0.625rem;
   line-height: 1.57;
 }
 
-/* ── Team card — matches Figma 212:483 exactly ── */
+/* ── Team card — 398×155px ── */
 .teamCard {
   position: relative;
   background: #ffffff;
-  border-radius: 1.25em;        /* 20px */
+  border-radius: 1.25em;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  height: 9.6875em;             /* 155px */
+  height: 155px;
   overflow: hidden;
   flex-shrink: 0;
 }
 
-/* "Concierge": top=20px, left=20px, 20px semibold */
 .teamName {
   position: absolute;
   top: 20px;
   left: 20px;
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 1.25em;            /* 20px */
-  color: #111111;
+  font-size: 1.25em;
+  color: #0e1b4d;
   margin: 0;
   white-space: nowrap;
   line-height: normal;
 }
 
-/* "Available now": top=44px, left=20px, 14px medium green */
 .teamAvail {
   position: absolute;
   top: 44px;
   left: 20px;
   font-family: var(--font-heading);
   font-weight: 500;
-  font-size: 0.875em;           /* 14px */
+  font-size: 0.875em;
   color: #51a342;
   margin: 0;
   white-space: nowrap;
   line-height: 19.892px;
 }
 
-/* "John Smith": top=92px, left=20px, 12px medium gray */
 .teamAgent {
   position: absolute;
   top: 92px;
   left: 20px;
   font-family: var(--font-heading);
   font-weight: 500;
-  font-size: 0.75em;            /* 12px */
+  font-size: 0.75em;
   color: #8a8a8a;
   margin: 0;
   white-space: nowrap;
   line-height: 19.892px;
 }
 
-/* Icon + "+2 orders" row: icon at top=112px left=20px, text at top=115px left=45px */
 .teamIconRow {
   position: absolute;
   top: 112px;
@@ -230,7 +303,7 @@
 
 .teamOrders {
   font-family: var(--font-heading);
-  font-size: 0.75em;            /* 12px */
+  font-size: 0.75em;
   font-weight: 500;
   color: #8a8a8a;
   margin: 3px 0 0;
@@ -238,21 +311,17 @@
   line-height: 19.892px;
 }
 
-/* Avatar: photo=88px, centered at same point as 96px ellipse (left=238, top=29)
-   Visual: 88px photo → 2px white gap → 2px #75B3E5 ring = 96px total */
 .teamAvatarWrap {
   position: absolute;
-  top: 33px;    /* 29 + (96-88)/2 = 33px, center stays at y=77 */
-  left: 242px;  /* 238 + (96-88)/2 = 242px, center stays at x=286 */
+  top: 33px;
+  left: 242px;
   width: 88px;
   height: 88px;
   border-radius: 50%;
   overflow: hidden;
-  /* 2px white gap + 2px blue ring matching Figma's #75B3E5 stroke */
   box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #75B3E5;
 }
 
-/* Chevron: right=20px, vertically centered */
 .chevronBtn {
   position: absolute;
   right: 20px;
