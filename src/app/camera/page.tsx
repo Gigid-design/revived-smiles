@@ -24,10 +24,10 @@ interface PillState {
   status: "idle" | "checking" | "pass" | "fail" | "allpass" | "allfail";
 }
 
-const FALLBACK_CHECK_IDS = ["teeth_together", "front_view", "teeth_exposed", "blur", "lighting", "framing", "glare"];
+const FALLBACK_CHECK_IDS = ["teeth_visible", "front_view", "teeth_exposed", "blur", "lighting", "framing", "glare"];
 
 const TIPS: Record<string, string> = {
-  teeth_together:    "Bite down gently so your teeth touch — keep your lips pulled back so we can see.",
+  teeth_visible:     "Pull your lips back so we can see both your upper and lower teeth.",
   front_view:        "Hold your phone straight in front of your mouth, not from the side.",
   teeth_exposed:     "Pull your lips back so all your front teeth are fully visible.",
   blur:              "Hold steady — press your elbows against your body or rest your hand on a surface.",
@@ -133,7 +133,12 @@ export default function Camera() {
   };
 
   const retake = () => {
-    navigate('/camera-1', 'forward');
+    setCapturedImage(null);
+    setPill(null);
+    setTip(null);
+    setChecks([]);
+    setTeethCenter(null);
+    setState("idle");
   };
 
   return (
@@ -186,7 +191,7 @@ export default function Camera() {
           <div className={styles.cardHeaderText}>
             <h1 className={styles.cardTitle}>Front view — teeth together</h1>
             <p className={styles.cardSubtitle}>
-              {state === "idle" && "Bite down and smile. Pull your lips back so we can see your teeth."}
+              {state === "idle" && "Show your teeth! Pull your lips back so we can see both upper and lower rows."}
               {state === "analyzing" && "AI is scanning your photo…"}
               {state === "pass" && "All checks passed! Ready to submit."}
               {state === "fail" && "A few things need fixing. Retake to try again."}

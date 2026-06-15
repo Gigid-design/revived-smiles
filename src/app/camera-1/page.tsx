@@ -24,10 +24,10 @@ interface PillState {
   status: "idle" | "checking" | "pass" | "fail" | "allpass" | "allfail";
 }
 
-const FALLBACK_CHECK_IDS = ["teeth_together", "side_view", "back_teeth_visible", "blur", "lighting", "framing", "glare"];
+const FALLBACK_CHECK_IDS = ["teeth_visible", "side_view", "back_teeth_visible", "blur", "lighting", "framing", "glare"];
 
 const TIPS: Record<string, string> = {
-  teeth_together:       "Bite down gently so your teeth touch — keep your lips pulled back so we can see.",
+  teeth_visible:        "Pull your cheek back so we can see your side teeth clearly.",
   side_view:            "Turn your head so the camera sees your side teeth, not the front.",
   back_teeth_visible:   "Pull your cheek back to expose your back teeth (premolars and molars).",
   blur:                "Hold steady — press your elbows against your body or rest your hand on a surface.",
@@ -133,7 +133,12 @@ export default function Camera() {
   };
 
   const retake = () => {
-    navigate('/camera', 'backward');
+    setCapturedImage(null);
+    setPill(null);
+    setTip(null);
+    setChecks([]);
+    setTeethCenter(null);
+    setState("idle");
   };
 
   return (
