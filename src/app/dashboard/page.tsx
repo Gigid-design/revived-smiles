@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { getSupabase } from "@/lib/supabase";
+import { BottomNav } from "@/app/components/BottomNav";
 
 interface SubmissionData {
   id: string;
@@ -53,17 +54,33 @@ const STEP_MAP: Record<string, number> = {
   rejected: 3,
 };
 
+const REVIEW_BANNER_STYLES: Record<string, { bg: string; color: string }> = {
+  changes_requested: { bg: "#fef3c7", color: "#92400e" },
+  rejected: { bg: "#fee2e2", color: "#991b1b" },
+  approved: { bg: "#dcfce7", color: "#166534" },
+  in_review: { bg: "#dbeafe", color: "#1e40af" },
+  pending: { bg: "#f0f3ff", color: "#0d2260" },
+};
+
 export default function Dashboard() {
   const [firstName, setFirstName] = useState("there");
   const [productLabel, setProductLabel] = useState("Acrylic partial denture");
   const [submission, setSubmission] = useState<SubmissionData | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [generatingLabel, setGeneratingLabel] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchSubmission() {
       try {
+        setLoading(true);
         const supabase = getSupabase();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          setLoading(false);
+          return;
+        }
 
         // Try user_id first, fall back to email for pre-migration submissions
         let { data } = await supabase
@@ -92,11 +109,58 @@ export default function Dashboard() {
           if (data.name) setFirstName(data.name.trim().split(" ")[0]);
           if (data.products?.length) setProductLabel(data.products.join(", "));
         }
-      } catch {}
+
+        // Fetch unread notifications count
+        try {
+          const { count } = await supabase
+            .from("notifications")
+            .select("*", { count: "exact", head: true })
+            .eq("email", user.email)
+            .eq("read", false);
+          setUnreadCount(count || 0);
+        } catch {
+          // Notifications table may not exist yet — silently ignore
+        }
+      } catch (err) {
+        console.error("Failed to fetch submission:", err);
+        setError("Unable to load your submission. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     }
 
     fetchSubmission();
   }, []);
+
+  async function handleShippingLabel() {
+    if (!submission) return;
+    setGeneratingLabel(true);
+    try {
+      const res = await fetch("/api/shipping-label", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          submissionId: submission.id,
+          patientName: submission.name,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to generate label");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `shipping-label-${submission.id.slice(0, 8)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Shipping label error:", err);
+      alert("Unable to generate shipping label. Please try again.");
+    } finally {
+      setGeneratingLabel(false);
+    }
+  }
 
   const status = submission?.status || "pending";
   const statusInfo = STATUS_MESSAGES[status] || STATUS_MESSAGES.pending;
@@ -109,6 +173,8 @@ export default function Dashboard() {
     { label: "Team Review", idx: 4 },
     { label: "Treatment", idx: 5 },
   ];
+
+  const reviewBannerStyle = REVIEW_BANNER_STYLES[status] || REVIEW_BANNER_STYLES.pending;
 
   return (
     <main className={styles.screen}>
@@ -126,140 +192,188 @@ export default function Dashboard() {
             style={{ objectFit: "contain", objectPosition: "left center" }}
             sizes="120px"
           />
-          <Image
-            src="/assets/images/icon-notification-btn.svg"
-            alt="Notifications"
-            width={42}
-            height={42}
-            unoptimized
-          />
+          <Link href="/notifications" className={styles.notifBtn} aria-label="Notifications">
+            <div className={styles.notifWrap}>
+              <Image
+                src="/assets/images/icon-notification-btn.svg"
+                alt=""
+                width={42}
+                height={42}
+                unoptimized
+              />
+              {unreadCount > 0 && (
+                <span className={styles.notifBadge}>
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </div>
+          </Link>
         </div>
 
         {/* Greeting */}
         <h1 className={styles.greeting}>Welcome back,<br />{firstName}</h1>
 
-        {/* Order status card */}
-        <div className={styles.card}>
-          {/* Title — status aware */}
-          <h2 className={styles.cardTitle} style={{ whiteSpace: "pre-line" }}>{statusInfo.title}</h2>
-
-          {/* Subtitle — mapped from ordered product selection */}
-          <p className={styles.cardSub}>{productLabel}</p>
-
-          {/* Product image */}
-          <div className={styles.productImgWrap}>
-            <Image
-              src="/assets/images/hero-product-v2.png"
-              alt="Impression kit"
-              fill
-              style={{ objectFit: "contain" }}
-              sizes="99px"
-            />
-          </div>
-
-          {/* Progress track */}
-          <div className={styles.progressTrack}>
-            <div className={styles.progressFill} style={{ width: `${(activeStep / 5) * 100}%` }} />
-          </div>
-
-          {/* Step labels */}
-          <div className={styles.stepLabels}>
-            {steps.map((step) => (
-              <span
-                key={step.label}
-                className={`${styles.stepLabel} ${
-                  step.idx < activeStep ? styles.stepGreen :
-                  step.idx === activeStep ? styles.stepActive :
-                  styles.stepMuted
-                }`}
-              >
-                {step.label}
-              </span>
-            ))}
-          </div>
-
-          {/* Status message */}
-          <div className={styles.infoBanner}>
-            <div
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: "50%",
-                background: statusInfo.color,
-                flexShrink: 0,
-                marginTop: 2,
-              }}
-            />
-            <div className={styles.infoText}>
-              <p className={styles.infoTitle} style={{ color: statusInfo.color }}>{statusInfo.message}</p>
+        {/* Loading state */}
+        {loading && (
+          <div className={styles.card}>
+            <div className={styles.skeleton}>
+              <div className={styles.skeletonLine} style={{ width: "60%" }} />
+              <div className={styles.skeletonLine} style={{ width: "40%", marginTop: 12 }} />
+              <div className={styles.skeletonBlock} />
             </div>
           </div>
+        )}
 
-          {/* Review notes banner */}
-          {submission?.review_notes && (status === "changes_requested" || status === "rejected") && (
-            <div style={{
-              margin: "0 1.25rem 1rem",
-              padding: "0.75rem 1rem",
-              background: "#fef3c7",
-              borderRadius: "0.625rem",
-              fontSize: "0.8125rem",
-              color: "#92400e",
-              lineHeight: 1.5,
-            }}>
-              <strong style={{ display: "block", marginBottom: "0.25rem" }}>Review Notes:</strong>
-              {submission.review_notes}
+        {/* Error state */}
+        {!loading && error && (
+          <div className={styles.card}>
+            <div className={styles.emptyState}>
+              <p className={styles.emptyTitle}>Something went wrong</p>
+              <p className={styles.emptyMsg}>{error}</p>
+              <button className={styles.retryBtn} onClick={() => window.location.reload()}>
+                TRY AGAIN
+              </button>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Buttons */}
-          <div className={styles.cardBtns}>
-            {status === "changes_requested" ? (
-              <Link href="/camera" className={styles.shippingBtn} style={{ textDecoration: "none", textAlign: "center" }}>
-                UPDATE PHOTOS
+        {/* Empty state */}
+        {!loading && !error && !submission && (
+          <div className={styles.card}>
+            <div className={styles.emptyState}>
+              <p className={styles.emptyTitle}>No submission found</p>
+              <p className={styles.emptyMsg}>Start your intake to get started with your custom dental solution.</p>
+              <Link href="/intake" className={styles.shippingBtn} style={{ textDecoration: "none", textAlign: "center", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                START INTAKE
               </Link>
-            ) : (
-              <button className={styles.shippingBtn}>GET SHIPPING LABEL</button>
+            </div>
+          </div>
+        )}
+
+        {/* Order status card */}
+        {!loading && !error && submission && (
+          <div className={styles.card}>
+            {/* Title — status aware */}
+            <h2 className={styles.cardTitle} style={{ whiteSpace: "pre-line" }}>{statusInfo.title}</h2>
+
+            {/* Subtitle — mapped from ordered product selection */}
+            <p className={styles.cardSub}>{productLabel}</p>
+
+            {/* Product image */}
+            <div className={styles.productImgWrap}>
+              <Image
+                src="/assets/images/hero-product-v2.png"
+                alt="Impression kit"
+                fill
+                style={{ objectFit: "contain" }}
+                sizes="99px"
+              />
+            </div>
+
+            {/* Progress track */}
+            <div className={styles.progressTrack}>
+              <div className={styles.progressFill} style={{ width: `${(activeStep / 5) * 100}%` }} />
+            </div>
+
+            {/* Step labels */}
+            <div className={styles.stepLabels}>
+              {steps.map((step) => (
+                <span
+                  key={step.label}
+                  className={`${styles.stepLabel} ${
+                    step.idx < activeStep ? styles.stepGreen :
+                    step.idx === activeStep ? styles.stepActive :
+                    styles.stepMuted
+                  }`}
+                >
+                  {step.label}
+                </span>
+              ))}
+            </div>
+
+            {/* Status message */}
+            <div className={styles.infoBanner}>
+              <div
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  background: statusInfo.color,
+                  flexShrink: 0,
+                  marginTop: 2,
+                }}
+              />
+              <div className={styles.infoText}>
+                <p className={styles.infoTitle} style={{ color: statusInfo.color }}>{statusInfo.message}</p>
+              </div>
+            </div>
+
+            {/* Review notes banner — show for ALL statuses when notes exist */}
+            {submission.review_notes && (
+              <div style={{
+                margin: "0 1.25rem 1rem",
+                padding: "0.75rem 1rem",
+                background: reviewBannerStyle.bg,
+                borderRadius: "0.625rem",
+                fontSize: "0.8125rem",
+                color: reviewBannerStyle.color,
+                lineHeight: 1.5,
+              }}>
+                <strong style={{ display: "block", marginBottom: "0.25rem" }}>Review Notes:</strong>
+                {submission.review_notes}
+              </div>
             )}
-            <Link href="/order-detail" className={styles.detailsBtn}>DETAILS</Link>
+
+            {/* Status-aware CTA buttons */}
+            <div className={styles.cardBtns}>
+              {status === "changes_requested" ? (
+                <Link href="/camera" className={styles.shippingBtn} style={{ textDecoration: "none", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  UPDATE PHOTOS
+                </Link>
+              ) : status === "in_review" ? (
+                <button className={styles.shippingBtn} disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                  UNDER REVIEW
+                </button>
+              ) : status === "approved" ? (
+                <Link href="/order-detail" className={styles.shippingBtn} style={{ textDecoration: "none", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  VIEW ORDER
+                </Link>
+              ) : status === "rejected" ? (
+                <a href="mailto:support@revivedsmiles.com" className={styles.shippingBtn} style={{ textDecoration: "none", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  CONTACT SUPPORT
+                </a>
+              ) : (
+                <button className={styles.shippingBtn} onClick={handleShippingLabel} disabled={generatingLabel}>
+                  {generatingLabel ? "GENERATING…" : "GET SHIPPING LABEL"}
+                </button>
+              )}
+              <Link href="/order-detail" className={styles.detailsBtn}>DETAILS</Link>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Care team section */}
-        <h2 className={styles.sectionTitle}>My Care Team</h2>
-
-        <div className={styles.teamCard}>
-          <p className={styles.teamName}>Concierge</p>
-          <p className={styles.teamAvail}>Available now</p>
-          <p className={styles.teamAgent}>John Smith</p>
-
-          <div className={styles.teamIconRow}>
-            <Image src="/assets/images/icon-group.svg" alt="" width={22} height={22} unoptimized className={styles.teamIcon} />
-            <p className={styles.teamOrders}>+2 others</p>
+        {/* Need Help section (replaces fake Care Team) */}
+        <h2 className={styles.sectionTitle}>Need Help?</h2>
+        <div className={styles.helpCard}>
+          <div className={styles.helpContent}>
+            <p className={styles.helpText}>
+              Questions about your order or impressions? Our team is here to help.
+            </p>
+            <a href="mailto:support@revivedsmiles.com" className={styles.helpBtn}>
+              CONTACT SUPPORT
+            </a>
           </div>
-
-          <div className={styles.teamAvatarWrap}>
-            <Image
-              src="/assets/images/concierge-photo.png"
-              alt="John Smith"
-              fill
-              style={{ objectFit: "cover", objectPosition: "center top" }}
-              sizes="88px"
-            />
-          </div>
-
-          <button className={styles.chevronBtn} aria-label="View concierge">
-            <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
-              <path d="M1 1l6 6-6 6" stroke="#8a8a8a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <div className={styles.helpIconWrap}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0e1b4d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
-          </button>
+          </div>
         </div>
 
       </div>
 
       {/* Bottom nav */}
-      <div className={styles.bottomNav} aria-label="Main navigation">
-        <Image src="/assets/images/nav-bar-home.svg" alt="Navigation bar" width={271} height={59} unoptimized />
-      </div>
+      <BottomNav />
     </main>
   );
 }

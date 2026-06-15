@@ -46,6 +46,62 @@
   padding: 0 0 8em;
 }
 
+/* ── Timeline ── */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0 1.25em 1em;
+  position: relative;
+}
+
+.timelineStep {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 0.5em 0;
+  position: relative;
+}
+
+/* Vertical line connecting dots */
+.timelineStep:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: calc(0.5em + 12px);
+  bottom: calc(-0.5em + 2px);
+  width: 2px;
+  background: #e5e7eb;
+}
+
+.timelineDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #d1d5db;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.timelineDotCompleted {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.timelineText {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
 /* ── Section label ── */
 .sectionLabel {
   font-family: var(--font-heading);
@@ -111,10 +167,25 @@
   flex-shrink: 0;
 }
 
+.thumbnailBtn {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
 .thumbnailPlaceholder {
   width: 100%;
   height: 100%;
-  background: #d9d9d9;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #d1d5db;
+  border-radius: 0.465em;
 }
 
 .thumbnailImg {
@@ -131,15 +202,108 @@
   margin: 0.5em 0;
 }
 
-/* ── Bottom navigation ── */
-.bottomNav {
+/* ── Lightbox ── */
+.lightbox {
   position: fixed;
-  bottom: 1.25em;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
+  padding: 1em;
+  cursor: pointer;
 }
+
+.lightboxClose {
+  position: absolute;
+  top: max(1em, env(safe-area-inset-top));
+  right: 1em;
+  z-index: 101;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.lightboxImg {
+  max-width: 100%;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 0.5em;
+  cursor: default;
+}
+
+/* ── Loading ── */
+.loadingWrap {
+  padding: 1.5em 1.25em;
+}
+
+.skeletonLine {
+  height: 16px;
+  background: #eeeff3;
+  border-radius: 8px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonBlock {
+  width: 100%;
+  height: 200px;
+  background: #eeeff3;
+  border-radius: 12px;
+  margin-top: 20px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Empty / Error state ── */
+.emptyState {
+  padding: 3em 1.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5em;
+}
+
+.emptyTitle {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.125em;
+  color: #0e1b4d;
+  margin: 0;
+}
+
+.emptyMsg {
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.retryBtn {
+  height: 44px;
+  padding: 0 2em;
+  margin-top: 0.5em;
+  background: #0e1b4d;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8125em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+.retryBtn:hover { background: #1a2a6b; }

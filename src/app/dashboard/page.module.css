@@ -28,6 +28,33 @@
 .notifBtn {
   cursor: pointer;
   flex-shrink: 0;
+  text-decoration: none;
+  position: relative;
+}
+
+.notifWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.notifBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  background: #ef4444;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: 0.625em;
+  font-weight: 700;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  line-height: 1;
+  border: 2px solid #ffffff;
 }
 
 /* ── Greeting ── */
@@ -38,7 +65,7 @@
   color: #0e1b4d;
   line-height: 1.175;
   letter-spacing: -0.02em;
-  margin: 0.875rem 0 0 0.625rem;  /* top=98px from screen, accounting for topBar */
+  margin: 0.875rem 0 0 0.625rem;
 }
 
 /* ── Order status card — 398×341px ── */
@@ -47,7 +74,7 @@
   background: #ffffff;
   border-radius: 1.25em;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  height: 341px;
+  min-height: 341px;
   margin-top: 20px;
   flex-shrink: 0;
   overflow: hidden;
@@ -106,7 +133,7 @@
 }
 .progressFill {
   height: 100%;
-  width: 171px;   /* ~48% — up to "Ship Kit" */
+  width: 171px;
   background: linear-gradient(90deg, #c6dcfe 0%, #0e184d 100%);
   border-radius: 2px;
 }
@@ -122,7 +149,7 @@
 }
 .stepLabel {
   font-family: var(--font-heading);
-  font-size: 0.625em;   /* 10px */
+  font-size: 0.625em;
   font-weight: 500;
   white-space: nowrap;
   line-height: normal;
@@ -160,7 +187,7 @@
 
 .infoTitle {
   font-family: var(--font-heading);
-  font-size: 0.75em;    /* 12px */
+  font-size: 0.75em;
   font-weight: 600;
   color: #0d2260;
   margin: 0;
@@ -170,7 +197,7 @@
 
 .infoSub {
   font-family: var(--font-heading);
-  font-size: 0.6875em;  /* 11px */
+  font-size: 0.6875em;
   font-weight: 400;
   color: #6b7280;
   margin: 0;
@@ -203,6 +230,7 @@
   white-space: nowrap;
 }
 .shippingBtn:hover { background: #1a2a6b; }
+.shippingBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .detailsBtn {
   width: 99px;
@@ -236,115 +264,132 @@
   line-height: 1.57;
 }
 
-/* ── Team card — 398×155px ── */
-.teamCard {
+/* ── Help card (replaces fake Care Team) ── */
+.helpCard {
   position: relative;
   background: #ffffff;
   border-radius: 1.25em;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  height: 155px;
+  padding: 1.25em;
+  display: flex;
+  align-items: center;
+  gap: 1em;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
-.teamName {
-  position: absolute;
-  top: 20px;
-  left: 20px;
+.helpContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+}
+
+.helpText {
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  font-weight: 400;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.helpBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 1.5em;
+  background: transparent;
+  color: #0e1b4d;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8125em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid #d1d5db;
+  border-radius: 9999px;
+  cursor: pointer;
+  white-space: nowrap;
+  width: fit-content;
+}
+.helpBtn:hover { background: #f5f6fa; }
+
+.helpIconWrap {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  background: #f0f3ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Loading skeleton ── */
+.skeleton {
+  padding: 1.5em;
+}
+
+.skeletonLine {
+  height: 16px;
+  background: #eeeff3;
+  border-radius: 8px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonBlock {
+  width: 100%;
+  height: 120px;
+  background: #eeeff3;
+  border-radius: 12px;
+  margin-top: 20px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Empty / Error state ── */
+.emptyState {
+  padding: 2em 1.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5em;
+}
+
+.emptyTitle {
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 1.25em;
+  font-size: 1.125em;
   color: #0e1b4d;
   margin: 0;
-  white-space: nowrap;
-  line-height: normal;
 }
 
-.teamAvail {
-  position: absolute;
-  top: 44px;
-  left: 20px;
+.emptyMsg {
   font-family: var(--font-heading);
-  font-weight: 500;
   font-size: 0.875em;
-  color: #51a342;
-  margin: 0;
-  white-space: nowrap;
-  line-height: 19.892px;
+  color: #6b7280;
+  margin: 0 0 0.5em;
+  line-height: 1.5;
 }
 
-.teamAgent {
-  position: absolute;
-  top: 92px;
-  left: 20px;
+.retryBtn {
+  height: 44px;
+  padding: 0 2em;
+  background: #0e1b4d;
+  color: #ffffff;
   font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 0.75em;
-  color: #8a8a8a;
-  margin: 0;
-  white-space: nowrap;
-  line-height: 19.892px;
-}
-
-.teamIconRow {
-  position: absolute;
-  top: 112px;
-  left: 20px;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.teamIcon {
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-}
-
-.teamOrders {
-  font-family: var(--font-heading);
-  font-size: 0.75em;
-  font-weight: 500;
-  color: #8a8a8a;
-  margin: 3px 0 0;
-  white-space: nowrap;
-  line-height: 19.892px;
-}
-
-.teamAvatarWrap {
-  position: absolute;
-  top: 33px;
-  left: 242px;
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #75B3E5;
-}
-
-.chevronBtn {
-  position: absolute;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
+  font-weight: 700;
+  font-size: 0.8125em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   border: none;
-  padding: 0.5em;
+  border-radius: 9999px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-
-/* ── Bottom navigation ── */
-.bottomNav {
-  position: fixed;
-  bottom: 1.25em;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
+.retryBtn:hover { background: #1a2a6b; }
