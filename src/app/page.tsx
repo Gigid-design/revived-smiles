@@ -97,6 +97,15 @@ export default function Home() {
           password: password.trim(),
         });
         if (signUpError) throw signUpError;
+
+        // Supabase returns a user with no session when the email already exists
+        // (security: doesn't reveal whether an account exists)
+        if (!signUpData.session) {
+          setError("An account with this email may already exist. Try signing in instead.");
+          setLoading(false);
+          return;
+        }
+
         update({ email: email.trim() });
         const userId = signUpData.user?.id;
         if (userId) await createDraft(email.trim(), userId);
@@ -141,7 +150,10 @@ export default function Home() {
         }
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Something went wrong";
+      let msg = err instanceof Error ? err.message : "Something went wrong";
+      // Make Supabase error messages more user-friendly
+      if (msg.includes("Invalid login credentials")) msg = "Incorrect email or password. Please try again.";
+      if (msg.includes("Password should be")) msg = "Password must be at least 6 characters.";
       setError(msg);
       setLoading(false);
     }
