@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
+import { useSubmission } from "../context/SubmissionContext";
+import { supabase } from "../../lib/supabase";
 
 const SLOTS = [
   { id: 1, label: "Upper Impression 1", sub: "Angle 1", tray: "imp-tray-upper-1.svg", flip: false },
@@ -13,17 +15,46 @@ const SLOTS = [
   { id: 4, label: "Lower Impression 2", sub: "Angle 2", tray: "imp-tray-upper.svg",   flip: true  },
 ];
 
+interface PhotoEntry {
+  preview: string;
+  url: string;
+  path: string;
+}
+
 export default function ImpressionPhotos() {
   const { navigate } = usePageTransition();
-  const [photos, setPhotos] = useState<Record<number, string>>({});
+  const { data, update } = useSubmission();
+  const [photos, setPhotos] = useState<Record<number, PhotoEntry>>({});
+  const [uploading, setUploading] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   const uploadedCount = Object.keys(photos).length;
 
-  function handleFileChange(id: number, file: File | undefined) {
+  async function handleFileChange(id: number, file: File | undefined) {
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setPhotos(prev => ({ ...prev, [id]: url }));
+    setUploading(id);
+    try {
+      const preview = URL.createObjectURL(file);
+      const ext = file.name.split(".").pop();
+      const path = `impressions/${Date.now()}-slot${id}.${ext}`;
+      const { error } = await supabase.storage
+        .from("impression-photos")
+        .upload(path, file, { upsert: true });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from("impression-photos")
+        .getPublicUrl(path);
+
+      setPhotos(prev => ({ ...prev, [id]: { preview, url: urlData.publicUrl, path } }));
+    } catch (err) {
+      console.error("Upload failed:", err);
+      alert("Upload failed. Please try again.");
+    } finally {
+      setUploading(null);
+    }
   }
 
   function handleCardClick(id: number) {
@@ -37,8 +68,53 @@ export default function ImpressionPhotos() {
   function handleRemove(id: number, e: React.MouseEvent) {
     e.stopPropagation();
     const prev = photos[id];
-    if (prev) URL.revokeObjectURL(prev);
+    if (prev?.preview) URL.revokeObjectURL(prev.preview);
     setPhotos(p => { const next = { ...p }; delete next[id]; return next; });
+  }
+
+  async function handleSubmit() {
+    if (uploadedCount < 4 || submitting) return;
+    setSubmitting(true);
+
+    const photoUrls = SLOTS.map(s => photos[s.id]?.url).filter(Boolean);
+
+    // Get current auth user ID
+    const { data: { user } } = await supabase.auth.getUser();
+
+    try {
+      const res = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: data.email,
+          name: data.name,
+          state: data.state,
+          products: data.products,
+          whiteShade: data.whiteShade,
+          gumShade: data.gumShade,
+          selectedTeeth: data.selectedTeeth,
+          teethNotSure: data.teethNotSure,
+          impressionPhotos: photoUrls,
+          userId: user?.id ?? null,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || "Submission failed");
+      }
+
+      update({
+        submissionId: result.id,
+        impressionPhotos: SLOTS.map(s => photos[s.id]).filter(Boolean).map((p, i) => ({ slot: i + 1, url: p.url, path: p.path })),
+      });
+      navigate("/complete", "forward");
+    } catch (err) {
+      console.error("Submission failed:", err);
+      alert("Submission failed. Please try again.");
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -77,6 +153,28 @@ export default function ImpressionPhotos() {
         <h1 className={styles.cardTitle}>Impression Photos</h1>
         <p className={styles.cardSubtitle}>Take 4 photos of your at-home impression kit so we can verify your molds are accurate.</p>
 
+        {/* Example photos section */}
+        <div className={styles.exampleSection}>
+          <p className={styles.exampleLabel}>📷 Example photos</p>
+          <div className={styles.exampleRow}>
+            <div className={styles.exampleCard}>
+              <div className={styles.examplePlaceholder}>
+                <span className={styles.examplePlaceholderIcon}>✓</span>
+              </div>
+              <span className={styles.exampleBadgeGood}>Good</span>
+            </div>
+            <div className={styles.exampleCard}>
+              <div className={styles.examplePlaceholderBad}>
+                <span className={styles.examplePlaceholderIcon}>✕</span>
+              </div>
+              <span className={styles.exampleBadgeBad}>Bad</span>
+            </div>
+          </div>
+          <p className={styles.exampleHint}>
+            Place mold on a white surface with good lighting. Ensure the arch shape is clearly visible.
+          </p>
+        </div>
+
         {/* Tip box */}
         <div className={styles.tipBox}>
           <p className={styles.tipText}>
@@ -107,11 +205,15 @@ export default function ImpressionPhotos() {
             >
               {photos[slot.id] ? (
                 <>
-                  <img src={photos[slot.id]} alt={slot.label} className={styles.uploadedPhoto} />
+                  <img src={photos[slot.id].preview} alt={slot.label} className={styles.uploadedPhoto} />
                   <button className={styles.removeBadge} onClick={(e) => handleRemove(slot.id, e)} aria-label={`Remove ${slot.label}`}>
                     <Image src="/assets/images/imp-icon-close-sm.svg" alt="" width={10} height={10} unoptimized />
                   </button>
                 </>
+              ) : uploading === slot.id ? (
+                <div className={styles.photoCardInner}>
+                  <span style={{ fontSize: 11, color: "#8a8a8a" }}>Uploading…</span>
+                </div>
               ) : (
                 <div className={styles.photoCardInner}>
                   <Image src={`/assets/images/${slot.tray}`} alt="" width={44} height={50} className={styles.trayImg}
@@ -124,7 +226,7 @@ export default function ImpressionPhotos() {
                   alt="" width={10} height={10} unoptimized
                 />
               </div>
-              {!photos[slot.id] && (
+              {!photos[slot.id] && uploading !== slot.id && (
                 <>
                   <p className={styles.photoLabel}>{slot.label}</p>
                   <p className={styles.photoSub}>{slot.sub}</p>
@@ -153,11 +255,15 @@ export default function ImpressionPhotos() {
             >
               {photos[slot.id] ? (
                 <>
-                  <img src={photos[slot.id]} alt={slot.label} className={styles.uploadedPhoto} />
+                  <img src={photos[slot.id].preview} alt={slot.label} className={styles.uploadedPhoto} />
                   <button className={styles.removeBadge} onClick={(e) => handleRemove(slot.id, e)} aria-label={`Remove ${slot.label}`}>
                     <Image src="/assets/images/imp-icon-close-sm.svg" alt="" width={10} height={10} unoptimized />
                   </button>
                 </>
+              ) : uploading === slot.id ? (
+                <div className={styles.photoCardInner}>
+                  <span style={{ fontSize: 11, color: "#8a8a8a" }}>Uploading…</span>
+                </div>
               ) : (
                 <div className={styles.photoCardInner}>
                   <Image src={`/assets/images/${slot.tray}`} alt="" width={44} height={50} className={styles.trayImg}
@@ -170,7 +276,7 @@ export default function ImpressionPhotos() {
                   alt="" width={10} height={10} unoptimized
                 />
               </div>
-              {!photos[slot.id] && (
+              {!photos[slot.id] && uploading !== slot.id && (
                 <>
                   <p className={styles.photoLabel}>{slot.label}</p>
                   <p className={styles.photoSub}>{slot.sub}</p>
@@ -193,11 +299,11 @@ export default function ImpressionPhotos() {
       <div className={styles.btnWrapper}>
         <button
           type="button"
-          className={`${styles.btn} ${uploadedCount === 4 ? styles.btnActive : ""}`}
-          disabled={uploadedCount < 4}
-          onClick={() => uploadedCount === 4 && navigate('/complete', 'forward')}
+          className={`${styles.btn} ${uploadedCount === 4 && !submitting ? styles.btnActive : ""}`}
+          disabled={uploadedCount < 4 || submitting}
+          onClick={handleSubmit}
         >
-          CONTINUE
+          {submitting ? "SUBMITTING…" : "CONTINUE"}
         </button>
       </div>
     </main>
