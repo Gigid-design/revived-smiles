@@ -78,35 +78,21 @@ export default function ImpressionPhotos() {
 
     const photoUrls = SLOTS.map(s => photos[s.id]?.url).filter(Boolean);
 
-    // Get current auth user ID
-    const { data: { user } } = await supabase.auth.getUser();
-
     try {
-      const res = await fetch("/api/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: data.email,
-          name: data.name,
-          state: data.state,
-          products: data.products,
-          whiteShade: data.whiteShade,
-          gumShade: data.gumShade,
-          selectedTeeth: data.selectedTeeth,
-          teethNotSure: data.teethNotSure,
-          impressionPhotos: photoUrls,
-          userId: user?.id ?? null,
-        }),
-      });
+      const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
+      if (!id) throw new Error("No submission ID found");
 
-      const result = await res.json();
+      const { error } = await supabase
+        .from("submissions")
+        .update({
+          impression_photos: photoUrls,
+          status: "pending",
+        })
+        .eq("id", id);
 
-      if (!res.ok) {
-        throw new Error(result.error || "Submission failed");
-      }
+      if (error) throw error;
 
       update({
-        submissionId: result.id,
         impressionPhotos: SLOTS.map(s => photos[s.id]).filter(Boolean).map((p, i) => ({ slot: i + 1, url: p.url, path: p.path })),
       });
       navigate("/complete", "forward");
