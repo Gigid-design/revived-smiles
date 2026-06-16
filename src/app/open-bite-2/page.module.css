@@ -769,14 +769,14 @@
 .warningControls .retakeBtn {
   position: static;
   transform: none;
-  width: 380px;
+  width: 344px;
   background: transparent;
   border: 2px solid #0e1b4d;
   color: #0e1b4d;
   text-transform: uppercase;
 }
 .continueAnywayBtn {
-  width: 380px;
+  width: 344px;
   height: 3.5em;
   border-radius: 9999px;
   border: none;
