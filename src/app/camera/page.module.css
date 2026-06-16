@@ -558,18 +558,25 @@
   gap: 0.5em;
 }
 
-/* ── Single check pill — mirrors Container.svg ── */
+/* ── Single check pill — expandable ── */
 .checkPill {
   display: flex;
-  align-items: center;
-  gap: 0.625em;
-  height: 2.875em;
-  padding-inline: 0.875em;
-  border-radius: 999px;
+  flex-direction: column;
+  width: 100%;
+  padding: 0.75em 0.875em;
+  border-radius: 1em;
   background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.35);
   animation: pillIn 0.25s ease both;
+  cursor: pointer;
+  text-align: left;
+}
+.checkPillRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625em;
+  width: 100%;
 }
 @keyframes pillIn {
   from { opacity: 0; transform: translateY(6px); }
@@ -638,6 +645,74 @@
 .checkPillPass .checkPillStatus  { color: #179537; }
 .checkPillFail .checkPillStatus  { color: #c0392b; }
 .checkPillChecking .checkPillStatus { color: #7a8ea8; }
+
+/* Chevron */
+.checkPillChevron {
+  font-size: 0.875em;
+  color: #7a8ea8;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 0.25em;
+}
+.checkPillChevronOpen {
+  transform: rotate(180deg);
+}
+
+/* Expanded observation */
+.checkPillExpanded {
+  border-radius: 1em;
+}
+.checkPillObservation {
+  margin-top: 0.625em;
+  padding-top: 0.625em;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+.observationLabel {
+  font-family: var(--font-heading);
+  font-size: 0.625em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7a8ea8;
+  display: block;
+  margin-bottom: 0.25em;
+}
+.observationText {
+  font-size: 0.75em;
+  color: #333;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* ── AI Summary card ── */
+.aiSummaryCard {
+  margin-top: 0.875em;
+  padding: 1em;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8eef8 100%);
+  border: 1px solid rgba(14, 27, 77, 0.12);
+  border-radius: 1em;
+}
+.aiSummaryHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-bottom: 0.5em;
+}
+.aiSummaryIcon {
+  font-size: 1.125em;
+}
+.aiSummaryTitle {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 700;
+  color: #0e1b4d;
+}
+.aiSummaryText {
+  font-size: 0.8125em;
+  color: #333;
+  line-height: 1.5;
+  margin: 0;
+}
 
 /* ── Single rotating scan pill — inside viewfinder ── */
 .scanPill {

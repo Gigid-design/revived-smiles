@@ -16,6 +16,7 @@ interface Check {
   label: string;
   pass: boolean;
   detail: string;
+  observation?: string;
 }
 
 interface PillState {
@@ -51,6 +52,8 @@ export default function Camera() {
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [showExample, setShowExample] = useState(false);
   const [teethCenter, setTeethCenter] = useState<{ x: number; y: number } | null>(null);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [expandedCheck, setExpandedCheck] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startCamera = useCallback(async (facing: "environment" | "user" = "environment") => {
@@ -122,6 +125,7 @@ export default function Camera() {
       });
       const data = await res.json();
       if (data.teethCenter) setTeethCenter(data.teethCenter);
+      if (data.summary) setAiSummary(data.summary);
       await runChecks(data.checks);
     } catch {
       const fallback: Check[] = FALLBACK_CHECK_IDS.map((id) => ({
@@ -137,6 +141,8 @@ export default function Camera() {
     setTip(null);
     setChecks([]);
     setTeethCenter(null);
+    setAiSummary(null);
+    setExpandedCheck(null);
     setState("idle");
   };
 
@@ -287,18 +293,47 @@ export default function Camera() {
         {/* Check results list */}
         {(state === "pass" || state === "fail") && checks.length > 0 && (
           <div className={styles.checkList}>
-            {checks.map(c => (
-              <div key={c.id} className={`${styles.checkPill} ${c.pass ? styles.checkPillPass : styles.checkPillFail}`}>
-                <div className={styles.checkPillIcon}>
-                  {c.pass ? <span className={styles.checkIconPass}>✓</span> : <span className={styles.checkIconFail}>✕</span>}
-                </div>
-                <div className={styles.checkPillBody}>
-                  <span className={styles.checkPillLabel}>{c.label}</span>
-                  <span className={styles.checkPillDetail}>{c.detail}</span>
-                </div>
-                <span className={styles.checkPillStatus}>{c.pass ? "Pass" : "Fail"}</span>
-              </div>
-            ))}
+            {checks.map(c => {
+              const isExpanded = expandedCheck === c.id;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`${styles.checkPill} ${c.pass ? styles.checkPillPass : styles.checkPillFail} ${isExpanded ? styles.checkPillExpanded : ""}`}
+                  onClick={() => setExpandedCheck(isExpanded ? null : c.id)}
+                  aria-expanded={isExpanded}
+                >
+                  <div className={styles.checkPillRow}>
+                    <div className={styles.checkPillIcon}>
+                      {c.pass ? <span className={styles.checkIconPass}>✓</span> : <span className={styles.checkIconFail}>✕</span>}
+                    </div>
+                    <div className={styles.checkPillBody}>
+                      <span className={styles.checkPillLabel}>{c.label}</span>
+                      <span className={styles.checkPillDetail}>{c.detail}</span>
+                    </div>
+                    <span className={styles.checkPillStatus}>{c.pass ? "Pass" : "Fail"}</span>
+                    <span className={`${styles.checkPillChevron} ${isExpanded ? styles.checkPillChevronOpen : ""}`}>▾</span>
+                  </div>
+                  {isExpanded && c.observation && (
+                    <div className={styles.checkPillObservation}>
+                      <span className={styles.observationLabel}>AI Observation</span>
+                      <p className={styles.observationText}>{c.observation}</p>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* AI Summary card */}
+        {(state === "pass" || state === "fail") && aiSummary && (
+          <div className={styles.aiSummaryCard}>
+            <div className={styles.aiSummaryHeader}>
+              <span className={styles.aiSummaryIcon}>🤖</span>
+              <span className={styles.aiSummaryTitle}>AI Analysis</span>
+            </div>
+            <p className={styles.aiSummaryText}>{aiSummary}</p>
           </div>
         )}
 
@@ -353,6 +388,7 @@ export default function Camera() {
                     .then((res) => res.json())
                     .then((data) => {
                       if (data.teethCenter) setTeethCenter(data.teethCenter);
+                      if (data.summary) setAiSummary(data.summary);
                       return runChecks(data.checks);
                     })
                     .catch(() => {

@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
 
   // Build the content-specific checks portion of the prompt
   const contentChecksJson = spec.content_checks
-    .map((c) => `    { "id": "${c.id}", "label": "${c.label}", "pass": boolean, "detail": "one short sentence" }`)
+    .map((c) => `    { "id": "${c.id}", "label": "${c.label}", "pass": boolean, "detail": "short sentence", "observation": "what you actually see" }`)
     .join(",\n");
 
   const contentCriteria = spec.content_checks
@@ -160,22 +160,25 @@ Return ONLY valid JSON, no other text:
 {
   "checks": [
 ${contentChecksJson},
-    { "id": "blur",     "label": "Blur & focus",       "pass": boolean, "detail": "one short sentence" },
-    { "id": "lighting", "label": "Lighting",            "pass": boolean, "detail": "one short sentence" },
-    { "id": "framing",  "label": "Framing & distance",  "pass": boolean, "detail": "one short sentence" },
-    { "id": "glare",    "label": "Glare & reflections", "pass": boolean, "detail": "one short sentence" }
+    { "id": "blur",     "label": "Blur & focus",       "pass": boolean, "detail": "short sentence", "observation": "what you actually see" },
+    { "id": "lighting", "label": "Lighting",            "pass": boolean, "detail": "short sentence", "observation": "what you actually see" },
+    { "id": "framing",  "label": "Framing & distance",  "pass": boolean, "detail": "short sentence", "observation": "what you actually see" },
+    { "id": "glare",    "label": "Glare & reflections", "pass": boolean, "detail": "short sentence", "observation": "what you actually see" }
   ],
   "pass": boolean,
-  "teethCenter": { "x": number, "y": number }
+  "teethCenter": { "x": number, "y": number },
+  "summary": "string"
 }
 
 Rules:
 - "pass" at root is true ONLY if ALL checks (content + quality) pass
-- "detail" is user-friendly and actionable — max 10 words
+- "detail" is a short headline — max 8 words (shown collapsed)
+- "observation" is a 1-2 sentence description of what you specifically see in the image for this check. Be concrete and descriptive — mention specific teeth, angles, lighting conditions, etc. This is shown when the user expands the check. Example: "I can see 4 upper incisors and 4 lower incisors clearly. The canines on both sides are also partially visible with the gums showing above."
+- "summary" is a 2-3 sentence AI narrative about the overall photo. Describe what you see (teeth condition, positioning, any notable features) and whether the photo gives the lab what they need. Write in first person ("I can see..."). Be specific but friendly — not clinical. If the photo fails, explain what would make it better.
 - "teethCenter" is the approximate center of the teeth/mouth region as a percentage of image dimensions (0-100). x=50 means horizontally centered, y=30 means the teeth are in the upper third. If no teeth are visible, use { "x": 50, "y": 50 }
 - Content checks are MORE IMPORTANT than quality checks — a well-lit photo of the wrong thing is still a fail
 - Be practical, not clinical — you're helping a regular person take a usable photo, not diagnosing conditions
-- If the image is clearly not a photo of teeth/mouth at all (e.g., a random object, a landscape), fail ALL checks`;
+- If the image is clearly not a photo of teeth/mouth at all, fail ALL checks`;
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-6",
