@@ -433,10 +433,12 @@ export default function OpenBite2() {
 
                 const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
                 if (id) {
-                  const { data: row } = await supabase.from("submissions").select("open_bite_photos").eq("id", id).single();
+                  const { data: row } = await supabase.from("submissions").select("open_bite_photos,photo_analyses").eq("id", id).single();
                   const photos = row?.open_bite_photos || [];
                   photos[1] = urlData.publicUrl;
-                  await supabase.from("submissions").update({ open_bite_photos: photos }).eq("id", id);
+                  const analyses = row?.photo_analyses || {};
+                  analyses["open-bite-side"] = { checks, summary: aiSummary, teethCenter, pass: checks.every(c => c.pass) };
+                  await supabase.from("submissions").update({ open_bite_photos: photos, photo_analyses: analyses }).eq("id", id);
                 }
               } catch (err) {
                 console.error("Photo upload failed:", err);
