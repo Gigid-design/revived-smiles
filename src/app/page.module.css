@@ -70,16 +70,16 @@
 }
 
 /* Input — default: white bg, gray border, DM Sans 17px
-   height:87px, 20px radius, border-2 */
+   height:48px, 9px radius, border-2 */
 .input {
   width: 100%;
-  height: 5.4375em;     /* 87px */
+  height: 48px;
   background: #ffffff;
   border: 2px solid #e8e8e4;
-  border-radius: 1.25em; /* 20px */
+  border-radius: 9px;
   /* Top padding creates room for floating label; bottom padding anchors typed text */
-  padding-top: 1.875em;  /* 30px — pushes typed text down to ~54px center */
-  padding-bottom: 0.5em;
+  padding-top: 18px;    /* pushes typed text below the floating label */
+  padding-bottom: 4px;
   padding-inline: 1.125em; /* 18px */
   font-family: var(--font-body);
   font-size: 1.0625em;  /* 17px */
@@ -108,9 +108,9 @@
    (:not(:placeholder-shown) detects value; :focus detects active typing) */
 .input:focus ~ .floatingLabel,
 .input:not(:placeholder-shown) ~ .floatingLabel {
-  top: 1.0em;           /* ~27px — floated label top position from Figma */
+  top: 7px;             /* floated label near top of 48px box */
   transform: translateY(0);
-  font-size: 0.8125em;  /* 13px — smaller label when floating */
+  font-size: 0.6875em;  /* 11px — smaller label when floating */
   font-weight: 400;     /* Inter Regular */
   color: #8a8a8a;
 }
@@ -168,7 +168,8 @@
   display: block;
   font-family: var(--font-body);
   font-size: 0.8125em;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  color: #ffffff;
   text-align: center;
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -183,7 +184,8 @@
   border: none;
   font-family: var(--font-body);
   font-size: 0.875em;
-  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+  color: #ffffff;
   text-align: center;
   cursor: pointer;
   padding: 0.5em 0;
