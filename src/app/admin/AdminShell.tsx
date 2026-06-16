@@ -12,7 +12,7 @@ interface RealtimeContextValue {
   refresh: () => void;
 }
 
-const RealtimeContext = createContext<RealtimeContextValue>({ lastEvent: Date.now(), refresh: () => {} });
+const RealtimeContext = createContext<RealtimeContextValue>({ lastEvent: 0, refresh: () => {} });
 
 export function useRealtimeContext() {
   return useContext(RealtimeContext);
