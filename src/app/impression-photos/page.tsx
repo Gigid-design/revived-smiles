@@ -141,17 +141,23 @@ export default function ImpressionPhotos() {
 
         {/* Example photos section */}
         <div className={styles.exampleSection}>
-          <p className={styles.exampleLabel}>📷 Example photos</p>
+          <p className={styles.exampleLabel}>
+            <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{display:"inline",verticalAlign:"middle",marginRight:"6px"}}>
+              <path d="M17.4419 3.72096H16.7349C16.5183 3.72357 16.3054 3.66464 16.1209 3.55101C15.9365 3.43739 15.7881 3.27374 15.693 3.0791L14.8558 1.41398C14.645 0.987672 14.3188 0.629114 13.9142 0.379135C13.5096 0.129156 13.043 -0.00219892 12.5674 2.78485e-05H7.43256C6.95699 -0.00219892 6.49036 0.129156 6.08579 0.379135C5.68121 0.629114 5.35497 0.987672 5.14419 1.41398L4.30698 3.0791C4.21189 3.27374 4.0635 3.43739 3.87906 3.55101C3.69463 3.66464 3.48173 3.72357 3.26512 3.72096H2.55814C1.87968 3.72096 1.22901 3.99048 0.749262 4.47022C0.269518 4.94996 0 5.60064 0 6.2791V15.5814C0 16.2599 0.269518 16.9106 0.749262 17.3903C1.22901 17.87 1.87968 18.1396 2.55814 18.1396H17.4419C18.1203 18.1396 18.771 17.87 19.2507 17.3903C19.7305 16.9106 20 16.2599 20 15.5814V6.2791C20 5.60064 19.7305 4.94996 19.2507 4.47022C18.771 3.99048 18.1203 3.72096 17.4419 3.72096ZM10 14.8837C9.03409 14.8837 8.08987 14.5973 7.28675 14.0607C6.48363 13.5241 5.85767 12.7613 5.48803 11.8689C5.11839 10.9766 5.02168 9.99461 5.21012 9.04726C5.39856 8.09991 5.86369 7.22972 6.54669 6.54672C7.22969 5.86371 8.09988 5.39859 9.04723 5.21015C9.99458 5.02171 10.9765 5.11842 11.8689 5.48806C12.7613 5.8577 13.524 6.48365 14.0607 7.28678C14.5973 8.0899 14.8837 9.03412 14.8837 10C14.8813 11.2945 14.3659 12.5353 13.4506 13.4506C12.5353 14.366 11.2945 14.8813 10 14.8837Z" fill="#0E1B4D"/>
+              <path d="M10.0001 13.4885C11.9267 13.4885 13.4885 11.9267 13.4885 10.0001C13.4885 8.07352 11.9267 6.51172 10.0001 6.51172C8.07352 6.51172 6.51172 8.07352 6.51172 10.0001C6.51172 11.9267 8.07352 13.4885 10.0001 13.4885Z" fill="#0E1B4D"/>
+            </svg>
+            Example photos
+          </p>
           <div className={styles.exampleRow}>
             <div className={styles.exampleCard}>
-              <div className={styles.examplePlaceholder}>
-                <span className={styles.examplePlaceholderIcon}>✓</span>
+              <div className={styles.examplePlaceholder} style={{ position: "relative", padding: 0, overflow: "hidden" }}>
+                <Image src="/assets/images/impression-example-good.svg" alt="Good example" fill style={{ objectFit: "cover" }} unoptimized />
               </div>
               <span className={styles.exampleBadgeGood}>Good</span>
             </div>
             <div className={styles.exampleCard}>
-              <div className={styles.examplePlaceholderBad}>
-                <span className={styles.examplePlaceholderIcon}>✕</span>
+              <div className={styles.examplePlaceholderBad} style={{ position: "relative", padding: 0, overflow: "hidden" }}>
+                <Image src="/assets/images/impression-example-bad.svg" alt="Bad example" fill style={{ objectFit: "cover" }} unoptimized />
               </div>
               <span className={styles.exampleBadgeBad}>Bad</span>
             </div>

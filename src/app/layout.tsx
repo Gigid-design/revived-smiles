@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
-      <body><SubmissionProvider>{children}</SubmissionProvider></body>
+<body><SubmissionProvider>{children}</SubmissionProvider></body>
     </html>
   );
 }

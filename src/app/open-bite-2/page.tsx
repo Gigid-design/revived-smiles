@@ -180,7 +180,7 @@ export default function OpenBite2() {
 
         <div className={styles.cardHeader}>
           <div className={styles.cardHeaderText}>
-            <h1 className={styles.cardTitle}>Side view — mouth open</h1>
+            <h1 className={styles.cardTitle}>Side view — mouth<br />open</h1>
             <p className={styles.cardSubtitle}>
               {state === "idle" && "Keep your mouth open wide. Turn your head to show one side."}
               {state === "analyzing" && "AI is scanning your photo…"}
