@@ -9,7 +9,7 @@ import PhotoTimeline from "../components/PhotoTimeline";
 import { useSubmission } from "../context/SubmissionContext";
 import { getSupabase } from "@/lib/supabase";
 
-type State = "idle" | "analyzing" | "pass" | "fail";
+type State = "idle" | "analyzing" | "pass" | "warning";
 
 interface Check {
   id: string;
@@ -99,7 +99,7 @@ export default function Camera() {
       setState("pass");
     } else {
       setTip(TIPS[failedCheck!.id] ?? null);
-      setState("fail");
+      setState("warning");
     }
   }, []);
 
@@ -144,6 +144,36 @@ export default function Camera() {
     setAiSummary(null);
     setExpandedCheck(null);
     setState("idle");
+  };
+
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmitPhoto = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      if (capturedImage) {
+        const supabase = getSupabase();
+        const blob = await fetch(capturedImage).then(r => r.blob());
+        const path = `close-bite/${Date.now()}-side.jpg`;
+        await supabase.storage.from("impression-photos").upload(path, blob, { contentType: "image/jpeg", upsert: true });
+        const { data: urlData } = supabase.storage.from("impression-photos").getPublicUrl(path);
+
+        const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
+        if (id) {
+          const { data: row } = await supabase.from("submissions").select("close_bite_photos,photo_analyses").eq("id", id).single();
+          const photos = row?.close_bite_photos || [];
+          photos[1] = urlData.publicUrl;
+          const analyses = row?.photo_analyses || {};
+          analyses["close-bite-side"] = { checks, summary: aiSummary, teethCenter, pass: checks.every(c => c.pass) };
+          await supabase.from("submissions").update({ close_bite_photos: photos, photo_analyses: analyses }).eq("id", id);
+        }
+      }
+      navigate('/open-bite', 'forward');
+    } catch (err) {
+      console.error("Photo upload failed:", err);
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -200,7 +230,7 @@ export default function Camera() {
               {state === "idle" && "Keep biting down. Turn your head to show one side of your teeth."}
               {state === "analyzing" && "AI is scanning your photo…"}
               {state === "pass" && "All checks passed! Ready to submit."}
-              {state === "fail" && "A few things need fixing. Retake to try again."}
+              {state === "warning" && "Some issues found — you can still continue or retake."}
             </p>
           </div>
         </div>
@@ -211,7 +241,7 @@ export default function Camera() {
 
         {/* Viewfinder wrap — pill sits here so it's not clipped by viewfinder overflow */}
         <div className={styles.viewfinderWrap}>
-          <div className={`${styles.viewfinder} ${(state === "pass" || state === "fail") ? styles.viewfinderShrunk : ""}`} aria-label="Camera viewfinder">
+          <div className={`${styles.viewfinder} ${(state === "pass" || state === "warning") ? styles.viewfinderShrunk : ""}`} aria-label="Camera viewfinder">
             <video
               ref={videoRef}
               className={`${styles.liveVideo} ${state !== "idle" ? styles.hidden : ""} ${facingMode === "user" ? styles.mirrored : ""}`}
@@ -244,10 +274,7 @@ export default function Camera() {
             {/* Example photo overlay */}
             {showExample && (
               <div className={styles.exampleOverlay}>
-                <div className={styles.examplePlaceholder}>
-                  <span className={styles.examplePlaceholderText}>Example: Left side view</span>
-                  <span className={styles.examplePlaceholderSub}>Teeth closed, side angle</span>
-                </div>
+                <Image src="/assets/images/close-bite-right.png" alt="Example: Side view" fill style={{ objectFit: 'cover', borderRadius: 'inherit' }} unoptimized />
               </div>
             )}
           </div>
@@ -265,7 +292,7 @@ export default function Camera() {
 
           {/* Result badge on viewfinder */}
           {state === "pass" && <div className={styles.resultBadgePass}>✓ All checks passed</div>}
-          {state === "fail" && <div className={styles.resultBadgeFail}>✕ Check failed</div>}
+          {state === "warning" && <div className={styles.resultBadgeWarning}>⚠ Issues found</div>}
 
           {/* Pill outside viewfinder — no overflow clipping */}
           {pill && (
@@ -291,7 +318,7 @@ export default function Camera() {
         </div>
 
         {/* Check results list */}
-        {(state === "pass" || state === "fail") && checks.length > 0 && (
+        {(state === "pass" || state === "warning") && checks.length > 0 && (
           <div className={styles.checkList}>
             {checks.map(c => {
               const isExpanded = expandedCheck === c.id;
@@ -327,7 +354,7 @@ export default function Camera() {
         )}
 
         {/* AI Summary card */}
-        {(state === "pass" || state === "fail") && aiSummary && (
+        {(state === "pass" || state === "warning") && aiSummary && (
           <div className={styles.aiSummaryCard}>
             <div className={styles.aiSummaryHeader}>
               <span className={styles.aiSummaryIcon}>🤖</span>
@@ -338,7 +365,7 @@ export default function Camera() {
         )}
 
         {/* Tip card — fail state */}
-        {state === "fail" && tip && (
+        {state === "warning" && tip && (
           <div className={styles.tipCard}>
             <div className={styles.tipIcon}>💡</div>
             <div className={styles.tipBody}>
@@ -422,34 +449,14 @@ export default function Camera() {
             <span className={styles.analyzingLabel}>Scanning photo…</span>
           </div>
         )}
-        {state === "fail" && (
-          <button className={styles.retakeBtn} onClick={retake}>Retake Photo</button>
+        {state === "warning" && (
+          <div className={styles.warningControls}>
+            <button className={styles.retakeBtn} onClick={retake}>Retake Photo</button>
+            <button className={styles.continueAnywayBtn} onClick={handleSubmitPhoto}>{submitting ? "Saving…" : "Continue Anyway"}</button>
+          </div>
         )}
         {state === "pass" && (
-          <button className={styles.submitBtn} onClick={async () => {
-            if (capturedImage) {
-              try {
-                const supabase = getSupabase();
-                const blob = await fetch(capturedImage).then(r => r.blob());
-                const path = `close-bite/${Date.now()}-front.jpg`;
-                await supabase.storage.from("impression-photos").upload(path, blob, { contentType: "image/jpeg", upsert: true });
-                const { data: urlData } = supabase.storage.from("impression-photos").getPublicUrl(path);
-
-                const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
-                if (id) {
-                  const { data: row } = await supabase.from("submissions").select("close_bite_photos,photo_analyses").eq("id", id).single();
-                  const photos = row?.close_bite_photos || [];
-                  photos[1] = urlData.publicUrl;
-                  const analyses = row?.photo_analyses || {};
-                  analyses["close-bite-side"] = { checks, summary: aiSummary, teethCenter, pass: checks.every(c => c.pass) };
-                  await supabase.from("submissions").update({ close_bite_photos: photos, photo_analyses: analyses }).eq("id", id);
-                }
-              } catch (err) {
-                console.error("Photo upload failed:", err);
-              }
-            }
-            navigate('/open-bite', 'forward');  // step 2 → step 3
-          }}>Submit Photo</button>
+          <button className={styles.submitBtn} onClick={handleSubmitPhoto}>{submitting ? "Saving…" : "Submit Photo"}</button>
         )}
       </div>
     </main>

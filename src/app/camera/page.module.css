@@ -902,3 +902,53 @@
   font-size: 0.75em;
   color: #5a7ca8;
 }
+
+/* Warning controls — retake + continue side by side */
+.warningControls {
+  display: flex;
+  gap: 0.75em;
+  width: 100%;
+}
+.warningControls .retakeBtn {
+  flex: 1;
+  background: transparent;
+  border: 2px solid #0e1b4d;
+  color: #0e1b4d;
+}
+.continueAnywayBtn {
+  flex: 1;
+  height: 3.5em;
+  border-radius: 9999px;
+  border: none;
+  background: #e6930e;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  cursor: pointer;
+}
+.continueAnywayBtn:hover { background: #d17f00; }
+
+/* Warning badge */
+.resultBadgeWarning {
+  position: absolute;
+  bottom: -0.75em;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 0.3em 1em;
+  border-radius: 9999px;
+  background: #fef3cd;
+  color: #856404;
+  font-family: var(--font-heading);
+  font-size: 0.75em;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid #ffc107;
+}
+
+/* Warning check pill variant */
+.checkPillWarning { background: #fff8e1; border-color: rgba(230, 147, 14, 0.3); }
+.checkPillWarning .checkPillIcon { background: #fff0c0; }
+.checkPillWarning .checkPillDetail { color: #856404; }
+.checkPillWarning .checkPillStatus { color: #856404; }

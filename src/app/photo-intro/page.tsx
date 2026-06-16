@@ -27,7 +27,7 @@ export default function PhotoIntro() {
       </svg>
 
       {/* Nav: back + close */}
-      <button className={styles.backBtn} aria-label="Go back" onClick={() => navigate('/instructions-4', 'backward')}>
+      <button className={styles.backBtn} aria-label="Go back" onClick={() => navigate('/step5', 'backward')}>
         <Image src="/assets/images/camera-icon-back.svg" alt="" width={20} height={20} unoptimized />
       </button>
       <Link href="/" className={styles.closeBtn} aria-label="Close">
@@ -38,7 +38,7 @@ export default function PhotoIntro() {
       <div className={styles.contentCard} id="main-content">
         <h1 className={styles.heading}>What You&apos;ll Capture</h1>
         <p className={styles.subtitle}>
-          We need 5 photos of your teeth from different angles so our lab can craft a perfect fit.
+          We need 4 photos of your teeth from different angles so our lab can craft a perfect fit.
         </p>
 
         {/* Photo count summary */}
@@ -47,14 +47,14 @@ export default function PhotoIntro() {
             <span className={styles.summaryIcon}>
               <Image src="/assets/images/close-bite-icon.svg" alt="" width={48} height={48} unoptimized />
             </span>
-            <span className={styles.summaryLabel}>Close Bite</span>
-            <span className={styles.summaryCount}>3 photos</span>
+            <span className={styles.summaryLabel}>Teeth Together</span>
+            <span className={styles.summaryCount}>2 photos</span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.summaryIcon}>
               <Image src="/assets/images/open-bite-icon.svg" alt="" width={48} height={48} unoptimized />
             </span>
-            <span className={styles.summaryLabel}>Open Bite</span>
+            <span className={styles.summaryLabel}>Mouth Open</span>
             <span className={styles.summaryCount}>2 photos</span>
           </div>
         </div>
@@ -69,22 +69,18 @@ export default function PhotoIntro() {
               </svg>
             </span>
             <div>
-              <p className={styles.sectionTitle}>Close Bite</p>
-              <p className={styles.sectionDesc}>Front, left &amp; right side with teeth closed</p>
+              <p className={styles.sectionTitle}>Teeth Together</p>
+              <p className={styles.sectionDesc}>Front &amp; side view with teeth showing</p>
             </div>
           </div>
           <div className={styles.exampleRow}>
             <div className={styles.exampleCard}>
-              <Image src="/assets/images/close-bite-front.png" alt="Front close bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
+              <Image src="/assets/images/close-bite-front.png" alt="Front teeth together" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
               <span className={styles.placeholderLabel}>Front</span>
             </div>
             <div className={styles.exampleCard}>
-              <Image src="/assets/images/close-bite-left.png" alt="Left side close bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
-              <span className={styles.placeholderLabel}>Left Side</span>
-            </div>
-            <div className={styles.exampleCard}>
-              <Image src="/assets/images/close-bite-right.png" alt="Right side close bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
-              <span className={styles.placeholderLabel}>Right Side</span>
+              <Image src="/assets/images/close-bite-left.png" alt="Side teeth together" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
+              <span className={styles.placeholderLabel}>Side</span>
             </div>
           </div>
         </div>
@@ -99,22 +95,18 @@ export default function PhotoIntro() {
               </svg>
             </span>
             <div>
-              <p className={styles.sectionTitle}>Open Bite</p>
-              <p className={styles.sectionDesc}>Front, left &amp; right side with mouth wide open</p>
+              <p className={styles.sectionTitle}>Mouth Open</p>
+              <p className={styles.sectionDesc}>Front &amp; side view with mouth open</p>
             </div>
           </div>
           <div className={styles.exampleRow}>
             <div className={styles.exampleCard}>
-              <Image src="/assets/images/open-bite-front.png" alt="Front open bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
+              <Image src="/assets/images/open-bite-front.png" alt="Front mouth open" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
               <span className={styles.placeholderLabel}>Front</span>
             </div>
             <div className={styles.exampleCard}>
-              <Image src="/assets/images/open-bite-left.png" alt="Left side open bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
-              <span className={styles.placeholderLabel}>Left Side</span>
-            </div>
-            <div className={styles.exampleCard}>
-              <Image src="/assets/images/open-bite-right.png" alt="Right side open bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
-              <span className={styles.placeholderLabel}>Right Side</span>
+              <Image src="/assets/images/open-bite-left.png" alt="Side mouth open" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
+              <span className={styles.placeholderLabel}>Side</span>
             </div>
           </div>
         </div>
