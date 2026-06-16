@@ -906,28 +906,34 @@
 /* Warning controls — retake + continue side by side */
 .warningControls {
   display: flex;
-  gap: 0.75em;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
   width: 100%;
 }
 .warningControls .retakeBtn {
-  flex: 1;
+  position: static;
+  transform: none;
+  width: 380px;
   background: transparent;
   border: 2px solid #0e1b4d;
   color: #0e1b4d;
+  text-transform: uppercase;
 }
 .continueAnywayBtn {
-  flex: 1;
+  width: 380px;
   height: 3.5em;
   border-radius: 9999px;
   border: none;
-  background: #e6930e;
+  background: #0E1B4D;
   color: #ffffff;
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 0.875em;
+  text-transform: uppercase;
   cursor: pointer;
 }
-.continueAnywayBtn:hover { background: #d17f00; }
+.continueAnywayBtn:hover { background: #1a2d6b; }
 
 /* Warning badge */
 .resultBadgeWarning {
