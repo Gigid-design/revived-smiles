@@ -103,7 +103,7 @@ export default function PhotoIntro() {
             </span>
             <div>
               <p className={styles.sectionTitle}>Open Bite</p>
-              <p className={styles.sectionDesc}>Front &amp; left side with mouth wide open</p>
+              <p className={styles.sectionDesc}>Front, left &amp; right side with mouth wide open</p>
             </div>
           </div>
           <div className={styles.exampleRow}>
@@ -115,6 +115,11 @@ export default function PhotoIntro() {
             <div className={styles.exampleCard}>
               <div className={styles.examplePlaceholder}>
                 <span className={styles.placeholderLabel}>Left Side</span>
+              </div>
+            </div>
+            <div className={styles.exampleCard}>
+              <div className={styles.examplePlaceholder}>
+                <span className={styles.placeholderLabel}>Right Side</span>
               </div>
             </div>
           </div>
