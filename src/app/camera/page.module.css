@@ -552,7 +552,7 @@
 
 /* ── AI check list ── */
 .checkList {
-  margin-top: 0.875em;
+  margin-top: calc(0.875em + 40px);
   display: flex;
   flex-direction: column;
   gap: 0.5em;
@@ -938,7 +938,7 @@
 /* Warning badge */
 .resultBadgeWarning {
   position: absolute;
-  bottom: -0.75em;
+  bottom: -40px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 3;
