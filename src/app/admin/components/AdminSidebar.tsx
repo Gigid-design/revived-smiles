@@ -28,6 +28,27 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    label: "AI Prompts",
+    href: "/admin/prompts",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 2l2.35 4.76 5.25.77-3.8 3.7.9 5.24L10 14.27l-4.7 2.2.9-5.24-3.8-3.7 5.25-.77L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    label: "AI Advisor",
+    href: "/admin/advisor",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 4h14a1 1 0 011 1v8a1 1 0 01-1 1H7l-4 3V5a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        <circle cx="7" cy="9" r="1" fill="currentColor" />
+        <circle cx="10" cy="9" r="1" fill="currentColor" />
+        <circle cx="13" cy="9" r="1" fill="currentColor" />
+      </svg>
+    ),
+  },
 ];
 
 export function AdminSidebar() {

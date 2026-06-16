@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@supabase/supabase-js";
 
 export const maxDuration = 30;
 
@@ -7,6 +8,41 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
   ...(process.env.ANTHROPIC_BASE_URL && { baseURL: process.env.ANTHROPIC_BASE_URL }),
 });
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+/** Load active prompt config from DB, falling back to hardcoded PHOTO_TYPES */
+async function loadSpec(photoType: string): Promise<{ spec: PhotoTypeSpec; configId: string | null }> {
+  try {
+    const { data } = await supabase
+      .from("prompt_configs")
+      .select("*")
+      .eq("photo_type", photoType)
+      .eq("is_active", true)
+      .single();
+
+    if (data) {
+      return {
+        spec: {
+          label: data.label,
+          pose_description: data.pose_description,
+          content_checks: data.content_checks as PhotoTypeSpec["content_checks"],
+        },
+        configId: data.id,
+      };
+    }
+  } catch {
+    // DB not available or table missing — fall through to hardcoded
+  }
+
+  return {
+    spec: PHOTO_TYPES[photoType] ?? GENERIC_SPEC,
+    configId: null,
+  };
+}
 
 /**
  * Photo type definitions — each type specifies what content the AI should
@@ -129,7 +165,7 @@ export async function POST(req: NextRequest) {
   const { imageBase64, photoType } = await req.json();
 
   const mediaType = detectMediaType(imageBase64 as string);
-  const spec = PHOTO_TYPES[photoType as string] ?? GENERIC_SPEC;
+  const { spec, configId } = await loadSpec(photoType as string);
 
   // Build the content-specific checks portion of the prompt
   const contentChecksJson = spec.content_checks
@@ -206,6 +242,7 @@ Rules:
 
   try {
     const result = JSON.parse(text);
+    if (configId) result.promptConfigId = configId;
     return NextResponse.json(result);
   } catch {
     console.error("Failed to parse AI response:", text.slice(0, 500));

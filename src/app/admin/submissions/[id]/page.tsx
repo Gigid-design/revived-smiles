@@ -7,11 +7,13 @@ import styles from "./page.module.css";
 import { StatusBadge } from "../../components/StatusBadge";
 import { PhotoViewer } from "../../components/PhotoViewer";
 import { CompletenessCheck } from "../../components/CompletenessCheck";
+import { AnalysisResults } from "../../components/AnalysisResults";
 import { useAdminUser } from "../../components/AdminAuthGuard";
 import { getSupabase } from "@/lib/supabase";
 import { PRODUCTS, CATEGORY_LABELS, type ProductConfig } from "@/app/context/productConfig";
 import { ChatPanel } from "@/app/components/ChatPanel";
 import { useChat } from "@/app/hooks/useChat";
+import { PromptAdvisorChat } from "../../components/PromptAdvisorChat";
 
 interface SubmissionDetail {
   id: string;
@@ -31,6 +33,12 @@ interface SubmissionDetail {
   reviewed_by: string;
   reviewed_at: string;
   created_at: string;
+  photo_analyses: Record<string, {
+    checks: { id: string; label: string; pass: boolean; detail: string; observation?: string }[];
+    summary: string | null;
+    teethCenter: { x: number; y: number } | null;
+    pass: boolean;
+  }>;
 }
 
 interface LightboxState {
@@ -76,7 +84,7 @@ export default function SubmissionDetailPage() {
   const [saving, setSaving] = useState(false);
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const [activeTab, setActiveTab] = useState<"review" | "chat">("review");
+  const [activeTab, setActiveTab] = useState<"review" | "chat" | "advisor">("review");
   const { unreadCount } = useChat(id, "admin", adminUser?.name ?? "Admin");
 
   useEffect(() => {
@@ -248,6 +256,16 @@ export default function SubmissionDetailPage() {
         defaultOpen={submission.status === "pending"}
       />
 
+      {/* AI Photo Analysis */}
+      {submission.photo_analyses && Object.keys(submission.photo_analyses).length > 0 && (
+        <AnalysisResults
+          photoAnalyses={submission.photo_analyses}
+          closeBitePhotos={closeBitePhotos}
+          openBitePhotos={openBitePhotos}
+          defaultOpen={submission.status === "pending"}
+        />
+      )}
+
       {/* Two-column layout */}
       <div className={styles.columns}>
         {/* Left: Patient Information */}
@@ -365,6 +383,13 @@ export default function SubmissionDetailPage() {
                   <span className={styles.tabBadge}>{unreadCount}</span>
                 )}
               </button>
+              <button
+                type="button"
+                className={`${styles.tab} ${activeTab === "advisor" ? styles.tabActive : ""}`}
+                onClick={() => setActiveTab("advisor")}
+              >
+                🤖 AI Advisor
+              </button>
             </div>
 
             {activeTab === "review" && (
@@ -451,6 +476,16 @@ export default function SubmissionDetailPage() {
                   submissionId={submission?.id ?? null}
                   currentRole="admin"
                   currentName={adminUser?.name ?? "Admin"}
+                />
+              </div>
+            )}
+
+            {activeTab === "advisor" && (
+              <div className={styles.chatTabBody}>
+                <PromptAdvisorChat
+                  submissionId={submission?.id}
+                  photoAnalyses={submission?.photo_analyses}
+                  compact
                 />
               </div>
             )}
