@@ -75,19 +75,16 @@ export default function PhotoIntro() {
           </div>
           <div className={styles.exampleRow}>
             <div className={styles.exampleCard}>
-              <div className={styles.examplePlaceholder}>
-                <span className={styles.placeholderLabel}>Front</span>
-              </div>
+              <Image src="/assets/images/close-bite-front.png" alt="Front close bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
+              <span className={styles.placeholderLabel}>Front</span>
             </div>
             <div className={styles.exampleCard}>
-              <div className={styles.examplePlaceholder}>
-                <span className={styles.placeholderLabel}>Left Side</span>
-              </div>
+              <Image src="/assets/images/close-bite-left.png" alt="Left side close bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
+              <span className={styles.placeholderLabel}>Left Side</span>
             </div>
             <div className={styles.exampleCard}>
-              <div className={styles.examplePlaceholder}>
-                <span className={styles.placeholderLabel}>Right Side</span>
-              </div>
+              <Image src="/assets/images/close-bite-right.png" alt="Right side close bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
+              <span className={styles.placeholderLabel}>Right Side</span>
             </div>
           </div>
         </div>
@@ -108,19 +105,16 @@ export default function PhotoIntro() {
           </div>
           <div className={styles.exampleRow}>
             <div className={styles.exampleCard}>
-              <div className={styles.examplePlaceholder}>
-                <span className={styles.placeholderLabel}>Front</span>
-              </div>
+              <Image src="/assets/images/open-bite-front.png" alt="Front open bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
+              <span className={styles.placeholderLabel}>Front</span>
             </div>
             <div className={styles.exampleCard}>
-              <div className={styles.examplePlaceholder}>
-                <span className={styles.placeholderLabel}>Left Side</span>
-              </div>
+              <Image src="/assets/images/open-bite-left.png" alt="Left side open bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
+              <span className={styles.placeholderLabel}>Left Side</span>
             </div>
             <div className={styles.exampleCard}>
-              <div className={styles.examplePlaceholder}>
-                <span className={styles.placeholderLabel}>Right Side</span>
-              </div>
+              <Image src="/assets/images/open-bite-right.png" alt="Right side open bite" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
+              <span className={styles.placeholderLabel}>Right Side</span>
             </div>
           </div>
         </div>
