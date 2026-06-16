@@ -224,7 +224,10 @@ export default function Home() {
             className={styles.modeToggle}
             onClick={() => { setMode(m => m === "signin" ? "signup" : "signin"); setError(null); }}
           >
-            {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
+            {mode === "signin"
+              ? <><span>New here? </span><span className={styles.modeToggleUnderline}>Create an account</span></>
+              : <><span>Already have an account? </span><span className={styles.modeToggleUnderline}>Sign in</span></>
+            }
           </button>
         </form>
       </div>
