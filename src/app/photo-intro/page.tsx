@@ -79,7 +79,7 @@ export default function PhotoIntro() {
               <span className={styles.placeholderLabel}>Front</span>
             </div>
             <div className={styles.exampleCard}>
-              <Image src="/assets/images/close-bite-left.png" alt="Side teeth together" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
+              <Image src="/assets/images/photo-intro-left-side.png" alt="Side teeth together" fill style={{ objectFit: "cover", borderRadius: "inherit" }} unoptimized />
               <span className={styles.placeholderLabel}>Side</span>
             </div>
           </div>
