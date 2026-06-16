@@ -138,7 +138,7 @@ export default function OrderDetail() {
   const impressionPhotos = submission?.impression_photos || [];
   const reviewNotes = submission?.review_notes || "";
 
-  const aboutRows = [
+  const aboutRows: { label: string; value: string; underline?: boolean }[] = [
     { label: "Name",            value: fullName },
     { label: "State",           value: userState },
     { label: "Ordered Product", value: orderedProduct },
