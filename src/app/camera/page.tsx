@@ -274,7 +274,7 @@ export default function Camera() {
             {/* Example photo overlay */}
             {showExample && (
               <div className={styles.exampleOverlay}>
-                <Image src="/assets/images/close-bite-front.png" alt="Example: Front view" fill style={{ objectFit: 'cover', borderRadius: 'inherit' }} unoptimized />
+                <Image src="/assets/images/close-bite-front.png" alt="Example: Front view" fill style={{ objectFit: 'cover' }} unoptimized />
               </div>
             )}
           </div>

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import styles from "./page.module.css";
@@ -21,6 +21,11 @@ export default function Home() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "signup") setMode("signup");
+  }, []);
   const screenRef = useRef<HTMLElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const productRef = useRef<HTMLDivElement>(null);
@@ -222,7 +227,12 @@ export default function Home() {
           <button
             type="button"
             className={styles.modeToggle}
-            onClick={() => { setMode(m => m === "signin" ? "signup" : "signin"); setError(null); }}
+            onClick={() => {
+              const next = mode === "signin" ? "signup" : "signin";
+              setMode(next);
+              setError(null);
+              window.history.pushState({}, "", next === "signup" ? "/?mode=signup" : "/");
+            }}
           >
             {mode === "signin"
               ? <><span>New here? </span><span className={styles.modeToggleUnderline}>Create an account</span></>
