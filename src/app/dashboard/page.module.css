@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════
-   Dashboard — Patient Portal
+   Dashboard — Patient Portal (Tabbed)
    ══════════════════════════════════════ */
 
 /* ── Screen ── */
@@ -71,8 +71,475 @@
   margin: 0.75rem 0 0 0.25rem;
 }
 
+/* ── Product row + status pill ── */
+.productRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75em;
+  margin-top: 0.5em;
+  padding: 0 0.25em;
+}
+
+.productLabel {
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  font-weight: 400;
+  color: #8a8a8a;
+  text-transform: capitalize;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25em 0.75em;
+  border-radius: 9999px;
+  font-family: var(--font-heading);
+  font-size: 0.6875em;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 /* ══════════════════════════════════════
-   Order Status Card — FLEX LAYOUT
+   Tab Bar
+   ══════════════════════════════════════ */
+.tabBar {
+  display: flex;
+  margin-top: 1em;
+  background: #ffffff;
+  border-radius: 1em 1em 0 0;
+  box-shadow: 0 1px 4px rgba(14, 27, 77, 0.06);
+  overflow: hidden;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375em;
+  padding: 0.875em 0.5em;
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 600;
+  color: #8a8a8a;
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  color: #0e1b4d;
+}
+
+.tabActive {
+  color: #0e1b4d;
+  border-bottom-color: #0e1b4d;
+}
+
+.tabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.625em;
+  font-weight: 700;
+  padding: 0 5px;
+  line-height: 1;
+}
+
+/* ── Tab content area ── */
+.tabContent {
+  background: #ffffff;
+  border-radius: 0 0 1em 1em;
+  box-shadow: 0 1px 4px rgba(14, 27, 77, 0.06), 0 4px 16px rgba(14, 27, 77, 0.04);
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════
+   Action Items Tab
+   ══════════════════════════════════════ */
+.actionsTab {
+  padding: 1.25em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+/* ── CTA Card ── */
+.ctaCard {
+  display: flex;
+  gap: 1em;
+  padding: 1.125em;
+  background: #f0f3ff;
+  border-radius: 0.875em;
+  border: 1px solid #e0e5f6;
+}
+
+.ctaIcon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.375rem;
+  background: #ffffff;
+  border-radius: 0.75em;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(14, 27, 77, 0.06);
+}
+
+.ctaBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.ctaTitle {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1em;
+  color: #0e1b4d;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.ctaDesc {
+  font-family: var(--font-heading);
+  font-size: 0.75em;
+  font-weight: 400;
+  color: #5a6482;
+  margin: 0.25em 0 0;
+  line-height: 1.5;
+}
+
+.ctaBtn {
+  margin-top: 0.75em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 1.25em;
+  background: #0e1b4d;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.75em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ctaBtn:hover { background: #1a2a6b; }
+
+/* ── Review Notes Banner ── */
+.reviewBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  padding: 0.75em 1em;
+  background: #fef3c7;
+  border-radius: 0.75em;
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+/* ── Tracking Banner ── */
+.trackingBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.75em 1em;
+  background: #ecfeff;
+  border-radius: 0.75em;
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+}
+
+.trackingLabel {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.trackingNumber {
+  color: #0e7490;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 0.02em;
+}
+
+/* ══════════════════════════════════════
+   Vertical Progress Tracker
+   ══════════════════════════════════════ */
+.progressTracker {
+  margin-top: 0.25em;
+}
+
+.progressHeading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.875em;
+  color: #0e1b4d;
+  margin: 0 0 0.875em;
+}
+
+.progressSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-left: 0.25em;
+}
+
+.progressStep {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75em;
+  position: relative;
+  padding-bottom: 1.25em;
+}
+
+.progressStep:last-child {
+  padding-bottom: 0;
+}
+
+.progressStep:last-child .progressLine {
+  display: none;
+}
+
+.progressDot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.progressDotDone {
+  background: #0e1b4d;
+}
+
+.progressDotCurrent {
+  background: #ffffff;
+  border: 2.5px solid #0e1b4d;
+  box-shadow: 0 0 0 3px rgba(14, 27, 77, 0.12);
+}
+
+.progressDotPending {
+  background: #e2e4ea;
+}
+
+.progressDotInner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.progressDotCurrent .progressDotInner {
+  background: #0e1b4d;
+}
+
+.progressDotPending .progressDotInner {
+  background: #c0c4ce;
+}
+
+.progressLine {
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  width: 2px;
+  height: calc(100% - 24px);
+  background: #e2e4ea;
+}
+
+.progressLineDone {
+  background: #0e1b4d;
+}
+
+.progressLabel {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 500;
+  color: #8a8a8a;
+  padding-top: 0.125em;
+  line-height: 1.5;
+}
+
+.progressLabelDone {
+  color: #0e1b4d;
+  font-weight: 500;
+}
+
+.progressLabelCurrent {
+  color: #0e1b4d;
+  font-weight: 700;
+}
+
+/* ══════════════════════════════════════
+   Messages Tab
+   ══════════════════════════════════════ */
+.messagesTab {
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  max-height: 500px;
+}
+
+/* ══════════════════════════════════════
+   My Order Tab
+   ══════════════════════════════════════ */
+.orderTab {
+  padding: 1.25em;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25em;
+}
+
+.orderSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.orderSectionTitle {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.9375em;
+  color: #0e1b4d;
+  margin: 0 0 0.75em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid #eeeff3;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625em 0;
+  border-bottom: 1px solid #f5f6fa;
+}
+
+.infoRow:last-child {
+  border-bottom: none;
+}
+
+.infoLabel {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 400;
+  color: #8a8a8a;
+}
+
+.infoValue {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 600;
+  color: #0e1b4d;
+  text-align: right;
+}
+
+/* ── Photo grid ── */
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.625em;
+}
+
+.photoThumb {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 0.75em;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  padding: 0;
+  background: #f5f6fa;
+}
+
+.photoThumb:hover {
+  border-color: #0e1b4d;
+  box-shadow: 0 2px 8px rgba(14, 27, 77, 0.15);
+}
+
+.photoThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photoLabel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.25em 0.375em;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.65));
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: 0.5625em;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: center;
+}
+
+/* ══════════════════════════════════════
+   Lightbox
+   ══════════════════════════════════════ */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1em;
+  cursor: pointer;
+}
+
+.lightboxClose {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.lightboxImg {
+  max-width: 100%;
+  max-height: 85vh;
+  border-radius: 0.5em;
+  cursor: default;
+  object-fit: contain;
+}
+
+/* ══════════════════════════════════════
+   Card (used for loading/empty/error)
    ══════════════════════════════════════ */
 .card {
   background: #ffffff;
@@ -82,131 +549,9 @@
   overflow: hidden;
 }
 
-/* Card header: title + product image side by side */
-.cardHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75em;
-  padding: 1.25em 1.25em 0;
-}
-
-.cardHeaderText {
-  flex: 1;
-  min-width: 0;
-}
-
-.cardTitle {
-  font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 1.25em;
-  color: #0e1b4d;
-  line-height: 1.3;
-  margin: 0;
-}
-
-.cardSub {
-  font-family: var(--font-heading);
-  font-size: 0.875em;
-  font-weight: 400;
-  color: #8a8a8a;
-  margin: 0.25em 0 0;
-  text-transform: capitalize;
-}
-
-.productImgWrap {
-  position: relative;
-  width: 80px;
-  height: 72px;
-  background: #f5f0e8;
-  border-radius: 0.75em;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-/* ── Progress section ── */
-.progressSection {
-  padding: 1em 1.25em 0;
-}
-
-.progressTrack {
-  width: 100%;
-  height: 4px;
-  background: #eeeff3;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progressFill {
-  height: 100%;
-  background: linear-gradient(90deg, #c6dcfe 0%, #0e184d 100%);
-  border-radius: 4px;
-  transition: width 0.4s ease;
-}
-
-.stepLabels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.5em;
-}
-
-.stepLabel {
-  font-family: var(--font-heading);
-  font-size: 0.5625em;
-  font-weight: 500;
-  white-space: nowrap;
-  line-height: normal;
-}
-.stepDone   { color: #4caf50; }
-.stepActive { color: #0d2260; font-weight: 700; }
-.stepMuted  { color: #c0c0c0; }
-
-/* ── Status banner ── */
-.statusBanner {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.625em;
-  margin: 0.875em 1.25em 0;
-  padding: 0.625em 0.875em;
-  border-radius: 0.625em;
-}
-
-.statusDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-
-.statusMsg {
-  font-family: var(--font-heading);
-  font-size: 0.75em;
-  font-weight: 500;
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* ── Review notes ── */
-.reviewNotes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25em;
-  margin: 0.625em 1.25em 0;
-  padding: 0.625em 0.875em;
-  border-radius: 0.625em;
-  font-family: var(--font-heading);
-  font-size: 0.75em;
-  line-height: 1.5;
-}
-
-/* ── CTA buttons ── */
-.cardBtns {
-  display: flex;
-  gap: 0.5em;
-  padding: 1em 1.25em 1.25em;
-}
-
+/* ══════════════════════════════════════
+   Buttons
+   ══════════════════════════════════════ */
 .primaryBtn {
   flex: 1;
   height: 48px;
@@ -228,150 +573,6 @@
 }
 .primaryBtn:hover { background: #1a2a6b; }
 .primaryBtn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-.secondaryBtn {
-  width: 90px;
-  height: 48px;
-  background: transparent;
-  color: #0d2260;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 0.8125em;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  text-decoration: none;
-  border: 1px solid #d1d5db;
-  border-radius: 9999px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.secondaryBtn:hover { background: #f5f6fa; }
-
-/* ══════════════════════════════════════
-   Messages / Chat section
-   ══════════════════════════════════════ */
-.sectionTitle {
-  font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 1.25em;
-  color: #0e1b4d;
-  letter-spacing: -0.01em;
-  margin: 1.5em 0 0.625em 0.25em;
-}
-
-.chatToggle {
-  display: flex;
-  align-items: center;
-  gap: 0.75em;
-  width: 100%;
-  padding: 1em 1.25em;
-  background: #ffffff;
-  border: none;
-  border-radius: 1em;
-  box-shadow: 0 1px 4px rgba(14, 27, 77, 0.06), 0 4px 16px rgba(14, 27, 77, 0.04);
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s;
-}
-.chatToggle:hover { background: #fafbfc; }
-
-.chatToggleIcon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #0e1b4d;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.125rem;
-  flex-shrink: 0;
-}
-
-.chatToggleText {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.chatToggleLabel {
-  font-family: var(--font-heading);
-  font-size: 0.9375em;
-  font-weight: 600;
-  color: #0e1b4d;
-}
-
-.chatToggleHint {
-  font-family: var(--font-heading);
-  font-size: 0.75em;
-  font-weight: 400;
-  color: #8a8a8a;
-}
-
-.chatToggleRight {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  flex-shrink: 0;
-}
-
-.chatBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  border-radius: 9999px;
-  background: #ef4444;
-  color: #fff;
-  font-family: var(--font-heading);
-  font-size: 0.6875em;
-  font-weight: 700;
-  padding: 0 6px;
-}
-
-.chatChevron {
-  transition: transform 0.2s ease;
-}
-.chatChevronOpen {
-  transform: rotate(90deg);
-}
-
-.chatPanelWrap {
-  background: #ffffff;
-  border-radius: 0 0 1em 1em;
-  box-shadow: 0 1px 4px rgba(14, 27, 77, 0.06), 0 4px 16px rgba(14, 27, 77, 0.04);
-  margin-top: -0.25em;
-  overflow: hidden;
-}
-
-/* ── Support fallback ── */
-.supportRow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375em;
-  padding: 1.25em 0 0;
-}
-
-.supportText {
-  font-family: var(--font-heading);
-  font-size: 0.8125em;
-  color: #8a8a8a;
-}
-
-.supportLink {
-  font-family: var(--font-heading);
-  font-size: 0.8125em;
-  font-weight: 600;
-  color: #3b82f6;
-  text-decoration: none;
-}
-.supportLink:hover { text-decoration: underline; }
 
 /* ══════════════════════════════════════
    Loading / Empty / Error states

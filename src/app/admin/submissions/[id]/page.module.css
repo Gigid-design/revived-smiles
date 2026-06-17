@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Submission Detail / Review Page
+   Submission Detail — Workflow-First Layout (v3)
    ========================================================================== */
 
 .page {
@@ -8,7 +8,7 @@
   gap: 1.5rem;
 }
 
-/* Back link */
+/* ── Back Link ── */
 .backLink {
   display: inline-flex;
   align-items: center;
@@ -22,78 +22,487 @@
 }
 
 .backLink:hover {
-  color: var(--admin-primary);
+  color: var(--admin-text);
 }
 
-/* Header */
+/* ── Compact Header ── */
 .header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.headerLeft {
+.headerTop {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .patientName {
   font-family: var(--font-heading);
-  font-size: 1.375rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: var(--admin-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Two-column layout */
-.columns {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 1.5rem;
-  align-items: start;
+.headerSubline {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+  line-height: 1.4;
 }
 
-@media (max-width: 960px) {
-  .columns {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Card */
-.card {
+/* ── Workflow Card ── */
+.workflowCard {
   background: var(--admin-card-bg);
   border: 1px solid var(--admin-card-border);
   border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Horizontal Stepper — minimal dots ── */
+.stepper {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0.25rem 0;
+}
+
+.stepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  flex: 0 0 auto;
+  width: 56px;
+  position: relative;
+  z-index: 1;
+}
+
+.stepDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid #d1d5db;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.stepDotCompleted {
+  background: var(--admin-text);
+  border-color: var(--admin-text);
+}
+
+.stepDotActive {
+  width: 12px;
+  height: 12px;
+  background: var(--admin-primary);
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(25, 144, 198, 0.15);
+}
+
+.stepLabel {
+  font-family: var(--font-body);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  color: #9ca3af;
+  text-align: center;
+  line-height: 1.3;
+  max-width: 56px;
+}
+
+.stepLabelActive {
+  color: var(--admin-text);
+  font-weight: 600;
+}
+
+.stepLabelCompleted {
+  color: var(--admin-text-muted);
+}
+
+.stepConnector {
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+  margin-top: 5px;
+  min-width: 8px;
+}
+
+.stepConnectorCompleted {
+  background: var(--admin-text);
+}
+
+/* Branch banner for Changes Requested / Rejected */
+.branchBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--admin-text);
+  background: var(--admin-bg);
+}
+
+.branchBanner svg {
+  flex-shrink: 0;
+  color: var(--admin-text-muted);
+}
+
+.branchBannerLabel {
+  font-weight: 600;
+}
+
+.branchBannerMeta {
+  color: var(--admin-text-muted);
+  font-size: 0.75rem;
+}
+
+/* ── Action Card — clean, no accent border ── */
+.actionCard {
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 8px;
   overflow: hidden;
 }
 
-.cardHeader {
-  padding: 1rem 1.25rem;
+.actionCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--admin-card-border);
+}
+
+.actionCardTitle {
   font-family: var(--font-heading);
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--admin-text);
 }
 
-.cardBody {
+.actionCardDesc {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  margin-left: auto;
+}
+
+.actionCardBody {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Previous notes banner */
+.previousNotesBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 6px;
+}
+
+.previousNotesLabel {
+  font-weight: 600;
+  font-size: 0.6875rem;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.previousNotesText {
+  font-size: 0.8125rem;
+  color: var(--admin-text);
+  line-height: 1.5;
+}
+
+.previousNotesMeta {
+  font-size: 0.6875rem;
+  color: var(--admin-text-muted);
+  margin-top: 0.125rem;
+}
+
+/* Terminal cards — minimal */
+.terminalCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-card-border);
+}
+
+.terminalCardSuccess {
+  composes: terminalCard;
+}
+
+.terminalCardRejected {
+  composes: terminalCard;
+}
+
+.terminalIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ffffff;
+}
+
+.terminalIconSuccess {
+  composes: terminalIcon;
+  background: var(--admin-text);
+}
+
+.terminalIconRejected {
+  composes: terminalIcon;
+  background: var(--admin-danger);
+}
+
+.terminalText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+}
+
+.terminalTitle {
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.terminalSub {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+/* ── Review Controls ── */
+.notesTextarea {
+  width: 100%;
+  min-height: 72px;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--admin-card-border);
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--admin-text);
+  resize: vertical;
+  background: var(--admin-card-bg);
+  transition: border-color 0.15s;
+}
+
+.notesTextarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+}
+
+.noteTemplates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.noteTemplateBtn {
+  padding: 0.25rem 0.5rem;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.noteTemplateBtn:hover {
+  border-color: var(--admin-text-muted);
+  color: var(--admin-text);
+}
+
+.actionBtns {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.4375rem 0.875rem;
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-heading);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.btn:hover { opacity: 0.88; }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btnApprove {
+  composes: btn;
+  background: var(--admin-text);
+  color: #ffffff;
+}
+
+.btnChanges {
+  composes: btn;
+  background: transparent;
+  color: var(--admin-text);
+  border: 1px solid var(--admin-card-border);
+}
+
+.btnChanges:hover {
+  border-color: var(--admin-text-muted);
+}
+
+.btnReject {
+  composes: btn;
+  background: transparent;
+  color: var(--admin-danger);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.btnReject:hover {
+  border-color: var(--admin-danger);
+}
+
+.trackingInput {
+  width: 100%;
+  height: 36px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--admin-card-border);
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--admin-text);
+  background: var(--admin-card-bg);
+  transition: border-color 0.15s;
+}
+
+.trackingInput:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+}
+
+/* ── Detail Tabs ── */
+.detailTabBar {
+  display: flex;
+  border-bottom: 1px solid var(--admin-card-border);
+  gap: 0;
+}
+
+.detailTab {
+  padding: 0.625rem 1rem;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: -1px;
+}
+
+.detailTab:hover {
+  color: var(--admin-text);
+}
+
+.detailTabActive {
+  color: var(--admin-text);
+  border-bottom-color: var(--admin-text);
+}
+
+.tabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: var(--admin-danger);
+  color: #fff;
+  font-size: 0.5rem;
+  font-weight: 700;
+  padding: 0 0.25rem;
+  line-height: 1;
+}
+
+.detailTabContent {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  min-height: 200px;
+}
+
+.detailTabInner {
   padding: 1.25rem;
 }
 
-/* Info rows */
+/* Section divider */
+.sectionDivider {
+  height: 1px;
+  background: var(--admin-card-border);
+  margin: 1.25rem 0;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.75rem;
+}
+
+/* Chat tab body */
+.chatTabBody {
+  height: 480px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Info Grid ── */
 .infoGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
-.infoItem {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
+.infoItem { display: flex; flex-direction: column; gap: 0.25rem; }
 
 .infoItemFull {
   composes: infoItem;
@@ -116,12 +525,8 @@
   font-weight: 500;
 }
 
-/* Product pills */
-.productList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-}
+/* ── Product Pills ── */
+.productList { display: flex; flex-wrap: wrap; gap: 0.375rem; }
 
 .productPill {
   display: inline-flex;
@@ -134,316 +539,10 @@
   color: var(--admin-text);
 }
 
-/* Color swatches */
-.swatchRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.swatch {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  border: 1px solid var(--admin-card-border);
-  flex-shrink: 0;
-}
-
-/* Photo Sections */
-.photoSection {
-  margin-bottom: 1.5rem;
-}
-
-.photoSection:last-child {
-  margin-bottom: 0;
-}
-
-.photoSectionTitle {
-  font-family: var(--font-heading);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--admin-text);
-  margin-bottom: 0.75rem;
-}
-
-.photoGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.75rem;
-}
-
-.photoThumb {
-  position: relative;
-  aspect-ratio: 4/3;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.photoThumb:hover {
-  border-color: var(--admin-primary);
-  box-shadow: 0 2px 8px rgba(25, 144, 198, 0.2);
-}
-
-.photoThumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.photoThumbLabel {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 0.375rem 0.5rem;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
-  color: #ffffff;
-  font-size: 0.625rem;
-  font-weight: 500;
-  line-height: 1.3;
-}
-
-/* Photo pass/fail badge */
-.photoBadge {
-  position: absolute;
-  top: 0.375rem;
-  left: 0.375rem;
-  padding: 0.0625rem 0.375rem;
-  border-radius: 4px;
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  font-family: var(--font-heading);
-  z-index: 1;
-}
-
-.photoBadgePass {
-  background: rgba(34, 197, 94, 0.2);
-  color: var(--admin-success);
-}
-
-.photoBadgeFail {
-  background: rgba(239, 68, 68, 0.2);
-  color: var(--admin-danger);
-}
-
-.noPhotos {
-  padding: 2rem;
-  text-align: center;
-  color: var(--admin-text-muted);
-  font-size: 0.8125rem;
-  background: var(--admin-bg);
-  border-radius: 8px;
-}
-
-/* Review Actions */
-.actionsCard {
-  composes: card;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* ── Tabs ── */
-.tabBar {
-  display: flex;
-  border-bottom: 1px solid var(--admin-card-border);
-}
-
-.tab {
-  flex: 1;
-  padding: 0.875rem 1.25rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--admin-text-secondary);
-  background: none;
-  border: none;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.tab:hover {
-  color: var(--admin-text);
-}
-
-.tabActive {
-  color: var(--admin-text);
-  border-bottom-color: var(--admin-primary);
-}
-
-.tabBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 9999px;
-  background: #ef4444;
-  color: #fff;
-  font-size: 0.625rem;
-  font-weight: 700;
-  padding: 0 0.375rem;
-}
-
-.chatTabBody {
-  flex: 1;
-  min-height: 350px;
-  display: flex;
-  flex-direction: column;
-}
-
-.actionsBody {
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.notesTextarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 0.75rem;
-  border: 1px solid var(--admin-card-border);
-  border-radius: 8px;
-  font-family: var(--font-body);
-  font-size: 0.8125rem;
-  color: var(--admin-text);
-  resize: vertical;
-  background: var(--admin-bg);
-}
-
-.notesTextarea:focus {
-  outline: none;
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 2px rgba(25, 144, 198, 0.15);
-}
-
-.actionBtns {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.btn {
-  padding: 0.625rem 1.25rem;
-  border: none;
-  border-radius: 8px;
-  font-family: var(--font-heading);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn:hover {
-  opacity: 0.9;
-}
-
-.btn:active {
-  transform: scale(0.98);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btnApprove {
-  composes: btn;
-  background: var(--admin-success);
-  color: #ffffff;
-}
-
-.btnChanges {
-  composes: btn;
-  background: #f97316;
-  color: #ffffff;
-}
-
-.btnReject {
-  composes: btn;
-  background: var(--admin-danger);
-  color: #ffffff;
-}
-
-/* Existing notes */
-.existingNotes {
-  padding: 0.75rem;
-  background: var(--admin-bg);
-  border-radius: 8px;
-  font-size: 0.8125rem;
-  color: var(--admin-text);
-  line-height: 1.5;
-}
-
-.existingNotesLabel {
-  font-weight: 600;
-  font-size: 0.6875rem;
-  color: var(--admin-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 0.375rem;
-}
-
-.reviewMeta {
-  font-size: 0.75rem;
-  color: var(--admin-text-muted);
-  margin-top: 0.5rem;
-}
-
-/* Loading / Error */
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem;
-  color: var(--admin-text-muted);
-  font-size: 0.875rem;
-}
-
-.error {
-  padding: 3rem;
-  text-align: center;
-  color: var(--admin-danger);
-  font-size: 0.875rem;
-}
-
-/* Teeth list */
-.teethList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-}
-
-.toothBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 28px;
-  background: var(--admin-primary);
-  color: #ffffff;
-  border-radius: 4px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-}
-
-/* Category tag inside product pill */
 .categoryTag {
   display: inline-flex;
   padding: 0.125rem 0.375rem;
-  background: rgba(25, 144, 198, 0.12);
+  background: rgba(25, 144, 198, 0.1);
   color: var(--admin-primary);
   border-radius: 4px;
   font-size: 0.625rem;
@@ -451,116 +550,118 @@
   margin-left: 0.375rem;
 }
 
-/* Missing field indicator */
-.missingField {
-  color: var(--admin-danger);
-  font-weight: 500;
+/* ── Shades / Teeth ── */
+.swatchRow { display: flex; align-items: center; gap: 0.5rem; }
+.teethList { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+.toothBadge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 24px;
+  background: var(--admin-text); color: #ffffff;
+  border-radius: 4px; font-size: 0.625rem; font-weight: 600;
+}
+.missingField { color: var(--admin-danger); font-size: 0.8125rem; }
+
+/* ── Photo Sections ── */
+.photoSection { margin-bottom: 1.25rem; }
+.photoSection:last-child { margin-bottom: 0; }
+
+.photoSectionTitle {
+  font-family: var(--font-heading);
+  font-size: 0.75rem; font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
 }
 
-/* Timeline */
-.timeline {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  padding: 0.75rem 1rem;
-  background: var(--admin-card-bg);
-  border: 1px solid var(--admin-card-border);
-  border-radius: 12px;
-  flex-wrap: wrap;
-}
-
-.timelineItem {
-  display: flex;
-  align-items: center;
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 0.5rem;
-  padding: 0.25rem 0;
 }
 
-.timelineItem:not(:last-child)::after {
-  content: '→';
-  color: var(--admin-text-muted);
-  font-size: 0.75rem;
-  margin: 0 0.75rem;
-}
-
-.timelineDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--admin-card-border);
-  flex-shrink: 0;
-}
-
-.timelineDotActive {
-  background: var(--admin-primary);
-}
-
-.timelineText {
-  font-size: 0.75rem;
-  color: var(--admin-text-muted);
-  white-space: nowrap;
-}
-
-/* Note templates */
-.noteTemplates {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  margin-bottom: 0.75rem;
-}
-
-.noteTemplateBtn {
-  padding: 0.375rem 0.625rem;
-  background: var(--admin-bg);
-  border: 1px solid var(--admin-card-border);
+.photoThumb {
+  position: relative;
+  aspect-ratio: 4/3;
   border-radius: 6px;
-  font-family: var(--font-body);
-  font-size: 0.6875rem;
-  color: var(--admin-text);
+  overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: opacity 0.15s;
 }
 
-.noteTemplateBtn:hover {
-  border-color: var(--admin-primary);
-  background: rgba(25, 144, 198, 0.04);
-  color: var(--admin-primary);
+.photoThumb:hover {
+  opacity: 0.85;
 }
 
-/* Toast */
+.photoThumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.photoThumbLabel {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 0.25rem 0.5rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.65));
+  color: #ffffff; font-size: 0.5625rem; font-weight: 500; line-height: 1.3;
+}
+
+.photoBadge {
+  position: absolute; top: 0.25rem; left: 0.25rem;
+  padding: 0.0625rem 0.3125rem;
+  border-radius: 3px;
+  font-size: 0.5rem; font-weight: 700; letter-spacing: 0.04em;
+  font-family: var(--font-heading); z-index: 1;
+}
+
+.photoBadgePass { background: rgba(0, 0, 0, 0.55); color: #86efac; }
+.photoBadgeFail { background: rgba(0, 0, 0, 0.55); color: #fca5a5; }
+
+.noPhotos {
+  padding: 2rem; text-align: center;
+  color: var(--admin-text-muted); font-size: 0.8125rem;
+}
+
+/* ── Toast ── */
 .toast {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 1000;
-  padding: 0.75rem 1.25rem;
-  border-radius: 8px;
-  font-family: var(--font-body);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.3s ease;
+  position: fixed; top: 1rem; right: 1rem; z-index: 1000;
+  padding: 0.625rem 1rem;
+  border-radius: 6px; font-family: var(--font-body);
+  font-size: 0.8125rem; font-weight: 500;
+  box-shadow: 0 4px 12px rgba(14, 24, 77, 0.08);
+  animation: slideIn 0.25s ease;
 }
 
 .toastSuccess {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #86efac;
+  background: var(--admin-card-bg);
+  color: var(--admin-text);
+  border: 1px solid var(--admin-card-border);
 }
 
 .toastError {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fca5a5;
+  background: var(--admin-card-bg);
+  color: var(--admin-danger);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-0.5rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-0.5rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Loading / Error ── */
+.loading {
+  display: flex; align-items: center; justify-content: center;
+  padding: 4rem; color: var(--admin-text-muted); font-size: 0.875rem;
+}
+
+.error {
+  padding: 3rem; text-align: center;
+  color: var(--admin-danger); font-size: 0.875rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .stepItem { width: 40px; }
+  .stepLabel { font-size: 0.5rem; max-width: 40px; }
+  .detailTabBar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .detailTab { font-size: 0.6875rem; padding: 0.5rem 0.75rem; }
+  .photoGrid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+  .actionCardDesc { display: none; }
 }

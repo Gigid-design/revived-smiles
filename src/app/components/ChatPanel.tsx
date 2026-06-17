@@ -25,6 +25,15 @@ function formatTime(dateStr: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w.charAt(0))
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelProps) {
   const { messages, sendMessage, markAsRead, loading } = useChat(
     submissionId,
@@ -80,7 +89,12 @@ export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelP
       <div className={styles.messageList} ref={listRef}>
         {messages.length === 0 ? (
           <div className={styles.empty}>
-            <div className={styles.emptyIcon}>💬</div>
+            <div className={styles.emptyIcon}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M3 4h14v10H5.5L3 16.5V4z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M7 8h6M7 11h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </div>
             <p className={styles.emptyText}>No messages yet</p>
             <p className={styles.emptyHint}>
               {currentRole === "admin"
@@ -99,7 +113,12 @@ export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelP
                 }`}
               >
                 {!isOwn && (
-                  <div className={styles.senderName}>{msg.sender_name}</div>
+                  <div className={styles.senderRow}>
+                    <div className={styles.avatar}>
+                      {getInitials(msg.sender_name || "?")}
+                    </div>
+                    <div className={styles.senderName}>{msg.sender_name}</div>
+                  </div>
                 )}
                 <div
                   className={`${styles.bubble} ${
@@ -138,7 +157,7 @@ export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelP
           disabled={!draft.trim() || sending}
           aria-label="Send message"
         >
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
             <path
               d="M18.5 1.5L9 11M18.5 1.5L12.5 18.5L9 11M18.5 1.5L1.5 7.5L9 11"
               stroke="currentColor"

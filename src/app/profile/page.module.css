@@ -1,0 +1,232 @@
+/* ══════════════════════════════════════
+   Profile — Patient Portal
+   ══════════════════════════════════════ */
+
+/* ── Screen ── */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  background: #f8f9fb;
+  overflow-x: hidden;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  padding: 0 1em 8.5em;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Top bar ── */
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 3.25em;
+  padding-bottom: 0.5em;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  text-decoration: none;
+}
+
+.pageTitle {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.0625em;
+  color: #0e1b4d;
+  text-align: center;
+}
+
+/* ── Avatar section ── */
+.avatarSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5em 0 1.25em;
+  gap: 0.375em;
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0e1b4d, #1a2a6b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.375em;
+}
+
+.avatarInitials {
+  font-family: var(--font-heading);
+  font-size: 1.5em;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+.userName {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.375em;
+  color: #0e1b4d;
+  margin: 0;
+  text-align: center;
+}
+
+.userEmail {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 400;
+  color: #8a8a8a;
+  margin: 0;
+  text-align: center;
+}
+
+/* ── Card ── */
+.card {
+  background: #ffffff;
+  border-radius: 1em;
+  box-shadow: 0 1px 4px rgba(14, 27, 77, 0.06), 0 4px 16px rgba(14, 27, 77, 0.04);
+  padding: 1.25em;
+  margin-bottom: 1em;
+}
+
+.cardTitle {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.9375em;
+  color: #0e1b4d;
+  margin: 0 0 0.875em;
+  padding-bottom: 0.625em;
+  border-bottom: 1px solid #eeeff3;
+}
+
+/* ── Info rows ── */
+.infoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625em 0;
+  border-bottom: 1px solid #f5f6fa;
+}
+
+.infoRow:last-child {
+  border-bottom: none;
+}
+
+.infoLabel {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 400;
+  color: #8a8a8a;
+}
+
+.infoValue {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 600;
+  color: #0e1b4d;
+  text-align: right;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Actions section ── */
+.actionsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: #ffffff;
+  border-radius: 1em;
+  box-shadow: 0 1px 4px rgba(14, 27, 77, 0.06), 0 4px 16px rgba(14, 27, 77, 0.04);
+  overflow: hidden;
+}
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 1em 1.25em;
+  text-decoration: none;
+  color: #0e1b4d;
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  font-weight: 500;
+  border-bottom: 1px solid #f5f6fa;
+  transition: background 0.15s;
+}
+
+.actionRow:hover {
+  background: #fafbfc;
+}
+
+.actionRow .chevron {
+  margin-left: auto;
+  color: #c0c4ce;
+}
+
+.signOutBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  width: 100%;
+  padding: 1em 1.25em;
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.signOutBtn:hover {
+  background: #fef2f2;
+}
+
+.signOutBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Loading skeleton ── */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2em;
+  gap: 0.75em;
+}
+
+.skeletonCircle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #eeeff3;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonLine {
+  height: 14px;
+  background: #eeeff3;
+  border-radius: 7px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

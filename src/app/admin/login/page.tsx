@@ -1,15 +1,21 @@
 "use client";
 
-// TODO: Replace with Supabase Auth — another agent is setting this up.
-// Demo auth: admin@revivedsmiles.com / demo1234
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "./page.module.css";
+import { getSupabase } from "@/lib/supabase";
 
-const DEMO_EMAIL = "admin@revivedsmiles.com";
-const DEMO_PASSWORD = "demo1234";
+/** Emails allowed to access the admin portal.
+ *  Extend this list or replace with a DB lookup as the team grows. */
+const ADMIN_EMAILS = [
+  "admin@revivedsmiles.com",
+  "ivan.lomelin@unosquare.com",
+];
+
+function isAdminEmail(email: string): boolean {
+  return ADMIN_EMAILS.includes(email.toLowerCase().trim());
+}
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -18,23 +24,55 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    // TODO: Replace with Supabase Auth validation
-    if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
+    const trimmedEmail = email.trim().toLowerCase();
+
+    /* 1. Gate: only allowed admin emails */
+    if (!isAdminEmail(trimmedEmail)) {
+      setError("This account does not have admin access.");
+      setLoading(false);
+      return;
+    }
+
+    /* 2. Authenticate via Supabase Auth */
+    try {
+      const supabase = getSupabase();
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: trimmedEmail,
+        password,
+      });
+
+      if (authError) {
+        let msg = authError.message;
+        if (msg.includes("Invalid login credentials")) msg = "Incorrect email or password.";
+        setError(msg);
+        setLoading(false);
+        return;
+      }
+
+      /* 3. Fetch the user profile for display name */
+      const { data: { user } } = await supabase.auth.getUser();
+      const displayName = user?.user_metadata?.full_name
+        || user?.user_metadata?.name
+        || trimmedEmail.split("@")[0];
+
+      /* 4. Persist admin session metadata for the auth guard */
       const session = {
-        name: "Admin User",
-        email: DEMO_EMAIL,
-        role: "Inpatient Representative",
+        name: displayName,
+        email: trimmedEmail,
+        role: "Admin",
         loggedInAt: new Date().toISOString(),
       };
       sessionStorage.setItem("rs_admin_session", JSON.stringify(session));
+
       router.push("/admin");
-    } else {
-      setError("Invalid email or password");
+    } catch (err) {
+      console.error("Admin login failed:", err);
+      setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   }
@@ -89,16 +127,7 @@ export default function AdminLoginPage() {
           <button type="submit" className={styles.submitBtn} disabled={loading}>
             {loading ? "Signing in…" : "Sign In"}
           </button>
-
-          {/* TODO: Wire forgot password flow with Supabase Auth */}
-          <a href="#" className={styles.forgotLink} onClick={(e) => e.preventDefault()}>
-            Forgot password?
-          </a>
         </form>
-
-        <div className={styles.demoHint}>
-          Demo credentials: <strong>{DEMO_EMAIL}</strong> / <strong>{DEMO_PASSWORD}</strong>
-        </div>
       </div>
     </div>
   );

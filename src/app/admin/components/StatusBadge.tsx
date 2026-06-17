@@ -5,7 +5,10 @@ type SubmissionStatus =
   | "in_review"
   | "approved"
   | "rejected"
-  | "changes_requested";
+  | "changes_requested"
+  | "in_fabrication"
+  | "shipped"
+  | "completed";
 
 interface StatusBadgeProps {
   status: SubmissionStatus;
@@ -17,6 +20,9 @@ const STATUS_CONFIG: Record<SubmissionStatus, { label: string; bg: string; text:
   approved: { label: "Approved", bg: "#dcfce7", text: "#166534" },
   rejected: { label: "Rejected", bg: "#fee2e2", text: "#991b1b" },
   changes_requested: { label: "Changes Requested", bg: "#ffedd5", text: "#9a3412" },
+  in_fabrication: { label: "In Fabrication", bg: "#e0e7ff", text: "#3730a3" },
+  shipped: { label: "Shipped", bg: "#cffafe", text: "#155e75" },
+  completed: { label: "Completed", bg: "#dcfce7", text: "#14532d" },
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {

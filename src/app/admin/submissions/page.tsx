@@ -30,6 +30,9 @@ const STATUS_OPTIONS = [
   { value: "approved", label: "Approved" },
   { value: "rejected", label: "Rejected" },
   { value: "changes_requested", label: "Changes Requested" },
+  { value: "in_fabrication", label: "In Fabrication" },
+  { value: "shipped", label: "Shipped" },
+  { value: "completed", label: "Completed" },
 ];
 
 function formatDate(dateStr: string): string {
