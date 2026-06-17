@@ -7,6 +7,7 @@ import styles from "./page.module.css";
 import { getSupabase } from "@/lib/supabase";
 import { BottomNav } from "@/app/components/BottomNav";
 import { FloatingChat } from "@/app/components/FloatingChat";
+import { ShippingLabelModal } from "@/app/components/ShippingLabelModal";
 import { PRODUCTS } from "@/app/context/productConfig";
 
 interface SubmissionData {
@@ -87,7 +88,7 @@ export default function Dashboard() {
   const [firstName, setFirstName] = useState("there");
   const [productLabel, setProductLabel] = useState("Dental product");
   const [submission, setSubmission] = useState<SubmissionData | null>(null);
-  const [generatingLabel, setGeneratingLabel] = useState(false);
+  const [labelModalOpen, setLabelModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -145,33 +146,6 @@ export default function Dashboard() {
     }
     fetchSubmission();
   }, []);
-
-  async function handleShippingLabel() {
-    if (!submission) return;
-    setGeneratingLabel(true);
-    try {
-      const res = await fetch("/api/shipping-label", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionId: submission.id, patientName: submission.name }),
-      });
-      if (!res.ok) throw new Error("Failed to generate label");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `shipping-label-${submission.id.slice(0, 8)}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Shipping label error:", err);
-      alert("Unable to generate shipping label. Please try again.");
-    } finally {
-      setGeneratingLabel(false);
-    }
-  }
 
   const status = submission?.status || "pending";
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
@@ -312,8 +286,8 @@ export default function Dashboard() {
               ) : status === "rejected" ? (
                 <a href="mailto:support@revivedsmiles.com" className={styles.primaryBtn}>CONTACT SUPPORT</a>
               ) : (
-                <button className={styles.primaryBtn} onClick={handleShippingLabel} disabled={generatingLabel}>
-                  {generatingLabel ? "GENERATING…" : "GET SHIPPING LABEL"}
+                <button className={styles.primaryBtn} onClick={() => setLabelModalOpen(true)}>
+                  GET SHIPPING LABEL
                 </button>
               )}
               <Link href="/order-detail" className={styles.secondaryBtn}>DETAILS</Link>
@@ -323,6 +297,16 @@ export default function Dashboard() {
 
 
       </div>
+
+      {/* Shipping label modal */}
+      {submission && (
+        <ShippingLabelModal
+          open={labelModalOpen}
+          onClose={() => setLabelModalOpen(false)}
+          submissionId={submission.id}
+          patientName={submission.name}
+        />
+      )}
 
       {/* Floating chat button */}
       <FloatingChat submissionId={submission?.id ?? null} patientName={patientName} />

@@ -1,0 +1,211 @@
+/* ── Overlay ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1em;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.overlayOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Close button ── */
+.closeBtn {
+  position: absolute;
+  top: max(1em, env(safe-area-inset-top));
+  right: 1em;
+  z-index: 101;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ── Label card ── */
+.labelCard {
+  background: #ffffff;
+  border-radius: 1em;
+  padding: 1.5em;
+  max-width: 320px;
+  width: 90%;
+  margin: 0 auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  max-height: 75vh;
+}
+
+/* ── Header ── */
+.header {
+  margin-bottom: 0.25em;
+}
+
+.brandName {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.125em;
+  color: #0e1b4d;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.subtitle {
+  font-family: var(--font-heading);
+  font-size: 0.6875em;
+  color: #666;
+  margin: 0.125em 0 0;
+}
+
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0.875em 0;
+}
+
+/* ── FROM / TO sections ── */
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.5625em;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.5em;
+}
+
+.personName {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  color: #0e1b4d;
+  margin: 0;
+}
+
+.addressLine {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 400;
+  color: #0e1b4d;
+  margin: 0.125em 0 0;
+  line-height: 1.45;
+}
+
+.refCode {
+  font-family: var(--font-heading);
+  font-size: 0.75em;
+  color: #666;
+  margin: 0.25em 0 0;
+}
+
+/* ── Tracking section ── */
+.trackingLabel {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.5625em;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.375em;
+}
+
+.trackingCode {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.25em;
+  color: #0e1b4d;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+/* ── Barcode ── */
+.barcode {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  margin-top: 0.625em;
+  height: 28px;
+}
+
+.bar {
+  background: #0e1b4d;
+  border-radius: 0.5px;
+}
+
+/* ── Instructions ── */
+.instructionsTitle {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.5625em;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.5em;
+}
+
+.instructionsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375em;
+}
+
+.instructionItem {
+  font-family: var(--font-heading);
+  font-size: 0.75em;
+  font-weight: 400;
+  color: #0e1b4d;
+  line-height: 1.4;
+}
+
+/* ── Action bar ── */
+.actionBar {
+  margin-top: 1.25em;
+  display: flex;
+  justify-content: center;
+}
+
+.downloadBtn {
+  height: 48px;
+  padding: 0 2em;
+  background: #0e1b4d;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8125em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+}
+
+.downloadBtn:hover {
+  background: #1a2a6b;
+}
+
+.downloadBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
