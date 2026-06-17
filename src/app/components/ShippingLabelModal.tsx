@@ -1,23 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import styles from "./ShippingLabelModal.module.css";
-
-const RETURN_ADDRESS = {
-  name: "Revived Smiles",
-  line1: "Returns Department",
-  line2: "PO Box 1234",
-  city: "Los Angeles, CA 90001",
-};
-
-const BAR_WIDTHS = [2, 1, 3, 1, 2, 3, 1, 2, 1, 3, 2, 1, 3, 1, 2, 1, 3, 2, 1, 2, 3, 1, 2, 1, 3, 2, 1, 3, 1, 2];
-
-const INSTRUCTIONS = [
-  "1. Print this label and cut along the edges",
-  "2. Attach securely to your impression kit box",
-  "3. Drop off at your nearest USPS location",
-  "4. Allow 5-7 business days for delivery",
-];
 
 interface ShippingLabelModalProps {
   open: boolean;
@@ -27,10 +11,55 @@ interface ShippingLabelModalProps {
 }
 
 export function ShippingLabelModal({ open, onClose, submissionId, patientName }: ShippingLabelModalProps) {
-  const [downloading, setDownloading] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
 
-  const trackingRef = `RS-${submissionId.slice(0, 8).toUpperCase()}`;
-  const refCode = submissionId.slice(0, 8).toUpperCase();
+  // Fetch PDF when modal opens
+  useEffect(() => {
+    if (!open || !submissionId) return;
+
+    let cancelled = false;
+
+    async function fetchPdf() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/shipping-label", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ submissionId, patientName }),
+        });
+        if (!res.ok) throw new Error("Failed to generate label");
+        const blob = await res.blob();
+        if (cancelled) return;
+        const url = URL.createObjectURL(blob);
+        blobUrlRef.current = url;
+        setPdfUrl(url);
+      } catch (err) {
+        console.error("Shipping label fetch error:", err);
+        if (!cancelled) setError("Unable to load shipping label. Please try again.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchPdf();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, submissionId, patientName]);
+
+  // Revoke blob URL on close
+  useEffect(() => {
+    if (!open && blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+      setPdfUrl(null);
+    }
+  }, [open]);
 
   // Close on Escape key
   useEffect(() => {
@@ -52,30 +81,44 @@ export function ShippingLabelModal({ open, onClose, submissionId, patientName }:
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  const handleDownload = useCallback(async () => {
-    setDownloading(true);
-    try {
-      const res = await fetch("/api/shipping-label", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionId, patientName }),
-      });
-      if (!res.ok) throw new Error("Failed to generate label");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `shipping-label-${submissionId.slice(0, 8)}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Shipping label download error:", err);
-      alert("Unable to download shipping label. Please try again.");
-    } finally {
-      setDownloading(false);
+  const handleDownload = useCallback(() => {
+    if (!pdfUrl) return;
+    const a = document.createElement("a");
+    a.href = pdfUrl;
+    a.download = `shipping-label-${submissionId.slice(0, 8)}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, [pdfUrl, submissionId]);
+
+  const handleRetry = useCallback(() => {
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
     }
+    setPdfUrl(null);
+    setError(null);
+    setLoading(true);
+
+    fetch("/api/shipping-label", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ submissionId, patientName }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to generate label");
+        return res.blob();
+      })
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        blobUrlRef.current = url;
+        setPdfUrl(url);
+      })
+      .catch((err) => {
+        console.error("Shipping label retry error:", err);
+        setError("Unable to load shipping label. Please try again.");
+      })
+      .finally(() => setLoading(false));
   }, [submissionId, patientName]);
 
   if (!open) return null;
@@ -96,62 +139,45 @@ export function ShippingLabelModal({ open, onClose, submissionId, patientName }:
         </svg>
       </button>
 
-      {/* Label card — stop click propagation so clicking the card doesn't close */}
-      <div className={styles.labelCard} onClick={(e) => e.stopPropagation()}>
+      {/* PDF viewer card */}
+      <div className={styles.viewerCard} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className={styles.header}>
-          <p className={styles.brandName}>REVIVED SMILES</p>
-          <p className={styles.subtitle}>Impression Kit Return Label</p>
+        <div className={styles.viewerHeader}>
+          <p className={styles.viewerTitle}>Shipping Label</p>
         </div>
 
-        <div className={styles.divider} />
-
-        {/* FROM section */}
-        <p className={styles.sectionTitle}>From:</p>
-        <p className={styles.personName}>{patientName || "Patient"}</p>
-        <p className={styles.refCode}>Ref: {refCode}</p>
-
-        <div className={styles.divider} />
-
-        {/* TO section */}
-        <p className={styles.sectionTitle}>To:</p>
-        <p className={styles.personName}>{RETURN_ADDRESS.name}</p>
-        <p className={styles.addressLine}>{RETURN_ADDRESS.line1}</p>
-        <p className={styles.addressLine}>{RETURN_ADDRESS.line2}</p>
-        <p className={styles.addressLine}>{RETURN_ADDRESS.city}</p>
-
-        <div className={styles.divider} />
-
-        {/* Tracking reference */}
-        <p className={styles.trackingLabel}>Tracking Reference</p>
-        <p className={styles.trackingCode}>{trackingRef}</p>
-
-        {/* Decorative barcode */}
-        <div className={styles.barcode} aria-hidden="true">
-          {BAR_WIDTHS.map((w, i) => (
-            <span key={i} className={styles.bar} style={{ width: w, height: `${60 + (i % 3) * 12}%` }} />
-          ))}
+        {/* PDF iframe / loading / error */}
+        <div className={styles.pdfWrap}>
+          {loading && (
+            <div className={styles.statusState}>
+              <div className={styles.spinner} />
+              <p className={styles.statusText}>Generating label…</p>
+            </div>
+          )}
+          {error && !loading && (
+            <div className={styles.statusState}>
+              <p className={styles.statusText}>{error}</p>
+              <button className={styles.retryBtn} onClick={handleRetry}>TRY AGAIN</button>
+            </div>
+          )}
+          {pdfUrl && !loading && !error && (
+            <iframe
+              src={pdfUrl}
+              className={styles.pdfFrame}
+              title="Shipping label PDF"
+            />
+          )}
         </div>
 
-        <div className={styles.divider} />
-
-        {/* Instructions */}
-        <p className={styles.instructionsTitle}>Instructions</p>
-        <ul className={styles.instructionsList}>
-          {INSTRUCTIONS.map((text) => (
-            <li key={text} className={styles.instructionItem}>{text}</li>
-          ))}
-        </ul>
-
-        {/* Download button */}
+        {/* Action bar */}
         <div className={styles.actionBar}>
-          <button className={styles.downloadBtn} onClick={handleDownload} disabled={downloading}>
+          <button className={styles.downloadBtn} onClick={handleDownload} disabled={!pdfUrl || loading}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            {downloading ? "DOWNLOADING…" : "DOWNLOAD PDF"}
+            DOWNLOAD PDF
           </button>
         </div>
       </div>

@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     });
 
     // ── TO section ──
-    y -= 32;
+    y -= 24;
     page.drawText("TO:", { x: 24, y, size: 8, font: fontBold, color: gray });
     y -= 16;
     page.drawText(RETURN_ADDRESS.name, { x: 24, y, size: 12, font: fontBold, color: navy });
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     });
 
     // ── Tracking reference barcode-style block ──
-    y -= 28;
+    y -= 22;
     page.drawText("TRACKING REFERENCE", {
       x: 24, y, size: 8, font: fontBold, color: gray,
     });
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Instructions ──
-    y -= 72;
+    y -= 44;
     page.drawLine({
       start: { x: 24, y },
       end: { x: width - 24, y },

@@ -36,153 +36,113 @@
   cursor: pointer;
 }
 
-/* ── Label card ── */
-.labelCard {
+/* ── Viewer card ── */
+.viewerCard {
   background: #ffffff;
   border-radius: 1em;
-  padding: 1.5em;
-  max-width: 320px;
-  width: 90%;
+  max-width: 360px;
+  width: 92%;
   margin: 0 auto;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  overflow-y: auto;
-  max-height: 75vh;
-}
-
-/* ── Header ── */
-.header {
-  margin-bottom: 0.25em;
-}
-
-.brandName {
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: 1.125em;
-  color: #0e1b4d;
-  letter-spacing: 0.02em;
-  margin: 0;
-}
-
-.subtitle {
-  font-family: var(--font-heading);
-  font-size: 0.6875em;
-  color: #666;
-  margin: 0.125em 0 0;
-}
-
-/* ── Divider ── */
-.divider {
-  height: 1px;
-  background: #e5e7eb;
-  margin: 0.875em 0;
-}
-
-/* ── FROM / TO sections ── */
-.sectionTitle {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 0.5625em;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 0.5em;
-}
-
-.personName {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 0.875em;
-  color: #0e1b4d;
-  margin: 0;
-}
-
-.addressLine {
-  font-family: var(--font-heading);
-  font-size: 0.8125em;
-  font-weight: 400;
-  color: #0e1b4d;
-  margin: 0.125em 0 0;
-  line-height: 1.45;
-}
-
-.refCode {
-  font-family: var(--font-heading);
-  font-size: 0.75em;
-  color: #666;
-  margin: 0.25em 0 0;
-}
-
-/* ── Tracking section ── */
-.trackingLabel {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 0.5625em;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 0.375em;
-}
-
-.trackingCode {
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: 1.25em;
-  color: #0e1b4d;
-  letter-spacing: 0.04em;
-  margin: 0;
-}
-
-/* ── Barcode ── */
-.barcode {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  margin-top: 0.625em;
-  height: 28px;
-}
-
-.bar {
-  background: #0e1b4d;
-  border-radius: 0.5px;
-}
-
-/* ── Instructions ── */
-.instructionsTitle {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 0.5625em;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 0.5em;
-}
-
-.instructionsList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.375em;
+  max-height: 85vh;
+  overflow: hidden;
 }
 
-.instructionItem {
+/* ── Viewer header ── */
+.viewerHeader {
+  padding: 1em 1.25em 0.75em;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.viewerTitle {
   font-family: var(--font-heading);
-  font-size: 0.75em;
-  font-weight: 400;
+  font-weight: 700;
+  font-size: 1.0625em;
   color: #0e1b4d;
-  line-height: 1.4;
+  margin: 0;
+}
+
+/* ── PDF wrapper ── */
+.pdfWrap {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  /* 4×6 aspect ratio preserved within the card */
+  aspect-ratio: 4 / 6;
+  background: #f3f4f6;
+}
+
+.pdfFrame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* ── Loading / Error states ── */
+.statusState {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+  padding: 1.5em;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #0e1b4d;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.statusText {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  color: #6b7280;
+  margin: 0;
+  text-align: center;
+}
+
+.retryBtn {
+  height: 36px;
+  padding: 0 1.5em;
+  background: #0e1b4d;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.75em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.retryBtn:hover {
+  background: #1a2a6b;
 }
 
 /* ── Action bar ── */
 .actionBar {
-  margin-top: 1.25em;
-  display: flex;
-  justify-content: center;
+  padding: 0.75em 1.25em;
+  border-top: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
 
 .downloadBtn {
-  height: 48px;
+  height: 44px;
   padding: 0 2em;
   background: #0e1b4d;
   color: #ffffff;
