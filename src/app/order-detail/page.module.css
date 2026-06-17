@@ -307,3 +307,50 @@
   cursor: pointer;
 }
 .retryBtn:hover { background: #1a2a6b; }
+
+/* ── Shipping Label Row ── */
+.shippingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875em 1.25em;
+  gap: 0.75em;
+}
+
+.shippingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125em;
+  min-width: 0;
+}
+
+.shippingTitle {
+  font-family: var(--font-heading);
+  font-size: 0.9375em;
+  font-weight: 500;
+  color: #0e1b4d;
+}
+
+.shippingHint {
+  font-family: var(--font-heading);
+  font-size: 0.75em;
+  color: #8a8a8a;
+}
+
+.shippingBtn {
+  height: 36px;
+  padding: 0 1.25em;
+  background: #0e1b4d;
+  color: #fff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.6875em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.shippingBtn:hover { background: #1a2a6b; }

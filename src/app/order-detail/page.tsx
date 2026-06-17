@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
 import { getSupabase } from "@/lib/supabase";
 import { BottomNav } from "@/app/components/BottomNav";
+import { ShippingLabelModal } from "@/app/components/ShippingLabelModal";
 import { PRODUCTS } from "@/app/context/productConfig";
 
 const CLOSE_BITE_LABELS = [
@@ -42,6 +43,7 @@ const REVIEW_BANNER_STYLES: Record<string, { bg: string; color: string }> = {
 };
 
 interface SubmissionRow {
+  id: string;
   name: string;
   state: string;
   products: string[];
@@ -68,6 +70,7 @@ export default function OrderDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [labelModalOpen, setLabelModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchSubmission() {
@@ -80,7 +83,7 @@ export default function OrderDetail() {
           return;
         }
 
-        const cols = "name, state, products, white_shade, gum_shade, status, review_notes, reviewed_by, reviewed_at, created_at, close_bite_photos, open_bite_photos, impression_photos";
+        const cols = "id, name, state, products, white_shade, gum_shade, status, review_notes, reviewed_by, reviewed_at, created_at, close_bite_photos, open_bite_photos, impression_photos";
 
         let { data } = await supabase
           .from("submissions")
@@ -264,6 +267,25 @@ export default function OrderDetail() {
               </div>
             )}
 
+            {/* Shipping Label */}
+            {(status === "pending" || status === "changes_requested") && (
+              <>
+                <p className={styles.sectionLabel}>Shipping Label</p>
+                <div className={styles.section}>
+                  <div className={styles.shippingRow}>
+                    <div className={styles.shippingInfo}>
+                      <span className={styles.shippingTitle}>Return Shipping Label</span>
+                      <span className={styles.shippingHint}>View and download your shipping label</span>
+                    </div>
+                    <button className={styles.shippingBtn} onClick={() => setLabelModalOpen(true)}>
+                      VIEW LABEL
+                    </button>
+                  </div>
+                </div>
+                <div className={styles.divider} />
+              </>
+            )}
+
             {/* About you */}
             <p className={styles.sectionLabel}>About you</p>
             <div className={styles.section}>
@@ -356,6 +378,16 @@ export default function OrderDetail() {
           </>
         )}
       </div>
+
+      {/* Shipping label modal */}
+      {submission && (
+        <ShippingLabelModal
+          open={labelModalOpen}
+          onClose={() => setLabelModalOpen(false)}
+          submissionId={submission.id}
+          patientName={submission.name}
+        />
+      )}
 
       {/* Lightbox overlay */}
       {lightboxSrc && (
