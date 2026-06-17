@@ -128,6 +128,11 @@ export default function AdminLoginPage() {
             {loading ? "Signing in…" : "Sign In"}
           </button>
         </form>
+
+        <div className={styles.demoHint}>
+          Demo credentials:<br />
+          <strong>admin@revivedsmiles.com</strong> / <strong>demo1234</strong>
+        </div>
       </div>
     </div>
   );
