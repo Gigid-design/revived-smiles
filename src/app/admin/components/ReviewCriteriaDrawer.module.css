@@ -1,0 +1,311 @@
+/* ==========================================================================
+   Review Criteria Drawer — Slide-out AI chat for photo analysis feedback
+   ========================================================================== */
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Drawer panel */
+.drawer {
+  width: 440px;
+  max-width: 92vw;
+  height: 100vh;
+  background: var(--admin-card-bg);
+  border-left: 1px solid var(--admin-card-border);
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.25s ease;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* ── Header ── */
+.header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--admin-card-border);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.headerPhoto {
+  width: 64px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--admin-card-border);
+  flex-shrink: 0;
+}
+
+.headerInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.headerTitle {
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.headerMeta {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  color: var(--admin-text-muted);
+  margin-top: 0.1875rem;
+}
+
+.closeBtn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.closeBtn:hover {
+  color: var(--admin-text);
+  background: var(--admin-bg);
+}
+
+/* ── Context bar — check chips ── */
+.contextBar {
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--admin-card-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+.chip {
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.chipPass {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--admin-success);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.chipFail {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--admin-danger);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* ── Messages ── */
+.messageList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.msgWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+
+.msgUser {
+  align-items: flex-end;
+}
+
+.msgAi {
+  align-items: flex-start;
+}
+
+.avatar {
+  font-size: 0.75rem;
+  margin-bottom: 0.125rem;
+}
+
+.bubble {
+  max-width: 88%;
+  padding: 0.625rem 0.875rem;
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  word-wrap: break-word;
+}
+
+.bubbleUser {
+  background: var(--admin-primary);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.bubbleAi {
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  border: 1px solid var(--admin-card-border);
+  border-bottom-left-radius: 4px;
+}
+
+/* Rich content */
+.richContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.textLine {
+  margin: 0;
+}
+
+.bulletLine {
+  display: flex;
+  gap: 0.375rem;
+  align-items: baseline;
+  margin: 0.125rem 0;
+}
+
+.bulletDot {
+  color: var(--admin-primary);
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.inlineCode {
+  background: rgba(25, 144, 198, 0.08);
+  padding: 0.0625rem 0.25rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-family: monospace;
+}
+
+/* Typing indicator */
+.typing {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem 0;
+}
+
+.typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--admin-text-muted);
+  animation: bounce 1.2s infinite;
+}
+
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* ── Suggestion chips ── */
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
+}
+
+.suggestChip {
+  padding: 0.3125rem 0.625rem;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.suggestChip:hover {
+  border-color: var(--admin-primary);
+  color: var(--admin-primary);
+}
+
+/* ── Input bar ── */
+.inputBar {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--admin-card-border);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--admin-card-border);
+  border-radius: 8px;
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  resize: none;
+  min-height: 36px;
+  max-height: 120px;
+  line-height: 1.4;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 2px rgba(25, 144, 198, 0.15);
+}
+
+.sendBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--admin-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.sendBtn:hover { opacity: 0.9; }
+.sendBtn:disabled { opacity: 0.4; cursor: not-allowed; }

@@ -13,7 +13,7 @@ import { getSupabase } from "@/lib/supabase";
 import { PRODUCTS, CATEGORY_LABELS, type ProductConfig } from "@/app/context/productConfig";
 import { ChatPanel } from "@/app/components/ChatPanel";
 import { useChat } from "@/app/hooks/useChat";
-import { PromptAdvisorChat } from "../../components/PromptAdvisorChat";
+import { ReviewCriteriaDrawer } from "../../components/ReviewCriteriaDrawer";
 
 interface SubmissionDetail {
   id: string;
@@ -84,7 +84,12 @@ export default function SubmissionDetailPage() {
   const [saving, setSaving] = useState(false);
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const [activeTab, setActiveTab] = useState<"review" | "chat" | "advisor">("review");
+  const [activeTab, setActiveTab] = useState<"review" | "chat">("review");
+  const [reviewDrawer, setReviewDrawer] = useState<{
+    photoUrl: string;
+    photoLabel: string;
+    photoType: string;
+  } | null>(null);
   const { unreadCount } = useChat(id, "admin", adminUser?.name ?? "Admin");
 
   useEffect(() => {
@@ -383,13 +388,6 @@ export default function SubmissionDetailPage() {
                   <span className={styles.tabBadge}>{unreadCount}</span>
                 )}
               </button>
-              <button
-                type="button"
-                className={`${styles.tab} ${activeTab === "advisor" ? styles.tabActive : ""}`}
-                onClick={() => setActiveTab("advisor")}
-              >
-                🤖 AI Advisor
-              </button>
             </div>
 
             {activeTab === "review" && (
@@ -480,15 +478,6 @@ export default function SubmissionDetailPage() {
               </div>
             )}
 
-            {activeTab === "advisor" && (
-              <div className={styles.chatTabBody}>
-                <PromptAdvisorChat
-                  submissionId={submission?.id}
-                  photoAnalyses={submission?.photo_analyses}
-                  compact
-                />
-              </div>
-            )}
           </div>
         </div>
 
@@ -506,17 +495,39 @@ export default function SubmissionDetailPage() {
                     <div className={styles.photoSection}>
                       <div className={styles.photoSectionTitle}>Close Bite</div>
                       <div className={styles.photoGrid}>
-                        {closeBitePhotos.map((photo, idx) => (
-                          <div
-                            key={photo.url}
-                            className={styles.photoThumb}
-                            onClick={() => openLightbox(allTeethPhotos, idx)}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={photo.url} alt={photo.label} />
-                            <div className={styles.photoThumbLabel}>{photo.label}</div>
-                          </div>
-                        ))}
+                        {closeBitePhotos.map((photo, idx) => {
+                          const pType = idx === 0 ? "close-bite-front" : "close-bite-side";
+                          const hasAnalysis = !!submission.photo_analyses?.[pType];
+                          return (
+                            <div
+                              key={photo.url}
+                              className={styles.photoThumb}
+                              onClick={() => openLightbox(allTeethPhotos, idx)}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={photo.url} alt={photo.label} />
+                              {hasAnalysis && (
+                                <span
+                                  className={`${styles.photoBadge} ${submission.photo_analyses[pType].pass ? styles.photoBadgePass : styles.photoBadgeFail}`}
+                                >
+                                  {submission.photo_analyses[pType].pass ? "PASS" : "FAIL"}
+                                </span>
+                              )}
+                              {hasAnalysis && (
+                                <button
+                                  className={styles.reviewCriteriaBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setReviewDrawer({ photoUrl: photo.url, photoLabel: photo.label, photoType: pType });
+                                  }}
+                                >
+                                  🤖 Review Criteria
+                                </button>
+                              )}
+                              <div className={styles.photoThumbLabel}>{photo.label}</div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -525,17 +536,39 @@ export default function SubmissionDetailPage() {
                     <div className={styles.photoSection}>
                       <div className={styles.photoSectionTitle}>Open Bite</div>
                       <div className={styles.photoGrid}>
-                        {openBitePhotos.map((photo, idx) => (
-                          <div
-                            key={photo.url}
-                            className={styles.photoThumb}
-                            onClick={() => openLightbox(allTeethPhotos, closeBitePhotos.length + idx)}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={photo.url} alt={photo.label} />
-                            <div className={styles.photoThumbLabel}>{photo.label}</div>
-                          </div>
-                        ))}
+                        {openBitePhotos.map((photo, idx) => {
+                          const pType = idx === 0 ? "open-bite-front" : "open-bite-side";
+                          const hasAnalysis = !!submission.photo_analyses?.[pType];
+                          return (
+                            <div
+                              key={photo.url}
+                              className={styles.photoThumb}
+                              onClick={() => openLightbox(allTeethPhotos, closeBitePhotos.length + idx)}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={photo.url} alt={photo.label} />
+                              {hasAnalysis && (
+                                <span
+                                  className={`${styles.photoBadge} ${submission.photo_analyses[pType].pass ? styles.photoBadgePass : styles.photoBadgeFail}`}
+                                >
+                                  {submission.photo_analyses[pType].pass ? "PASS" : "FAIL"}
+                                </span>
+                              )}
+                              {hasAnalysis && (
+                                <button
+                                  className={styles.reviewCriteriaBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setReviewDrawer({ photoUrl: photo.url, photoLabel: photo.label, photoType: pType });
+                                  }}
+                                >
+                                  🤖 Review Criteria
+                                </button>
+                              )}
+                              <div className={styles.photoThumbLabel}>{photo.label}</div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -571,6 +604,16 @@ export default function SubmissionDetailPage() {
 
         </div>
       </div>
+
+      {/* Review Criteria Drawer */}
+      <ReviewCriteriaDrawer
+        open={!!reviewDrawer}
+        onClose={() => setReviewDrawer(null)}
+        photoUrl={reviewDrawer?.photoUrl ?? ""}
+        photoLabel={reviewDrawer?.photoLabel ?? ""}
+        photoType={reviewDrawer?.photoType ?? ""}
+        analysis={reviewDrawer ? (submission.photo_analyses?.[reviewDrawer.photoType] ?? null) : null}
+      />
 
       {/* Lightbox */}
       {lightbox && (
