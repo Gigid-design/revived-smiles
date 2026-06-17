@@ -81,7 +81,7 @@ export default function OpenBite2() {
   }, []);
 
   useEffect(() => {
-    startCamera(facingMode);
+    startCamera(facingMode); // eslint-disable-line react-hooks/set-state-in-effect -- camera stream initialization
     return () => { streamRef.current?.getTracks().forEach((t) => t.stop()); };
   }, [startCamera, facingMode]);
 

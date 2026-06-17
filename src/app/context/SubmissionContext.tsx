@@ -51,7 +51,7 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
     try {
       const stored = sessionStorage.getItem(SESSION_KEY);
       if (stored && !data.submissionId) {
-        setData((prev) => ({ ...prev, submissionId: stored }));
+        setData((prev) => ({ ...prev, submissionId: stored })); // eslint-disable-line react-hooks/set-state-in-effect -- restoring persisted submissionId on mount
       }
     } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -17,7 +17,7 @@ export default function PhotoTimeline({ steps, currentStep }: Props) {
       {steps.map((step, i) => {
         const isCompleted = i < currentStep;
         const isCurrent = i === currentStep;
-        const isUpcoming = i > currentStep;
+        const _isUpcoming = i > currentStep;
 
         return (
           <div key={i} className={styles.stepGroup}>

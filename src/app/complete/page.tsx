@@ -55,7 +55,7 @@ export default function Complete() {
 
         {/* Description — center at 181.5px from card top, 12px medium */}
         <p className={styles.desc}>
-          Thank you for completing the impression process! We'll carefully review the images you've submitted and will be in touch soon with the next steps.
+          Thank you for completing the impression process! We&apos;ll carefully review the images you&apos;ve submitted and will be in touch soon with the next steps.
         </p>
 
       </div>

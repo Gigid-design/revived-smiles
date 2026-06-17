@@ -9,7 +9,7 @@ interface NewSubmissionEvent {
 }
 
 export function useRealtimeSubmissions() {
-  const [lastEvent, setLastEvent] = useState<number>(Date.now());
+  const [lastEvent, setLastEvent] = useState<number>(() => Date.now());
   const [newSubmission, setNewSubmission] = useState<NewSubmissionEvent | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 

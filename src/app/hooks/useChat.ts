@@ -29,12 +29,12 @@ export function useChat(
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const idRef = useRef(submissionId);
-  idRef.current = submissionId;
+  useEffect(() => { idRef.current = submissionId; }, [submissionId]);
 
   /* Fetch messages on mount */
   useEffect(() => {
     if (!submissionId) {
-      setLoading(false);
+      setLoading(false); // eslint-disable-line react-hooks/set-state-in-effect -- early return for missing ID
       return;
     }
 

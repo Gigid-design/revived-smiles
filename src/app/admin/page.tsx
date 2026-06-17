@@ -80,7 +80,7 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    fetchData(); // eslint-disable-line react-hooks/set-state-in-effect -- data fetch on mount
   }, [fetchData, lastEvent]);
 
   /* Fetch unread message counts */

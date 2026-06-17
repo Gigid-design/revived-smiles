@@ -72,9 +72,8 @@ export default function PromptEditorPage() {
     }
   }, [photoType]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch on mount
   useEffect(() => {
-    loadVersions();
+    loadVersions(); // eslint-disable-line react-hooks/set-state-in-effect -- initial data fetch on mount
   }, [loadVersions]);
 
   function loadIntoEditor(config: PromptConfig) {

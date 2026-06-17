@@ -24,6 +24,7 @@ export default function Home() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading URL params on mount
     if (params.get("mode") === "signup") setMode("signup");
   }, []);
   const screenRef = useRef<HTMLElement>(null);
@@ -47,6 +48,7 @@ export default function Home() {
     return () => mm.revert();
   }, { scope: screenRef });
 
+  // eslint-disable-next-line react-hooks/refs -- GSAP contextSafe requires render-time wrapping
   const animateOut = contextSafe((destination: string) => {
     const tl = gsap.timeline({
       onComplete: () => router.push(destination),
@@ -92,6 +94,7 @@ export default function Home() {
     return "/dashboard";
   }
 
+  // eslint-disable-next-line react-hooks/refs -- GSAP contextSafe requires render-time wrapping
   const handleSubmit = contextSafe(async (e: FormEvent) => {
     e.preventDefault();
     // Read DOM values as fallback for browser autofill (which skips onChange)

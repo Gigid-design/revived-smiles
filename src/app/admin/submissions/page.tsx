@@ -84,7 +84,7 @@ export default function SubmissionsListPage() {
   }, [page, statusFilter, searchQuery]);
 
   useEffect(() => {
-    fetchSubmissions();
+    fetchSubmissions(); // eslint-disable-line react-hooks/set-state-in-effect -- data fetch on mount
   }, [fetchSubmissions, lastEvent]);
 
   /* Fetch unread message counts for visible submissions */
@@ -101,10 +101,6 @@ export default function SubmissionsListPage() {
     fetchUnreadCounts();
   }, [submissions, lastEvent]);
 
-  /* Reset page when filters change */
-  useEffect(() => {
-    setPage(0);
-  }, [statusFilter, searchQuery]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
   const startIdx = page * PAGE_SIZE + 1;
@@ -117,7 +113,7 @@ export default function SubmissionsListPage() {
         <select
           className={styles.filterSelect}
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
           aria-label="Filter by status"
         >
           {STATUS_OPTIONS.map((opt) => (
@@ -138,7 +134,7 @@ export default function SubmissionsListPage() {
             type="text"
             placeholder="Search by name or email…"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
             aria-label="Search submissions"
           />
         </div>

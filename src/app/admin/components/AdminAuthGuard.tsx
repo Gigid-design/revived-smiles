@@ -32,7 +32,7 @@ export function AdminAuthGuard({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Skip auth check on public pages
     if (PUBLIC_PATHS.includes(pathname)) {
-      setChecked(true);
+      setChecked(true); // eslint-disable-line react-hooks/set-state-in-effect -- syncing auth state from sessionStorage
       return;
     }
 

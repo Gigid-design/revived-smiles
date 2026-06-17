@@ -30,6 +30,7 @@ export default function Step6() {
     setUploading(slot);
     try {
       const ext = file.name.split(".").pop();
+      // eslint-disable-next-line react-hooks/purity -- event handler, not called during render
       const path = `impressions/${Date.now()}-slot${slot}.${ext}`;
       const { error } = await supabase.storage
         .from("impression-photos")
