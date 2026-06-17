@@ -128,13 +128,21 @@ function renderMarkdown(
   while (i < lines.length) {
     const line = lines[i];
 
-    /* ── Prompt block: :::current | :::proposed | :::success | :::warning ── */
-    const blockMatch = line.match(/^:::(current|proposed|success|warning)\s*$/);
+    /* ── Prompt block: :::current | :::proposed | :::success | :::warning ──
+       Matches even if there's text before the ::: on the same line           */
+    const blockMatch = line.match(/^(.*?):::(current|proposed|success|warning)\s*$/);
     if (blockMatch) {
-      const variant = blockMatch[1] as "current" | "proposed" | "success" | "warning";
+      const prefixText = blockMatch[1].trim();
+      const variant = blockMatch[2] as "current" | "proposed" | "success" | "warning";
+
+      /* Render any text that preceded ::: on the same line */
+      if (prefixText) {
+        elements.push(<p key={`pre-${i}`} className={styles.textLine}>{renderInline(prefixText, i)}</p>);
+      }
+
       const blockLines: string[] = [];
       i++;
-      while (i < lines.length && lines[i].trim() !== ":::") {
+      while (i < lines.length && !/^\s*:::(?:current|proposed|success|warning)?\s*$/.test(lines[i])) {
         blockLines.push(lines[i]);
         i++;
       }

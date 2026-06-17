@@ -300,10 +300,18 @@ If something **went wrong**, use a warning block:
 Couldn't apply the change — the prompt config for open-bite-front was not found.
 :::
 
-Rules:
+CRITICAL formatting rules:
+- The ::: markers MUST be on their OWN LINE. Never glue them to other text. Always put a newline BEFORE and AFTER each ::: marker.
+- WRONG: "Here is the result.:::success"
+- CORRECT:
+  Here is the result.
+
+  :::success
+  ...
+  :::
 - Always use :::current before showing existing prompt text, closed by :::
 - Always use :::proposed before showing suggested new text, closed by :::
-- Always use :::success after successfully applying a change, closed by ::: — include the version number, a plain-English summary, and a link to the prompt editor: [View in prompt editor](/admin/prompts/{photo_type})
+- Always use :::success after successfully applying a change, closed by ::: — include the version number, a plain-English summary, and a link: [View in prompt editor](/admin/prompts/{photo_type})
 - Always use :::warning when something failed or needs attention, closed by :::
 - Markdown links [text](url) work inside blocks — use them for prompt editor links. No other markdown (**, \`, >) inside blocks
 - Show both current and proposed when suggesting a change so the admin can compare
