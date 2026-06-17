@@ -29,6 +29,8 @@ export default function Home() {
   const screenRef = useRef<HTMLElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const productRef = useRef<HTMLDivElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   const { contextSafe } = useGSAP(() => {
     const mm = gsap.matchMedia();
@@ -92,15 +94,18 @@ export default function Home() {
 
   const handleSubmit = contextSafe(async (e: FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
+    // Read DOM values as fallback for browser autofill (which skips onChange)
+    const emailValue = (email || emailRef.current?.value || "").trim();
+    const passwordValue = (password || passwordRef.current?.value || "").trim();
+    if (!emailValue || !passwordValue) return;
     setError(null);
     setLoading(true);
 
     try {
       if (mode === "signup") {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: email.trim(),
-          password: password.trim(),
+          email: emailValue,
+          password: passwordValue,
         });
         if (signUpError) throw signUpError;
 
@@ -112,20 +117,20 @@ export default function Home() {
           return;
         }
 
-        update({ email: email.trim() });
+        update({ email: emailValue });
         const userId = signUpData.user?.id;
-        if (userId) await createDraft(email.trim(), userId);
+        if (userId) await createDraft(emailValue, userId);
         animateOut("/welcome");
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password.trim(),
+          email: emailValue,
+          password: passwordValue,
         });
         if (signInError) throw signInError;
-        update({ email: email.trim() });
+        update({ email: emailValue });
 
         // Check if user has an existing submission
-        const res = await fetch(`/api/lookup?email=${encodeURIComponent(email.trim())}`);
+        const res = await fetch(`/api/lookup?email=${encodeURIComponent(emailValue)}`);
         const lookupData = await res.json();
 
         if (lookupData.found) {
@@ -134,7 +139,7 @@ export default function Home() {
             // Resume draft — restore context and navigate to next incomplete step
             update({
               submissionId: s.id,
-              email: email.trim(),
+              email: emailValue,
               name: s.name || '',
               state: s.state || '',
               products: s.products || [],
@@ -151,7 +156,7 @@ export default function Home() {
         } else {
           // No submission found — create a new draft
           const user = (await supabase.auth.getUser()).data.user;
-          if (user) await createDraft(email.trim(), user.id);
+          if (user) await createDraft(emailValue, user.id);
           animateOut("/welcome");
         }
       }
@@ -189,6 +194,7 @@ export default function Home() {
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputWrapper}>
             <input
+              ref={emailRef}
               id="email"
               type="email"
               placeholder=" "
@@ -203,6 +209,7 @@ export default function Home() {
           </div>
           <div className={styles.inputWrapper}>
             <input
+              ref={passwordRef}
               id="password"
               type="password"
               placeholder=" "

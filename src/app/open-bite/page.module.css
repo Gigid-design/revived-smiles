@@ -1,5 +1,10 @@
 /* ── Screen ── */
 .screen {
+  --photo-warning: #ba7517;
+  --photo-warning-strong: #8a530d;
+  --photo-warning-bg: #fff8e1;
+  --photo-warning-soft: #fff0c0;
+  --photo-warning-border: rgba(186, 117, 23, 0.28);
   position: relative;
   width: 100%;
   height: 100dvh;
@@ -328,11 +333,11 @@
   box-shadow: 0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 .scanPillFail {
-  background: rgba(180, 30, 20, 0.78);
+  background: rgba(186, 117, 23, 0.86);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+  border: 1px solid rgba(255, 226, 166, 0.55);
+  box-shadow: 0 8px 24px rgba(90, 64, 16, 0.22), inset 0 1px 0 rgba(255,255,255,0.22);
 }
 .scanPillAllPass {
   background: rgba(15, 110, 58, 0.78);
@@ -360,6 +365,12 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 .scanIconPass { font-size: 0.875em; color: #ffffff; font-weight: 700; }
 .scanIconFail { font-size: 0.875em; color: #ffffff; font-weight: 700; }
+.alertIcon {
+  display: block;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
 .scanPillText {
   display: flex;
   flex-direction: column;
@@ -466,8 +477,8 @@
   color: #0f6e3a;
 }
 .resultBadgeFail {
-  background: #ffe0de;
-  color: #c0392b;
+  background: linear-gradient(135deg, var(--photo-warning-bg) 0%, var(--photo-warning-soft) 100%);
+  color: var(--photo-warning-strong);
 }
 
 /* ── AI check list ── */
@@ -501,7 +512,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 .checkPillPass  { background: #e8f7ef; border-color: rgba(26,122,74,0.2); }
-.checkPillFail  { background: #fdecea; border-color: rgba(192,57,43,0.2); }
+.checkPillFail  { background: linear-gradient(135deg, #fffaf0 0%, #fff3d6 100%); border-color: var(--photo-warning-border); }
 .checkPillIcon {
   width: 2em; height: 2em;
   border-radius: 50%;
@@ -510,9 +521,9 @@
   flex-shrink: 0;
 }
 .checkPillPass .checkPillIcon  { background: #b8ffce; }
-.checkPillFail .checkPillIcon  { background: #ffe0de; }
+.checkPillFail .checkPillIcon  { background: var(--photo-warning-soft); }
 .checkIconPass { font-size: 0.875em; color: #179537; font-weight: 700; }
-.checkIconFail { font-size: 0.875em; color: #c0392b; font-weight: 700; }
+.checkIconFail { font-size: 0.875em; color: var(--photo-warning-strong); font-weight: 700; }
 .checkPillBody {
   flex: 1;
   display: flex;
@@ -536,7 +547,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.checkPillFail .checkPillDetail { color: #c0392b; }
+.checkPillFail .checkPillDetail { color: var(--photo-warning-strong); }
 .checkPillStatus {
   font-family: var(--font-heading);
   font-size: 0.75em;
@@ -545,7 +556,7 @@
   flex-shrink: 0;
 }
 .checkPillPass .checkPillStatus  { color: #179537; }
-.checkPillFail .checkPillStatus  { color: #c0392b; }
+.checkPillFail .checkPillStatus  { color: var(--photo-warning-strong); }
 
 /* ── Tip card ── */
 .tipCard {
@@ -760,35 +771,52 @@
 
 /* Warning controls — retake + continue side by side */
 .warningControls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  width: 100%;
+  position: absolute;
+  left: 1.25em;
+  right: 1.25em;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625em;
+  padding: 0.375em;
+  border-radius: 1.375em;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  box-shadow: 0 12px 32px rgba(14, 27, 77, 0.16);
+  box-sizing: border-box;
+
 }
 .warningControls .retakeBtn {
   position: static;
   transform: none;
-  width: 344px;
-  background: transparent;
-  border: 2px solid #0e1b4d;
+  width: auto;
+  height: 3.25em;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(14, 27, 77, 0.14);
   color: #0e1b4d;
-  text-transform: uppercase;
+  border-radius: 1em;
+  font-size: 0.875em;
 }
 .continueAnywayBtn {
-  width: 344px;
-  height: 3.5em;
-  border-radius: 9999px;
-  border: none;
-  background: #0E1B4D;
+  height: 3.25em;
+  background: #0e1b4d;
+
   color: #ffffff;
+  border: none;
+  border-radius: 1em;
+  box-shadow: 0 8px 18px rgba(14, 27, 77, 0.24);
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 0.875em;
   text-transform: uppercase;
   cursor: pointer;
+  white-space: nowrap;
 }
-.continueAnywayBtn:hover { background: #1a2d6b; }
+.continueAnywayBtn:hover { background: #142869; }
+
 
 /* Warning badge */
 .resultBadgeWarning {
@@ -797,19 +825,23 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 3;
-  padding: 0.3em 1em;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35em 1em;
   border-radius: 9999px;
-  background: #fef3cd;
-  color: #856404;
+  background: linear-gradient(135deg, var(--photo-warning-bg) 0%, var(--photo-warning-soft) 100%);
+  color: var(--photo-warning-strong);
   font-family: var(--font-heading);
   font-size: 0.75em;
   font-weight: 700;
   white-space: nowrap;
-  border: 1px solid #ffc107;
+  border: 1px solid var(--photo-warning-border);
+  box-shadow: 0 8px 20px rgba(90, 64, 16, 0.14);
 }
 
 /* Warning check pill variant */
-.checkPillWarning { background: #fff8e1; border-color: rgba(230, 147, 14, 0.3); }
-.checkPillWarning .checkPillIcon { background: #fff0c0; }
-.checkPillWarning .checkPillDetail { color: #856404; }
-.checkPillWarning .checkPillStatus { color: #856404; }
+.checkPillWarning { background: var(--photo-warning-bg); border-color: var(--photo-warning-border); }
+.checkPillWarning .checkPillIcon { background: var(--photo-warning-soft); }
+.checkPillWarning .checkPillDetail { color: var(--photo-warning-strong); }
+.checkPillWarning .checkPillStatus { color: var(--photo-warning-strong); }

@@ -36,6 +36,16 @@ const TIPS: Record<string, string> = {
   glare:               "Turn off flash and use soft natural light to avoid reflections on your teeth.",
 };
 
+function AlertIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+      <path d="M12 3.5 21 19H3L12 3.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M12 8.75V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M12 16.5H12.01" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function OpenBite2() {
   const { navigate } = usePageTransition();
   const { data } = useSubmission();
@@ -294,9 +304,9 @@ export default function OpenBite2() {
               <div className={styles.scanPillIcon}>
                 {pill.status === "checking" && <span className={styles.scanSpinner} />}
                 {pill.status === "pass" && <span className={styles.scanIconPass}>✓</span>}
-                {pill.status === "fail" && <span className={styles.scanIconFail}>✕</span>}
+                {pill.status === "fail" && <AlertIcon className={`${styles.alertIcon} ${styles.scanIconFail}`} />}
                 {pill.status === "allpass" && <span className={styles.scanIconPass}>✓</span>}
-                {pill.status === "allfail" && <span className={styles.scanIconFail}>✕</span>}
+                {pill.status === "allfail" && <AlertIcon className={`${styles.alertIcon} ${styles.scanIconFail}`} />}
               </div>
               <div className={styles.scanPillText}>
                 <span className={styles.scanPillLabel}>{pill.label}</span>
@@ -321,13 +331,13 @@ export default function OpenBite2() {
                 >
                   <div className={styles.checkPillRow}>
                     <div className={styles.checkPillIcon}>
-                      {c.pass ? <span className={styles.checkIconPass}>✓</span> : <span className={styles.checkIconFail}>✕</span>}
+                      {c.pass ? <span className={styles.checkIconPass}>✓</span> : <AlertIcon className={`${styles.alertIcon} ${styles.checkIconFail}`} />}
                     </div>
                     <div className={styles.checkPillBody}>
                       <span className={styles.checkPillLabel}>{c.label}</span>
                       <span className={styles.checkPillDetail}>{c.detail}</span>
                     </div>
-                    <span className={styles.checkPillStatus}>{c.pass ? "Pass" : "Fail"}</span>
+                    <span className={styles.checkPillStatus}>{c.pass ? "Pass" : "Review"}</span>
                     <span className={`${styles.checkPillChevron} ${isExpanded ? styles.checkPillChevronOpen : ""}`}>▾</span>
                   </div>
                   {isExpanded && c.observation && (

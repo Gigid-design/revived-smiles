@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
@@ -10,6 +10,7 @@ import { useSubmission } from "../context/SubmissionContext";
 export default function Intake() {
   const { data, update, patchSubmission } = useSubmission();
   const [name, setName] = useState(data.name || "");
+  const nameRef = useRef<HTMLInputElement>(null);
   const hasValue = name.trim().length > 0;
   const { cardRef, navigate } = usePageTransition("fade");
 
@@ -54,6 +55,7 @@ export default function Intake() {
         {/* Floating label input — same typing state as page 1 */}
         <div className={styles.inputWrapper}>
           <input
+            ref={nameRef}
             id="fullName"
             type="text"
             placeholder=" "
@@ -75,8 +77,8 @@ export default function Intake() {
           type="button"
           className={`${styles.btn} ${hasValue ? styles.btnActive : ""}`}
           onClick={() => {
-            if (hasValue) {
-              const trimmed = name.trim();
+            const trimmed = (name || nameRef.current?.value || "").trim();
+            if (trimmed) {
               update({ name: trimmed });
               patchSubmission({ name: trimmed });
               navigate('/step2', 'forward');

@@ -193,6 +193,17 @@
   color: #8a8a8a;
 }
 
+/* Autofill state — browsers apply :-webkit-autofill without triggering
+   :focus or changing :placeholder-shown, so the label must float explicitly */
+.input:-webkit-autofill ~ .floatingLabel,
+.input:autofill ~ .floatingLabel {
+  top: 1em;
+  transform: translateY(0);
+  font-size: 0.8125em;  /* 13px */
+  font-weight: 400;
+  color: #8a8a8a;
+}
+
 /* Focus: blue border + white bg */
 .input:focus {
   border-color: #c6dbfe;
