@@ -165,9 +165,12 @@ export function AnalysisResults({
 
             return (
               <div key={photo.photoType} className={styles.analysisCard}>
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   className={styles.analysisCardHeader}
                   onClick={() => toggleCard(photo.photoType)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") toggleCard(photo.photoType); }}
                 >
                   <div className={styles.analysisCardLeft}>
                     {photo.url && (
@@ -188,6 +191,7 @@ export function AnalysisResults({
                   <div className={styles.analysisCardRight}>
                     {onReviewCriteria && (
                       <button
+                        type="button"
                         className={styles.reviewCriteriaBtn}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -207,7 +211,7 @@ export function AnalysisResults({
                       <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
-                </button>
+                </div>
 
                 {isExpanded && (
                   <div className={styles.analysisCardBody}>
