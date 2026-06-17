@@ -268,6 +268,9 @@ export default function SubmissionDetailPage() {
           closeBitePhotos={closeBitePhotos}
           openBitePhotos={openBitePhotos}
           defaultOpen={submission.status === "pending"}
+          onReviewCriteria={(photoUrl, photoLabel, photoType) =>
+            setReviewDrawer({ photoUrl, photoLabel, photoType })
+          }
         />
       )}
 
@@ -513,17 +516,6 @@ export default function SubmissionDetailPage() {
                                   {submission.photo_analyses[pType].pass ? "PASS" : "FAIL"}
                                 </span>
                               )}
-                              {hasAnalysis && (
-                                <button
-                                  className={styles.reviewCriteriaBtn}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setReviewDrawer({ photoUrl: photo.url, photoLabel: photo.label, photoType: pType });
-                                  }}
-                                >
-                                  🤖 Review Criteria
-                                </button>
-                              )}
                               <div className={styles.photoThumbLabel}>{photo.label}</div>
                             </div>
                           );
@@ -553,17 +545,6 @@ export default function SubmissionDetailPage() {
                                 >
                                   {submission.photo_analyses[pType].pass ? "PASS" : "FAIL"}
                                 </span>
-                              )}
-                              {hasAnalysis && (
-                                <button
-                                  className={styles.reviewCriteriaBtn}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setReviewDrawer({ photoUrl: photo.url, photoLabel: photo.label, photoType: pType });
-                                  }}
-                                >
-                                  🤖 Review Criteria
-                                </button>
                               )}
                               <div className={styles.photoThumbLabel}>{photo.label}</div>
                             </div>

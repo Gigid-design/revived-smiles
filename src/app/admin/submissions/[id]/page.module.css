@@ -230,35 +230,6 @@
   color: var(--admin-danger);
 }
 
-/* Review Criteria button — appears on hover */
-.reviewCriteriaBtn {
-  position: absolute;
-  top: 0.375rem;
-  right: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  font-family: var(--font-body);
-  font-size: 0.5625rem;
-  font-weight: 600;
-  color: #e2e8f0;
-  cursor: pointer;
-  transition: all 0.15s;
-  opacity: 0;
-  z-index: 2;
-}
-
-.photoThumb:hover .reviewCriteriaBtn {
-  opacity: 1;
-}
-
-.reviewCriteriaBtn:hover {
-  background: rgba(25, 144, 198, 0.9);
-  border-color: var(--admin-primary);
-}
-
 .noPhotos {
   padding: 2rem;
   text-align: center;

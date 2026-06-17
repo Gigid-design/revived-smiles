@@ -36,6 +36,7 @@ interface AnalysisResultsProps {
   closeBitePhotos: { url: string; label: string }[];
   openBitePhotos: { url: string; label: string }[];
   defaultOpen?: boolean;
+  onReviewCriteria?: (photoUrl: string, photoLabel: string, photoType: string) => void;
 }
 
 const PHOTO_TYPE_MAP: Record<string, string> = {
@@ -67,6 +68,7 @@ export function AnalysisResults({
   closeBitePhotos,
   openBitePhotos,
   defaultOpen = true,
+  onReviewCriteria,
 }: AnalysisResultsProps) {
   const [open, setOpen] = useState(defaultOpen);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -184,6 +186,17 @@ export function AnalysisResults({
                     </div>
                   </div>
                   <div className={styles.analysisCardRight}>
+                    {onReviewCriteria && (
+                      <button
+                        className={styles.reviewCriteriaBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onReviewCriteria(photo.url, photo.label, photo.photoType);
+                        }}
+                      >
+                        🤖 Review Criteria
+                      </button>
+                    )}
                     <span className={`${styles.passBadge} ${a.pass ? styles.passBadgePass : styles.passBadgeFail}`}>
                       {a.pass ? "PASS" : "FAIL"}
                     </span>

@@ -286,7 +286,18 @@ export async function POST(req: NextRequest) {
 
     // Build system prompt with optional context
     let systemPrompt = SYSTEM_PROMPT;
-    if (context?.submissionId) {
+    if (context?.photoType) {
+      systemPrompt += `\n\n## Current Context`;
+      systemPrompt += `\nThe admin is reviewing a specific photo:`;
+      systemPrompt += `\n- **Photo type**: \`${context.photoType}\``;
+      if (context.photoLabel) {
+        systemPrompt += `\n- **Label**: ${context.photoLabel}`;
+      }
+      if (context.analysisResult) {
+        systemPrompt += `\n- **Analysis result**: ${JSON.stringify(context.analysisResult, null, 2)}`;
+      }
+      systemPrompt += `\n\nYou already know which photo this is — do NOT ask the admin to identify the photo type. Use the get_active_prompt tool with photo_type "${context.photoType}" when you need the current prompt.`;
+    } else if (context?.submissionId) {
       systemPrompt += `\n\n## Current Context\nThe admin is viewing submission ID: ${context.submissionId}.`;
     }
     if (context?.photoAnalyses) {
