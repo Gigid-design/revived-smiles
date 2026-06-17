@@ -24,7 +24,14 @@
 }
 
 .cardTop { display: flex; align-items: center; justify-content: space-between; }
-.cardIcon { font-size: 1.5rem; }
+.cardIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--admin-card-border);
+}
+.cardIconFallback { font-size: 1.5rem; }
 .versionBadge {
   display: inline-flex;
   padding: 0.125rem 0.5rem;

@@ -19,11 +19,11 @@ interface PromptConfig {
 
 const PHOTO_TYPE_ORDER = ["close-bite-front", "close-bite-side", "open-bite-front", "open-bite-side"];
 
-const PHOTO_TYPE_ICONS: Record<string, string> = {
-  "close-bite-front": "🦷",
-  "close-bite-side": "🦷",
-  "open-bite-front": "👄",
-  "open-bite-side": "👄",
+const PHOTO_TYPE_IMAGES: Record<string, string> = {
+  "close-bite-front": "/assets/images/close-bite-front.png",
+  "close-bite-side": "/assets/images/close-bite-right.png",
+  "open-bite-front": "/assets/images/open-bite-front.png",
+  "open-bite-side": "/assets/images/open-bite-right.png",
 };
 
 function formatDate(dateStr: string): string {
@@ -98,9 +98,16 @@ export default function PromptsListPage() {
                 className={styles.card}
               >
                 <div className={styles.cardTop}>
-                  <span className={styles.cardIcon}>
-                    {PHOTO_TYPE_ICONS[photoType] ?? "📷"}
-                  </span>
+                  {PHOTO_TYPE_IMAGES[photoType] ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={PHOTO_TYPE_IMAGES[photoType]}
+                      alt={active.label}
+                      className={styles.cardIcon}
+                    />
+                  ) : (
+                    <span className={styles.cardIconFallback}>📷</span>
+                  )}
                   <span className={styles.versionBadge}>v{active.version}</span>
                 </div>
 
