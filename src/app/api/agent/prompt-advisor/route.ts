@@ -269,7 +269,46 @@ Each photo type has:
 - Be concise — 2-3 sentences for simple answers
 - Use bullet points for lists
 - Bold key terms
-- When showing prompt changes, use a clear before/after format`;
+
+## IMPORTANT: Prompt Block Formatting
+When quoting prompt text (current requirements or proposed changes), you MUST use fenced prompt blocks.
+The chat UI renders these as highlighted cards. An "Apply This Change" button appears on proposed blocks.
+
+For the **current** requirement being discussed:
+
+:::current
+The image must be in focus and not blurry. Motion blur or out-of-focus teeth should fail.
+:::
+
+For a **proposed** change:
+
+:::proposed
+Fail only if the blur is severe enough that tooth edges and surface details cannot be made out at all. Slight softness or minor focus issues are acceptable as long as the overall tooth structure is still visible.
+:::
+
+After a change has been **successfully applied**, confirm with a success block:
+
+:::success
+Blur & focus requirement updated to version 3.
+Photos with slight softness will now pass — only severely blurry shots will be rejected.
+[View in prompt editor](/admin/prompts/open-bite-front)
+:::
+
+If something **went wrong**, use a warning block:
+
+:::warning
+Couldn't apply the change — the prompt config for open-bite-front was not found.
+:::
+
+Rules:
+- Always use :::current before showing existing prompt text, closed by :::
+- Always use :::proposed before showing suggested new text, closed by :::
+- Always use :::success after successfully applying a change, closed by ::: — include the version number, a plain-English summary, and a link to the prompt editor: [View in prompt editor](/admin/prompts/{photo_type})
+- Always use :::warning when something failed or needs attention, closed by :::
+- Markdown links [text](url) work inside blocks — use them for prompt editor links. No other markdown (**, \`, >) inside blocks
+- Show both current and proposed when suggesting a change so the admin can compare
+- The proposed block has an "Apply This Change" button — the admin clicks it to confirm, so do NOT ask for text confirmation after showing a proposed block
+- After applying, do NOT repeat the change text outside the success block — keep it concise`;
 
 /* ── Main handler ── */
 

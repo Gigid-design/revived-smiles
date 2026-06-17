@@ -78,34 +78,106 @@ function buildInitialMessage(analysis: AnalysisEntry, label: string): string {
   return msg;
 }
 
-/** Simple markdown: **bold**, `code`, bullet points */
-function renderMarkdown(text: string): React.ReactNode[] {
+/** Render inline markdown: **bold**, `code`, [link](url) */
+function renderInline(line: string, lineKey: number): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
+  let lastIdx = 0;
+  let match;
+
+  while ((match = regex.exec(line)) !== null) {
+    if (match.index > lastIdx) parts.push(line.slice(lastIdx, match.index));
+    const tok = match[0];
+    if (tok.startsWith("**")) {
+      parts.push(<strong key={`${lineKey}-${match.index}`}>{tok.slice(2, -2)}</strong>);
+    } else if (tok.startsWith("[")) {
+      const linkMatch = tok.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (linkMatch) {
+        parts.push(
+          <a
+            key={`${lineKey}-${match.index}`}
+            href={linkMatch[2]}
+            className={styles.inlineLink}
+            target={linkMatch[2].startsWith("/") ? undefined : "_blank"}
+            rel={linkMatch[2].startsWith("/") ? undefined : "noopener noreferrer"}
+          >
+            {linkMatch[1]}
+          </a>
+        );
+      }
+    } else {
+      parts.push(
+        <code key={`${lineKey}-${match.index}`} className={styles.inlineCode}>{tok.slice(1, -1)}</code>
+      );
+    }
+    lastIdx = match.index + tok.length;
+  }
+  if (lastIdx < line.length) parts.push(line.slice(lastIdx));
+  return parts;
+}
+
+/** Markdown with :::current / :::proposed prompt blocks, **bold**, `code`, bullet points */
+function renderMarkdown(
+  text: string,
+  onApplyProposed?: (text: string) => void,
+): React.ReactNode[] {
   const lines = text.split("\n");
   const elements: React.ReactNode[] = [];
 
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i];
-    const isBullet = /^[•\-*]\s/.test(line);
-    if (isBullet) line = line.replace(/^[•\-*]\s/, "");
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
 
-    const parts: React.ReactNode[] = [];
-    const regex = /(\*\*[^*]+\*\*|`[^`]+`)/g;
-    let lastIdx = 0;
-    let match;
-
-    while ((match = regex.exec(line)) !== null) {
-      if (match.index > lastIdx) parts.push(line.slice(lastIdx, match.index));
-      const tok = match[0];
-      if (tok.startsWith("**")) {
-        parts.push(<strong key={`${i}-${match.index}`}>{tok.slice(2, -2)}</strong>);
-      } else {
-        parts.push(
-          <code key={`${i}-${match.index}`} className={styles.inlineCode}>{tok.slice(1, -1)}</code>
-        );
+    /* ── Prompt block: :::current | :::proposed | :::success | :::warning ── */
+    const blockMatch = line.match(/^:::(current|proposed|success|warning)\s*$/);
+    if (blockMatch) {
+      const variant = blockMatch[1] as "current" | "proposed" | "success" | "warning";
+      const blockLines: string[] = [];
+      i++;
+      while (i < lines.length && lines[i].trim() !== ":::") {
+        blockLines.push(lines[i]);
+        i++;
       }
-      lastIdx = match.index + tok.length;
+      i++; // skip closing :::
+
+      const blockKey = `block-${i}`;
+      const BLOCK_CONFIG = {
+        current:  { label: "📋 Current Requirement", className: styles.promptBlockCurrent },
+        proposed: { label: "✨ Proposed Change",      className: styles.promptBlockProposed },
+        success:  { label: "✅ Change Applied",       className: styles.promptBlockSuccess },
+        warning:  { label: "⚠️ Warning",               className: styles.promptBlockWarning },
+      };
+      const config = BLOCK_CONFIG[variant];
+
+      elements.push(
+        <div key={blockKey} className={`${styles.promptBlock} ${config.className}`}>
+          <div className={styles.promptBlockLabel}>{config.label}</div>
+          <div className={styles.promptBlockContent}>
+            {blockLines.map((bl, j) => {
+              if (bl.trim() === "") return <br key={`${blockKey}-${j}`} />;
+              return <p key={`${blockKey}-${j}`} className={styles.textLine}>{renderInline(bl, j)}</p>;
+            })}
+          </div>
+          {variant === "proposed" && onApplyProposed && (
+            <button
+              type="button"
+              className={styles.applyBtn}
+              onClick={() => onApplyProposed(blockLines.join("\n"))}
+            >
+              ✓ Apply This Change
+            </button>
+          )}
+        </div>
+      );
+      continue;
     }
-    if (lastIdx < line.length) parts.push(line.slice(lastIdx));
+
+    /* ── Regular lines ── */
+    let currentLine = line;
+    const isBullet = /^[•\-*]\s/.test(currentLine);
+    if (isBullet) currentLine = currentLine.replace(/^[•\-*]\s/, "");
+
+    const parts = renderInline(currentLine, i);
 
     if (isBullet) {
       elements.push(
@@ -114,11 +186,12 @@ function renderMarkdown(text: string): React.ReactNode[] {
           <span>{parts}</span>
         </div>
       );
-    } else if (line.trim() === "") {
+    } else if (currentLine.trim() === "") {
       elements.push(<br key={i} />);
     } else {
       elements.push(<p key={i} className={styles.textLine}>{parts}</p>);
     }
+    i++;
   }
   return elements;
 }
@@ -291,6 +364,14 @@ export function ReviewCriteriaDrawer({
           </div>
         )}
 
+        {/* Ephemeral notice */}
+        <div className={styles.ephemeralNotice}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3.5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 018 4.5zM8 11a.75.75 0 110 1.5.75.75 0 010-1.5z" fill="currentColor" />
+          </svg>
+          This conversation is not saved. Any prompt changes you apply will be versioned in the prompt editor.
+        </div>
+
         {/* Chat messages */}
         <div className={styles.messageList}>
           {messages.map((msg) => (
@@ -301,7 +382,11 @@ export function ReviewCriteriaDrawer({
               {msg.role === "assistant" && <span className={styles.avatar}>🤖</span>}
               <div className={`${styles.bubble} ${msg.role === "user" ? styles.bubbleUser : styles.bubbleAi}`}>
                 {msg.role === "assistant" ? (
-                  <div className={styles.richContent}>{renderMarkdown(msg.content)}</div>
+                  <div className={styles.richContent}>
+                    {renderMarkdown(msg.content, (proposedText) =>
+                      sendMessage(`Yes, apply this change:\n\n${proposedText}`)
+                    )}
+                  </div>
                 ) : (
                   msg.content
                 )}
