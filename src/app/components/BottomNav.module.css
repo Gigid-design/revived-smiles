@@ -1,54 +1,78 @@
-/* ── Floating bottom navigation ── */
+/* ── Floating white pill navigation (Figma) ── */
 .nav {
   position: fixed;
-  bottom: 1.25em;
+  bottom: 1.75em;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0;
-  background: #0e1b4d;
-  border-radius: 9999px;
-  padding: 0.5em 1em;
-  box-shadow: 0 4px 20px rgba(14, 27, 77, 0.3);
-  min-width: 260px;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 100px;
+  background: #ffffff;
+  box-shadow: 0 4px 34px 1px rgba(0, 0, 0, 0.11);
 }
 
 .tab {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 0.5em 1.25em;
+  justify-content: center;
+  width: 52px;
+  height: 44px;
+  border-radius: 100px;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.5);
-  transition: color 0.2s ease;
-  border-radius: 9999px;
+  color: #121723;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
-.tab:hover {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.active {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.12);
-}
+.active { color: #121723; }
 
 .icon {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
+  flex: none;
 }
 
-.label {
+.icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Messages icon — dots inside a light circular chip */
+.iconChip {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #eef0f5;
+}
+
+.iconChip svg {
+  width: 18px;
+  height: 18px;
+}
+
+.tab:hover .iconChip {
+  background: #e4e7ef;
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
   font-family: var(--font-heading);
-  font-size: 0.625em;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
 }
