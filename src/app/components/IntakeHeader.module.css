@@ -1,0 +1,100 @@
+/* ── Shared intake progress header — label + %, gradient bar, back + step counter ── */
+.progressHeader {
+  position: absolute;
+  top: 2.5rem; left: 1rem; right: 1rem;
+  z-index: 3;
+  padding-inline: 0.5rem;
+}
+
+.progressTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.625rem;
+}
+.progressLabel {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.6875rem; /* 11px */
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #9299a5;
+}
+.progressTopRight {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+.progressPct {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.6875rem; /* 11px */
+  letter-spacing: 0.06em;
+  color: #121723;
+  font-variant-numeric: tabular-nums;
+}
+.closeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem; height: 1.75rem; /* 28px tap target */
+  margin: -0.4375rem -0.375rem -0.4375rem 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: #9299a5;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.closeBtn:hover { background: #f1f3f8; color: #121723; }
+.closeBtn:active { background: #e8ebf2; }
+.closeBtn svg { display: block; }
+
+.progressTrack {
+  height: 0.375rem; /* 6px */
+  border-radius: 999px;
+  background: #eef0f5;
+  overflow: hidden;
+}
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #FDD33B 0%, #C6DCFE 49.32%, #121723 100%);
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.progressBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+}
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-left: -0.625rem;
+  padding: 0.5rem 0.75rem;
+  min-height: 2.25rem; /* 36px tap target */
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.8125rem; /* 13px */
+  color: #121723;
+  transition: background 0.15s ease;
+}
+.backBtn:hover { background: #f1f3f8; }
+.backBtn:active { background: #e8ebf2; }
+.backBtn svg { display: block; }
+
+.stepCount {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.8125rem; /* 13px */
+  color: #9299a5;
+  font-variant-numeric: tabular-nums;
+}

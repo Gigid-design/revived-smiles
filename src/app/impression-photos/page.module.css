@@ -2,51 +2,120 @@
   position: relative;
   width: 100%;
   min-height: 100svh;
+  background: #fdfdfd;
   overflow: hidden;
 }
 
-.outerBg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-.cardBg  { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-
-/* Progress bar — left:17, same as all screens */
-.progressBar {
+/* ── Progress header — label + %, gradient bar, back + step counter ── */
+.progressHeader {
   position: absolute;
-  top: 2.3125rem; left: 1.0625rem; right: 1.1875rem;
+  top: 2.5rem; left: 1rem; right: 1rem;
   z-index: 3;
-  width: calc(100% - 2.25rem);
-  height: 0.3125rem;
+  padding-inline: 0.5rem;
 }
 
-/* Nav — top:82px */
-.navBar {
-  position: absolute;
-  top: 5.125rem; left: 0; right: 0;
-  z-index: 3;
-  display: flex; align-items: center; justify-content: space-between;
-  padding-inline: 2.8125rem;
+.progressTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.625rem;
 }
-.navBtn {
-  width: 1.25rem; height: 1.25rem;
-  background: none; border: none; padding: 0;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
+.progressLabel {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.6875rem; /* 11px */
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #9299a5;
 }
-.navTitle {
+.progressTopRight {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+.progressPct {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.6875rem; /* 11px */
+  letter-spacing: 0.06em;
+  color: #121723;
+  font-variant-numeric: tabular-nums;
+}
+.closeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem; height: 1.75rem; /* 28px tap target */
+  margin: -0.4375rem -0.375rem -0.4375rem 0; /* keep row height compact, align to edge */
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: #9299a5;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.closeBtn:hover { background: #f1f3f8; color: #121723; }
+.closeBtn:active { background: #e8ebf2; }
+.closeBtn svg { display: block; }
+
+.progressTrack {
+  height: 0.375rem; /* 6px */
+  border-radius: 999px;
+  background: #eef0f5;
+  overflow: hidden;
+}
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #FDD33B 0%, #C6DCFE 49.32%, #121723 100%);
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.progressBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+}
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-left: -0.625rem; /* offset padding so text aligns with label */
+  padding: 0.5rem 0.75rem;
+  min-height: 2.25rem; /* 36px tap target */
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.8125rem; /* 13px */
+  color: #121723;
+  transition: background 0.15s ease;
+}
+.backBtn:hover { background: #f1f3f8; }
+.backBtn:active { background: #e8ebf2; }
+.backBtn svg { display: block; }
+
+.stepCount {
   font-family: var(--font-heading);
   font-weight: 500;
-  font-size: 0.9375rem; /* 15px */
-  color: #ffffff;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
+  font-size: 0.8125rem; /* 13px */
+  color: #9299a5;
+  font-variant-numeric: tabular-nums;
 }
 
-/* White card — left:16, right:16, top:114px (7.125rem), radius:32 32 0 0 */
+/* White content card — floats on #fdfdfd, rounded top, box-shadow */
 .card {
   position: absolute;
   left: 1rem; right: 1rem;
-  top: 7.125rem;
+  top: 8.5rem;
   bottom: 0;
   background: #ffffff;
-  border-radius: 2rem 2rem 0 0;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 10px 24px 3px rgba(0, 0, 0, 0.06);
   z-index: 2;
   overflow-y: auto;
   overflow-x: hidden;
@@ -56,21 +125,22 @@
 }
 .card::-webkit-scrollbar { display: none; }
 
-/* Title — 28px medium navy, centered at top:81px within card */
+/* Title — 28px, main text color */
 .cardTitle {
   font-family: var(--font-heading);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 1.75rem;
-  color: #0e1b4d;
+  letter-spacing: -0.02em;
+  color: #121723;
   margin: 0;
   padding-top: 4rem; /* 64px from card top border */
-  line-height: 1;
+  line-height: 1.1;
 }
 
 /* Subtitle — 12px gray */
 .cardSubtitle {
   font-size: 0.75rem;
-  color: #7a8ea8;
+  color: #6b7280;
   line-height: 1.517;
   margin: 0.625rem 0 0;
   padding-right: 1.9375rem; /* right:51px from card */
@@ -80,8 +150,8 @@
 .exampleSection {
   margin-top: 1rem;
   background: #f9fafb;
-  border: 1px solid #e8eef6;
-  border-radius: 0.875rem;
+  border: 1px solid #eef0f5;
+  border-radius: 14px;
   padding: 0.875rem 1rem;
 }
 
@@ -89,7 +159,7 @@
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 0.8125rem;
-  color: #0e1b4d;
+  color: #121723;
   margin: 0 0 0.625rem;
 }
 
@@ -156,59 +226,35 @@
 
 .exampleHint {
   font-size: 0.6875rem;
-  color: #7a8ea8;
+  color: #6b7280;
   line-height: 1.4;
   margin: 0.625rem 0 0;
 }
 
-/* Tip box — top:153, h:86, bg:#f3f7ff, radius:12 */
+/* Tip box */
 .tipBox {
   margin-top: 1rem;
-  background: #f3f7ff;
-  border-radius: 0.75rem;
-  padding: 0.875rem 1.375rem;
-  min-height: 5.375rem;
+  background: #ffffff;
+  border: 1px solid #eef0f5;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px 1px rgba(0, 0, 0, 0.04);
+  padding: 0.875rem 1.125rem;
+  min-height: 4.5rem;
 }
 .tipText {
   font-size: 0.75rem;
-  color: #7a8ea8;
-  line-height: 1.45;
+  color: #6b7280;
+  line-height: 1.5;
   margin: 0;
 }
-.tipText strong { color: #0e1b4d; font-weight: 700; }
+.tipText strong { color: #121723; font-weight: 700; }
 
-/* Progress row — top:253, h:35 */
-.progressRow {
-  margin-top: 0.875rem;
-  height: 2.1875rem;
-  display: flex; align-items: center; justify-content: space-between;
-  padding-inline: 0.875rem;
-}
-.progressText {
-  font-size: 0.75rem;  /* 12px */
-  font-weight: 500;
-  color: #4a5a78;
-  margin: 0;
-}
-.progressText strong {
-  color: #1a2a52;
-  font-weight: 700;
-  font-size: 0.75rem; /* 12px */
-}
-.dots { display: flex; align-items: center; gap: 0.3125rem; } /* 5px */
-.dot {
-  width: 0.5rem; height: 0.5rem;
-  border-radius: 0.25rem;
-  background: #dce4f2;
-}
-.dotActive { background: #3a6ad4; }
-
-/* Section label — 17px medium black uppercase tracking:1.1px */
+/* Section label — uppercase, main text color */
 .sectionLabel {
   font-family: var(--font-heading);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 1.0625rem;
-  color: #000000;
+  color: #121723;
   text-transform: uppercase;
   letter-spacing: 0.065em;
   margin: 1rem 0 0.75rem;
@@ -222,11 +268,11 @@
   margin-bottom: 0;
 }
 
-/* Photo card — white, border, rounded:15.769px, aspect 177/159.3 */
+/* Photo card */
 .photoCard {
   position: relative;
   background: #ffffff;
-  border: 2px solid #e8e8e4;
+  border: 2px solid #eef0f5;
   border-radius: 0.985rem;
   aspect-ratio: 177 / 159.3;
   overflow: hidden;
@@ -251,7 +297,7 @@
 }
 .trayImg { opacity: 0.6; }
 
-/* + / check badge — top-left when uploaded, top-right when empty */
+/* Check badge — top-right when uploaded (dark) */
 .plusBadge {
   position: absolute;
   top: 0.491rem; right: 0.491rem;
@@ -262,23 +308,21 @@
   display: flex; align-items: center; justify-content: center;
 }
 .plusBadgeSuccess {
-  background: #22c55e;
-  box-shadow: 0 0.062rem 0.246rem 0 rgba(34,197,94,0.3);
-  right: auto;
-  left: 0.491rem;
+  background: #121723;
+  box-shadow: 0 0.062rem 0.246rem 0 rgba(18,23,35,0.28);
 }
 
-/* Remove (X) button — top-right on uploaded cards */
+/* Remove (X) button — top-left on uploaded cards */
 .removeBadge {
   position: absolute;
-  top: 0.491rem; right: 0.491rem;
+  top: 0.491rem; left: 0.491rem;
   width: 1.355rem; height: 1.355rem;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.92);
   box-shadow: 0 0.062rem 0.246rem 0 rgba(0,0,0,0.12);
   border: none;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  color: #0e1b4d;
+  color: #121723;
   font-size: 0.5rem;
   font-weight: 700;
   cursor: pointer;
@@ -291,14 +335,14 @@
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 0.727rem;
-  color: #1a2a52;
+  color: #121723;
   text-align: center;
   margin: 0;
   white-space: nowrap;
 }
 .photoSub {
   font-size: 0.75rem;
-  color: #7a8ea8;
+  color: #6b7280;
   text-align: center;
   margin: 0 0 0.5rem;
   white-space: nowrap;
@@ -311,7 +355,7 @@
 
 /* Uploaded state */
 .photoCardFilled {
-  border-color: #3a6ad4;
+  border-color: #d7dbe5;
   padding: 0;
 }
 .uploadedPhoto {
@@ -320,12 +364,6 @@
   object-fit: cover;
   border-radius: 0.985rem;
   display: block;
-}
-
-/* Active continue button */
-.btnActive {
-  background: #0e1b4d !important;
-  cursor: pointer;
 }
 
 /* Continue button — fixed bottom, same as all other pages */
@@ -343,14 +381,20 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 3.5em;
-  background: #e0e7f3;
-  color: #ffffff;
+  height: 43px;
+  background: #eef0f5;
+  color: #aab0be;
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 0.875em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   border: none;
-  border-radius: 9999px;
+  border-radius: 100px;
+  cursor: pointer;
+}
+.btnActive {
+  background: #121723;
+  color: #ffffff;
   cursor: pointer;
 }

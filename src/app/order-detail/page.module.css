@@ -292,10 +292,10 @@
 }
 
 .retryBtn {
-  height: 44px;
+  height: 43px;
   padding: 0 2em;
   margin-top: 0.5em;
-  background: #0e1b4d;
+  background: #121723;
   color: #ffffff;
   font-family: var(--font-heading);
   font-weight: 700;
@@ -303,10 +303,10 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   border: none;
-  border-radius: 9999px;
+  border-radius: 100px;
   cursor: pointer;
 }
-.retryBtn:hover { background: #1a2a6b; }
+.retryBtn:hover { background: #26304a; }
 
 /* ── Shipping Label Row ── */
 .shippingRow {
@@ -338,9 +338,9 @@
 }
 
 .shippingBtn {
-  height: 36px;
+  height: 43px;
   padding: 0 1.25em;
-  background: #0e1b4d;
+  background: #121723;
   color: #fff;
   font-family: var(--font-heading);
   font-weight: 700;
@@ -348,9 +348,9 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   border: none;
-  border-radius: 9999px;
+  border-radius: 100px;
   cursor: pointer;
   flex-shrink: 0;
   white-space: nowrap;
 }
-.shippingBtn:hover { background: #1a2a6b; }
+.shippingBtn:hover { background: #26304a; }

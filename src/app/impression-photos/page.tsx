@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
+import { PRODUCTS } from "../context/productConfig";
 import { supabase } from "../../lib/supabase";
 
 const SLOTS = [
@@ -22,14 +22,29 @@ interface PhotoEntry {
 }
 
 export default function ImpressionPhotos() {
-  const { navigate } = usePageTransition();
+  const { navigate, back } = usePageTransition();
   const { data, update } = useSubmission();
   const [photos, setPhotos] = useState<Record<number, PhotoEntry>>({});
   const [uploading, setUploading] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
+  /* Restore previously-uploaded impression photos (e.g. the user uploaded here,
+     was routed off to finish intake/teeth photos, and looped back). */
+  useEffect(() => {
+    if (data.impressionPhotos?.length) {
+      const restored: Record<number, PhotoEntry> = {};
+      data.impressionPhotos.forEach((p) => {
+        restored[p.slot] = { preview: p.url, url: p.url, path: p.path };
+      });
+      setPhotos(restored); // eslint-disable-line react-hooks/set-state-in-effect -- one-time restore of persisted uploads on mount
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const uploadedCount = Object.keys(photos).length;
+  const totalPhotos = SLOTS.length;
+  const pct = Math.round((uploadedCount / totalPhotos) * 100);
 
   async function handleFileChange(id: number, file: File | undefined) {
     if (!file) return;
@@ -82,11 +97,35 @@ export default function ImpressionPhotos() {
       const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
       if (!id) throw new Error("No submission ID found");
 
+      // A submission is only "done" once ALL sections are complete: intake info,
+      // teeth (bite) photos, and these impression photos. Check what's still
+      // missing so we can guide the user there instead of finalizing early.
+      const { data: row, error: fetchErr } = await supabase
+        .from("submissions")
+        .select("name, state, products, white_shade, gum_shade, selected_teeth, teeth_not_sure, close_bite_photos, open_bite_photos")
+        .eq("id", id)
+        .single();
+      if (fetchErr) throw fetchErr;
+
+      const config = PRODUCTS.find(p => p.id === row?.products?.[0]);
+      const intakeComplete =
+        !!row?.name?.trim() &&
+        !!row?.state &&
+        (row?.products?.length ?? 0) > 0 &&
+        (!config?.needsShade || !!(row?.white_shade || row?.gum_shade)) &&
+        (!config?.needsTeethChart || (row?.selected_teeth?.length ?? 0) > 0 || row?.teeth_not_sure === true);
+      const teethPhotosComplete =
+        (row?.close_bite_photos?.length ?? 0) > 0 &&
+        (row?.open_bite_photos?.length ?? 0) > 0;
+      const allComplete = intakeComplete && teethPhotosComplete;
+
+      // Save the impression photos. Only mark "pending" (submitted for review)
+      // once everything is complete — otherwise keep it a draft.
       const { error } = await supabase
         .from("submissions")
         .update({
           impression_photos: photoUrls,
-          status: "pending",
+          ...(allComplete ? { status: "pending" } : {}),
         })
         .eq("id", id);
 
@@ -95,7 +134,16 @@ export default function ImpressionPhotos() {
       update({
         impressionPhotos: SLOTS.map(s => photos[s.id]).filter(Boolean).map((p, i) => ({ slot: i + 1, url: p.url, path: p.path })),
       });
-      navigate("/complete", "forward");
+
+      // Smart resume: send the user to whatever's still missing; finalize only
+      // when the whole submission is complete.
+      if (!intakeComplete) {
+        navigate("/intake", "forward");
+      } else if (!teethPhotosComplete) {
+        navigate("/photo-intro", "forward");
+      } else {
+        navigate("/complete", "forward");
+      }
     } catch (err) {
       console.error("Submission failed:", err);
       alert("Submission failed. Please try again.");
@@ -107,32 +155,33 @@ export default function ImpressionPhotos() {
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
-      <div className={styles.outerBg} aria-hidden="true">
-        <Image src="/assets/images/intake-bg.png" alt="" fill style={{ objectFit: "cover" }} priority sizes="430px" />
-      </div>
-      <div className={styles.cardBg} aria-hidden="true">
-        <Image src="/assets/images/intake-card-bg.png" alt="" fill style={{ objectFit: "cover", objectPosition: "center top" }} priority sizes="430px" />
-      </div>
-
-      {/* Progress bar — active segment fills as photos are uploaded */}
-      <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Impression photos" role="progressbar">
-        <rect x="0"   width="23"  height="5" rx="2.5" fill="#0E184D"/>
-        <rect x="31"  width="23"  height="5" rx="2.5" fill="#0E184D"/>
-        <rect x="62"  width="23"  height="5" rx="2.5" fill="#0E184D"/>
-        <rect x="93"  width="302" height="5" rx="2.5" fill="white"/>
-        <rect x="93"  width={80 + (222 * uploadedCount / 4)} height="5" rx="2.5" fill="#0E184D"/>
-      </svg>
-
-      {/* Nav bar */}
-      <nav className={styles.navBar}>
-        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/instructions-4', 'backward')}>
-          <Image src="/assets/images/imp-icon-back.svg" alt="" width={20} height={20} unoptimized />
-        </button>
-        <span className={styles.navTitle}>Impression Photos</span>
-        <Link href="/" className={styles.navBtn} aria-label="Close">
-          <Image src="/assets/images/imp-icon-close.svg" alt="" width={20} height={20} unoptimized />
-        </Link>
-      </nav>
+      {/* Progress header — label + %, gradient bar, back + step counter */}
+      <header className={styles.progressHeader}>
+        <div className={styles.progressTop}>
+          <span className={styles.progressLabel}>Impression Photos</span>
+          <div className={styles.progressTopRight}>
+            <span className={styles.progressPct}>{pct}%</span>
+            <button className={styles.closeBtn} aria-label="Close" onClick={() => navigate('/dashboard', 'backward')}>
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M15 5L5 15" stroke="currentColor" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5 5L15 15" stroke="currentColor" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className={styles.progressTrack} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Impression photos progress">
+          <div className={styles.progressFill} style={{ width: `${pct}%` }} />
+        </div>
+        <div className={styles.progressBottom}>
+          <button className={styles.backBtn} aria-label="Go back" onClick={() => back('/dashboard')}>
+            <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Back
+          </button>
+          <span className={styles.stepCount}>{uploadedCount} of {totalPhotos} photos</span>
+        </div>
+      </header>
 
       {/* White card */}
       <div className={styles.card} id="main-content">
@@ -173,16 +222,6 @@ export default function ImpressionPhotos() {
             <strong>Good lighting matters.</strong>{" "}
             <span>Place your mold on a white surface and ensure the arch shape is clearly visible before snapping.</span>
           </p>
-        </div>
-
-        {/* Upload progress */}
-        <div className={styles.progressRow}>
-          <p className={styles.progressText}><strong>{uploadedCount}</strong> of 4 photos added</p>
-          <div className={styles.dots}>
-            {SLOTS.map(s => (
-              <span key={s.id} className={`${styles.dot} ${photos[s.id] ? styles.dotActive : ""}`} />
-            ))}
-          </div>
         </div>
 
         {/* Upper Arch */}

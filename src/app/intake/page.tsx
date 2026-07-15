@@ -1,11 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useState, useRef } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
+import { IntakeHeader } from "../components/IntakeHeader";
 
 export default function Intake() {
   const { data, update, patchSubmission } = useSubmission();
@@ -18,35 +17,13 @@ export default function Intake() {
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
-      {/* Outer texture background */}
-      <div className={styles.outerBg} aria-hidden="true">
-        <Image src="/assets/images/intake-bg.png" alt="" fill style={{ objectFit: "cover" }} priority sizes="430px" />
-      </div>
-
-      {/* Card gradient background */}
-      <div className={styles.cardBg} aria-hidden="true">
-        <Image src="/assets/images/intake-card-bg.png" alt="" fill style={{ objectFit: "cover", objectPosition: "center top" }} priority sizes="430px" />
-      </div>
-
-      {/* Progress bar */}
-      <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Step 1 of 5" role="progressbar" aria-valuenow={1} aria-valuemin={1} aria-valuemax={5}>
-        <rect x="4" width="298" height="5" rx="2.5" fill="white"/>
-        <rect width="60" height="5" rx="2.5" fill="#0E1B4D"/>
-        <rect x="341" width="23" height="5" rx="2.5" fill="white"/>
-        <rect x="310" width="23" height="5" rx="2.5" fill="white"/>
-        <rect x="372" width="23" height="5" rx="2.5" fill="white"/>
-      </svg>
-
-      {/* Nav bar */}
-      <nav className={styles.navBar} aria-label="Form navigation">
-        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/welcome', 'backward')}>
-          <Image src="/assets/images/intake-icon-back.svg" alt="" width={20} height={20} />
-        </button>
-        <span className={styles.navTitle}>Your Name</span>
-        <Link href="/" className={styles.navBtn} aria-label="Close form">
-          <Image src="/assets/images/intake-icon-close.svg" alt="" width={20} height={20} />
-        </Link>
-      </nav>
+      <IntakeHeader
+        label="Your Details"
+        pct={20}
+        counter="Step 1 of 5"
+        onBack={() => navigate('/dashboard', 'backward')}
+        onClose={() => navigate('/dashboard', 'backward')}
+      />
 
       {/* White card */}
       <div className={styles.card} id="main-content" ref={cardRef}>

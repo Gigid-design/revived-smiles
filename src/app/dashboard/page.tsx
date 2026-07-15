@@ -2,14 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import { getSupabase } from "@/lib/supabase";
 import { BottomNav } from "@/app/components/BottomNav";
 import { ChatPanel } from "@/app/components/ChatPanel";
-import { ShippingLabelModal } from "@/app/components/ShippingLabelModal";
+import { ImpressionStepsModal } from "@/app/components/ImpressionStepsModal";
 import { useChat } from "@/app/hooks/useChat";
-import { PRODUCTS } from "@/app/context/productConfig";
 
 /* ── Types ── */
 interface SubmissionData {
@@ -30,150 +30,88 @@ interface SubmissionData {
   impression_photos: string[];
 }
 
-type DashboardTab = "actions" | "messages" | "order";
+/* Placeholder total until Nate confirms the per-product step count (to-do #10).
+   The design shows "4 / 8"; step mapping will be wired to the product flag later. */
+const INTAKE_TOTAL_STEPS = 8;
 
-/* ── Helpers ── */
-function formatProductLabel(products: string[]): string {
-  if (!products?.length) return "Dental product";
-  return products
-    .map((slug) => {
-      const found = PRODUCTS.find((p) => p.id === slug);
-      return found ? found.label : slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    })
-    .join(", ");
+/* Rough completed-step count for the "Continue My Intake" progress. */
+function intakeDone(sub: SubmissionData): number {
+  let done = 1; // intake started
+  if (sub.state) done++;
+  if (sub.products?.length) done++;
+  if (sub.white_shade || sub.gum_shade) done++;
+  if (sub.close_bite_photos?.length) done++;
+  if (sub.open_bite_photos?.length) done++;
+  if (sub.impression_photos?.length) done += 2;
+  return Math.min(done, INTAKE_TOTAL_STEPS);
 }
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+/* Routes for the "Start Here" actions. */
+const ROUTE_VIDEO = "/impression-photos";  // impression how-to (examples + tips live here)
+const ROUTE_UPLOAD = "/impression-photos";  // impression photo upload page
+const ROUTE_INTAKE = "/intake";            // resume intake form
+const REORDER_URL = "https://revivedsmiles.com";
 
-/* ── Status Configuration ── */
-const STATUS_CONFIG: Record<string, {
-  title: string;
-  message: string;
-  icon: string;
-  cta: string | null;
-  ctaAction: "shipping" | "update-photos" | "track" | "contact" | null;
-  color: string;
-  progressStep: number;
-}> = {
-  pending: {
-    title: "Ship your impression kit",
-    message: "Print your shipping label and send your impression kit to our lab for processing.",
-    icon: "📦",
-    cta: "GET SHIPPING LABEL",
-    ctaAction: "shipping",
-    color: "#f59e0b",
-    progressStep: 3,
-  },
-  in_review: {
-    title: "Under review",
-    message: "Our team is carefully reviewing your submission. We'll be in touch shortly.",
-    icon: "🔍",
-    cta: null,
-    ctaAction: null,
-    color: "#3b82f6",
-    progressStep: 4,
-  },
-  approved: {
-    title: "Approved!",
-    message: "Great news — your submission has been approved. We're preparing your order.",
-    icon: "✅",
-    cta: null,
-    ctaAction: null,
-    color: "#22c55e",
-    progressStep: 4,
-  },
-  changes_requested: {
-    title: "Updates needed",
-    message: "Our team needs a few updates. Please review the notes and resubmit.",
-    icon: "📝",
-    cta: "UPDATE PHOTOS",
-    ctaAction: "update-photos",
-    color: "#f97316",
-    progressStep: 3,
-  },
-  rejected: {
-    title: "Not accepted",
-    message: "Unfortunately we're unable to process this submission at this time.",
-    icon: "❌",
-    cta: "CONTACT SUPPORT",
-    ctaAction: "contact",
-    color: "#ef4444",
-    progressStep: 3,
-  },
-  in_fabrication: {
-    title: "Being crafted",
-    message: "Your custom dental product is being fabricated by our lab technicians.",
-    icon: "🏭",
-    cta: null,
-    ctaAction: null,
-    color: "#6366f1",
-    progressStep: 5,
-  },
-  shipped: {
-    title: "On its way!",
-    message: "Your order has been shipped and is on its way to you.",
-    icon: "🚚",
-    cta: "TRACK ORDER",
-    ctaAction: "track",
-    color: "#0891b2",
-    progressStep: 6,
-  },
-  completed: {
-    title: "Delivered",
-    message: "Your order has been delivered. We hope you love your new smile!",
-    icon: "🎉",
-    cta: null,
-    ctaAction: null,
-    color: "#16a34a",
-    progressStep: 6,
-  },
+/* Mock data for `?demo=1` design-preview mode. */
+const DEMO_SUBMISSION: SubmissionData = {
+  id: "demo-1",
+  name: "Angela Carter",
+  email: "angela@example.com",
+  state: "California",
+  products: ["acrylic-partial"],
+  white_shade: "A2",
+  gum_shade: null,
+  status: "draft",
+  review_notes: null,
+  reviewed_at: null,
+  created_at: new Date().toISOString(),
+  tracking_number: null,
+  close_bite_photos: [],
+  open_bite_photos: [],
+  impression_photos: [],
 };
 
-const PROGRESS_STEPS = [
-  { label: "Ordered", idx: 1 },
-  { label: "Intake", idx: 2 },
-  { label: "Ship Kit", idx: 3 },
-  { label: "Review", idx: 4 },
-  { label: "Fabrication", idx: 5 },
-  { label: "Delivered", idx: 6 },
-];
-
-const CLOSE_BITE_LABELS = ["Close bite — Front", "Close bite — Left", "Close bite — Right"];
-const OPEN_BITE_LABELS = ["Open bite — Front", "Open bite — Left"];
-const IMPRESSION_LABELS = ["Upper impression", "Lower impression", "Bite registration (front)", "Bite registration (side)"];
-
 /* ══════════════════════════════════════
-   Dashboard Page
+   Landing (dashboard) — "Start Here" design
    ══════════════════════════════════════ */
-export default function Dashboard() {
+function Landing() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [submission, setSubmission] = useState<SubmissionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<DashboardTab>("actions");
-  const [labelModalOpen, setLabelModalOpen] = useState(false);
-  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
-  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [stepsOpen, setStepsOpen] = useState(false);
 
   const patientName = submission?.name?.trim().split(" ")[0] || "there";
-  const fullName = submission?.name?.trim() || "—";
 
-  /* Chat hook */
+  /* Chat hook (unread count powers the bottom-nav Messages badge). */
   const { unreadCount: chatUnread } = useChat(
     submission?.id ?? null,
     "patient",
     submission?.name || "Patient"
   );
 
-  /* ── Fetch submission ── */
+  /* Open the chat drawer when arriving via the bottom-nav Messages item (?chat=1). */
+  useEffect(() => {
+    setChatOpen(searchParams.get("chat") === "1");
+  }, [searchParams]);
+
+  const closeChat = useCallback(() => {
+    setChatOpen(false);
+    if (searchParams.get("chat") === "1") router.replace("/dashboard");
+  }, [router, searchParams]);
+
+  /* ── Fetch submission (latest of any status, incl. draft) ── */
   useEffect(() => {
     async function fetchSubmission() {
+      // Design-preview mode: `?demo=1` renders with mock data (no backend needed).
+      if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "1") {
+        setSubmission(DEMO_SUBMISSION);
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const supabase = getSupabase();
@@ -186,7 +124,6 @@ export default function Dashboard() {
           .from("submissions")
           .select(cols)
           .eq("user_id", user.id)
-          .neq("status", "draft")
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -196,28 +133,16 @@ export default function Dashboard() {
             .from("submissions")
             .select(cols)
             .eq("email", user.email)
-            .neq("status", "draft")
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle();
           data = fallback.data;
         }
 
-        if (data) {
-          setSubmission(data as SubmissionData);
-        }
-
-        try {
-          const { count } = await supabase
-            .from("notifications")
-            .select("*", { count: "exact", head: true })
-            .eq("email", user.email)
-            .eq("read", false);
-          setUnreadNotifCount(count || 0);
-        } catch { /* table may not exist */ }
+        if (data) setSubmission(data as SubmissionData);
       } catch (err) {
         console.error("Failed to fetch submission:", err);
-        setError("Unable to load your submission. Please try again.");
+        setError("Unable to load your details. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -225,39 +150,7 @@ export default function Dashboard() {
     fetchSubmission();
   }, []);
 
-  const closeLightbox = useCallback(() => setLightboxSrc(null), []);
-
-  /* ── Derived state ── */
-  const status = submission?.status || "pending";
-  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
-  const productLabel = submission?.products?.length
-    ? formatProductLabel(submission.products)
-    : "Dental product";
-
-  /* ── CTA handler ── */
-  function handleCTA() {
-    switch (cfg.ctaAction) {
-      case "shipping":
-        setLabelModalOpen(true);
-        break;
-      case "update-photos":
-        window.location.href = "/camera";
-        break;
-      case "track":
-        if (submission?.tracking_number) {
-          window.open(`https://tools.usps.com/go/TrackConfirmAction?tLabels=${submission.tracking_number}`, "_blank");
-        }
-        break;
-      case "contact":
-        window.location.href = "mailto:support@revivedsmiles.com";
-        break;
-    }
-  }
-
-  /* ── Photo arrays ── */
-  const closeBitePhotos = submission?.close_bite_photos || [];
-  const openBitePhotos = submission?.open_bite_photos || [];
-  const impressionPhotos = submission?.impression_photos || [];
+  const done = submission ? intakeDone(submission) : 0;
 
   return (
     <main className={styles.screen}>
@@ -271,318 +164,158 @@ export default function Dashboard() {
             alt="Revived Smiles"
             width={120}
             height={40}
+            priority
             style={{ objectFit: "contain", objectPosition: "left center" }}
             sizes="120px"
           />
-          <Link href="/notifications" className={styles.notifBtn} aria-label="Notifications">
-            <div className={styles.notifWrap}>
-              <Image src="/assets/images/icon-notification-btn.svg" alt="" width={42} height={42} unoptimized />
-              {unreadNotifCount > 0 && (
-                <span className={styles.notifBadge}>{unreadNotifCount > 9 ? "9+" : unreadNotifCount}</span>
-              )}
-            </div>
+          <Link href="/profile" className={styles.profileBtn} aria-label="Your profile">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="#121723" aria-hidden>
+              <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2.2c-4.4 0-8 2.6-8 5.8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.2-3.6-5.8-8-5.8z" />
+            </svg>
           </Link>
         </div>
 
-        {/* ── Greeting + product ── */}
+        {/* ── Greeting ── */}
         <h1 className={styles.greeting}>Welcome back,<br />{patientName}</h1>
 
-        {/* Loading skeleton */}
         {loading && (
-          <div className={styles.card}>
-            <div className={styles.skeleton}>
-              <div className={styles.skeletonLine} style={{ width: "60%" }} />
-              <div className={styles.skeletonLine} style={{ width: "40%", marginTop: 12 }} />
-              <div className={styles.skeletonBlock} />
-            </div>
-          </div>
+          <div className={styles.card}><div className={styles.skeleton}>
+            <div className={styles.skeletonLine} style={{ width: "60%" }} />
+            <div className={styles.skeletonBlock} />
+          </div></div>
         )}
 
-        {/* Error */}
         {!loading && error && (
-          <div className={styles.card}>
-            <div className={styles.emptyState}>
-              <p className={styles.emptyTitle}>Something went wrong</p>
-              <p className={styles.emptyMsg}>{error}</p>
-              <button className={styles.retryBtn} onClick={() => window.location.reload()}>TRY AGAIN</button>
-            </div>
-          </div>
+          <div className={styles.card}><div className={styles.emptyState}>
+            <p className={styles.emptyTitle}>Something went wrong</p>
+            <p className={styles.emptyMsg}>{error}</p>
+            <button className={styles.retryBtn} onClick={() => window.location.reload()}>TRY AGAIN</button>
+          </div></div>
         )}
 
-        {/* Empty */}
-        {!loading && !error && !submission && (
-          <div className={styles.card}>
-            <div className={styles.emptyState}>
-              <p className={styles.emptyTitle}>No submission found</p>
-              <p className={styles.emptyMsg}>Start your intake to get started with your custom dental solution.</p>
-              <Link href="/intake" className={styles.primaryBtn}>START INTAKE</Link>
-            </div>
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════
-           Main Dashboard Content (when submission exists)
-           ══════════════════════════════════════ */}
-        {!loading && !error && submission && (
+        {!loading && !error && (
           <>
-            {/* ── Product + Status pill ── */}
-            <div className={styles.productRow}>
-              <span className={styles.productLabel}>{productLabel}</span>
-              <span className={styles.statusPill} style={{ background: cfg.color }}>
-                {cfg.title}
-              </span>
-            </div>
+            {/* ══ Start Here ══ */}
+            <section className={styles.startCard}>
+              <h2 className={styles.startLabel}>Start Here</h2>
 
-            {/* ── Tab Bar ── */}
-            <div className={styles.tabBar}>
-              <button
-                type="button"
-                className={`${styles.tab} ${activeTab === "actions" ? styles.tabActive : ""}`}
-                onClick={() => setActiveTab("actions")}
-              >
-                Action Items
-              </button>
-              <button
-                type="button"
-                className={`${styles.tab} ${activeTab === "messages" ? styles.tabActive : ""}`}
-                onClick={() => setActiveTab("messages")}
-              >
-                Messages
-                {chatUnread > 0 && (
-                  <span className={styles.tabBadge}>{chatUnread}</span>
-                )}
-              </button>
-              <button
-                type="button"
-                className={`${styles.tab} ${activeTab === "order" ? styles.tabActive : ""}`}
-                onClick={() => setActiveTab("order")}
-              >
-                My Order
-              </button>
-            </div>
+              {/* Video (clickable → impression how-to) */}
+              <Link href={ROUTE_VIDEO} className={styles.video} aria-label="Watch: How to take your impression">
+                <Image
+                  src="/assets/images/impression-video-thumb.png"
+                  alt=""
+                  fill
+                  priority
+                  sizes="358px"
+                  style={{ objectFit: "cover", objectPosition: "50% 32%" }}
+                />
+                <span className={styles.videoScrim} />
+                <span className={styles.playBtn}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff" aria-hidden style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))" }}>
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </span>
+                <span className={styles.videoCaption}>How to take your impression</span>
+              </Link>
 
-            {/* ── Tab Content ── */}
-            <div className={styles.tabContent}>
+              {/* Watch / Read segmented toggle */}
+              <div className={styles.toggle}>
+                <Link href={ROUTE_VIDEO} className={`${styles.toggleBtn} ${styles.toggleActive}`}>
+                  Watch the video
+                </Link>
+                <button type="button" onClick={() => setStepsOpen(true)} className={styles.toggleBtn}>
+                  Read steps
+                </button>
+              </div>
 
-              {/* ════ ACTION ITEMS TAB ════ */}
-              {activeTab === "actions" && (
-                <div className={styles.actionsTab}>
-                  {/* CTA Card */}
-                  <div className={styles.ctaCard}>
-                    <div className={styles.ctaIcon}>{cfg.icon}</div>
-                    <div className={styles.ctaBody}>
-                      <h2 className={styles.ctaTitle}>{cfg.title}</h2>
-                      <p className={styles.ctaDesc}>{cfg.message}</p>
-                      {cfg.cta && (
-                        <button className={styles.ctaBtn} onClick={handleCTA}>
-                          {cfg.cta}
-                        </button>
-                      )}
-                    </div>
-                  </div>
+              {/* Primary action */}
+              <Link href={ROUTE_UPLOAD} className={styles.primaryBtn}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
+                  <path d="M12 3l5.5 5.5-1.42 1.42L13 6.83V16h-2V6.83L7.92 9.92 6.5 8.5 12 3zM5 19h14v2H5v-2z" />
+                </svg>
+                Upload my impression photos
+              </Link>
+            </section>
 
-                  {/* Review notes */}
-                  {submission.review_notes && (
-                    <div className={styles.reviewBanner}>
-                      <strong>Review Notes</strong>
-                      <span>{submission.review_notes}</span>
-                    </div>
-                  )}
+            {/* ══ Continue My Intake ══ */}
+            <Link href={ROUTE_INTAKE} className={styles.intakeCard} aria-label={`Continue your intake, ${done} of ${INTAKE_TOTAL_STEPS} steps done`}>
+              <div className={styles.intakeHead}>
+                <h2 className={styles.cardTitle}>Continue My Intake</h2>
+                <svg className={styles.chevron} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c0c4ce" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
+              <span className={styles.intakeCount}>{done}/{INTAKE_TOTAL_STEPS}</span>
+              <div className={styles.progressTrack}>
+                <div className={styles.progressFill} style={{ width: `${(done / INTAKE_TOTAL_STEPS) * 100}%` }} />
+              </div>
+            </Link>
 
-                  {/* Tracking number */}
-                  {submission.tracking_number && (status === "shipped" || status === "completed") && (
-                    <div className={styles.trackingBanner}>
-                      <span className={styles.trackingLabel}>Tracking #</span>
-                      <span className={styles.trackingNumber}>{submission.tracking_number}</span>
-                    </div>
-                  )}
-
-                  {/* Progress Tracker */}
-                  <div className={styles.progressTracker}>
-                    <h3 className={styles.progressHeading}>Progress</h3>
-                    <div className={styles.progressSteps}>
-                      {PROGRESS_STEPS.map((step) => {
-                        const isDone = step.idx < cfg.progressStep;
-                        const isCurrent = step.idx === cfg.progressStep;
-                        return (
-                          <div key={step.label} className={styles.progressStep}>
-                            <div className={`${styles.progressDot} ${
-                              isDone ? styles.progressDotDone :
-                              isCurrent ? styles.progressDotCurrent :
-                              styles.progressDotPending
-                            }`}>
-                              {isDone ? (
-                                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                                  <path d="M3 8.5l3.5 3.5L13 4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              ) : (
-                                <span className={styles.progressDotInner} />
-                              )}
-                            </div>
-                            {step.idx < PROGRESS_STEPS.length && (
-                              <div className={`${styles.progressLine} ${isDone ? styles.progressLineDone : ""}`} />
-                            )}
-                            <span className={`${styles.progressLabel} ${
-                              isDone ? styles.progressLabelDone :
-                              isCurrent ? styles.progressLabelCurrent :
-                              ""
-                            }`}>
-                              {step.label}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+            {/* ══ My Subscriptions ══ */}
+            <section className={styles.subCard}>
+              <h2 className={styles.cardTitle}>My Subscriptions</h2>
+              <div className={styles.subRow}>
+                <div className={styles.subThumb}>
+                  <Image src="/assets/images/subscription-product.png" alt="" width={40} height={48} style={{ objectFit: "contain" }} sizes="40px" />
                 </div>
-              )}
-
-              {/* ════ MESSAGES TAB ════ */}
-              {activeTab === "messages" && (
-                <div className={styles.messagesTab}>
-                  <ChatPanel
-                    submissionId={submission.id}
-                    currentRole="patient"
-                    currentName={submission.name || "Patient"}
-                  />
+                <div className={styles.subInfo}>
+                  <p className={styles.subName}>Whitening Gel Refill</p>
+                  <p className={styles.subDesc}>Receive professional whitening gel delivered automatically.</p>
                 </div>
-              )}
-
-              {/* ════ MY ORDER TAB ════ */}
-              {activeTab === "order" && (
-                <div className={styles.orderTab}>
-                  {/* About You */}
-                  <div className={styles.orderSection}>
-                    <h3 className={styles.orderSectionTitle}>About you</h3>
-                    <div className={styles.infoRow}>
-                      <span className={styles.infoLabel}>Name</span>
-                      <span className={styles.infoValue}>{fullName}</span>
-                    </div>
-                    <div className={styles.infoRow}>
-                      <span className={styles.infoLabel}>State</span>
-                      <span className={styles.infoValue}>{submission.state || "—"}</span>
-                    </div>
-                    <div className={styles.infoRow}>
-                      <span className={styles.infoLabel}>Product</span>
-                      <span className={styles.infoValue}>{productLabel}</span>
-                    </div>
-                    {submission.white_shade && (
-                      <div className={styles.infoRow}>
-                        <span className={styles.infoLabel}>Tooth Shade</span>
-                        <span className={styles.infoValue}>{submission.white_shade}</span>
-                      </div>
-                    )}
-                    {submission.gum_shade && (
-                      <div className={styles.infoRow}>
-                        <span className={styles.infoLabel}>Gum Shade</span>
-                        <span className={styles.infoValue}>{submission.gum_shade}</span>
-                      </div>
-                    )}
-                    <div className={styles.infoRow}>
-                      <span className={styles.infoLabel}>Submitted</span>
-                      <span className={styles.infoValue}>{formatDate(submission.created_at)}</span>
-                    </div>
-                  </div>
-
-                  {/* Close bite photos */}
-                  {closeBitePhotos.length > 0 && (
-                    <div className={styles.orderSection}>
-                      <h3 className={styles.orderSectionTitle}>Close bite photos</h3>
-                      <div className={styles.photoGrid}>
-                        {closeBitePhotos.map((url, i) => (
-                          <button
-                            key={url}
-                            className={styles.photoThumb}
-                            onClick={() => setLightboxSrc(url)}
-                            aria-label={CLOSE_BITE_LABELS[i] || `Close bite ${i + 1}`}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={url} alt={CLOSE_BITE_LABELS[i] || `Close bite ${i + 1}`} />
-                            <span className={styles.photoLabel}>{CLOSE_BITE_LABELS[i] || `Photo ${i + 1}`}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Open bite photos */}
-                  {openBitePhotos.length > 0 && (
-                    <div className={styles.orderSection}>
-                      <h3 className={styles.orderSectionTitle}>Open bite photos</h3>
-                      <div className={styles.photoGrid}>
-                        {openBitePhotos.map((url, i) => (
-                          <button
-                            key={url}
-                            className={styles.photoThumb}
-                            onClick={() => setLightboxSrc(url)}
-                            aria-label={OPEN_BITE_LABELS[i] || `Open bite ${i + 1}`}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={url} alt={OPEN_BITE_LABELS[i] || `Open bite ${i + 1}`} />
-                            <span className={styles.photoLabel}>{OPEN_BITE_LABELS[i] || `Photo ${i + 1}`}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Impression photos */}
-                  {impressionPhotos.length > 0 && (
-                    <div className={styles.orderSection}>
-                      <h3 className={styles.orderSectionTitle}>Impression kit photos</h3>
-                      <div className={styles.photoGrid}>
-                        {impressionPhotos.map((url, i) => (
-                          <button
-                            key={url}
-                            className={styles.photoThumb}
-                            onClick={() => setLightboxSrc(url)}
-                            aria-label={IMPRESSION_LABELS[i] || `Impression ${i + 1}`}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={url} alt={IMPRESSION_LABELS[i] || `Impression ${i + 1}`} />
-                            <span className={styles.photoLabel}>{IMPRESSION_LABELS[i] || `Photo ${i + 1}`}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+              </div>
+              <div className={styles.subActions}>
+                <a href={REORDER_URL} target="_blank" rel="noopener noreferrer" className={styles.reorderBtn}>Reorder</a>
+                <Link href="/profile" className={styles.manageBtn}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#121723" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                  </svg>
+                  Manage
+                </Link>
+              </div>
+            </section>
           </>
         )}
       </div>
 
-      {/* Shipping label modal */}
-      {submission && (
-        <ShippingLabelModal
-          open={labelModalOpen}
-          onClose={() => setLabelModalOpen(false)}
-          submissionId={submission.id}
-          patientName={submission.name}
-        />
-      )}
-
-      {/* Lightbox overlay */}
-      {lightboxSrc && (
-        <div className={styles.lightbox} onClick={closeLightbox} role="dialog" aria-label="Photo viewer">
-          <button className={styles.lightboxClose} onClick={closeLightbox} aria-label="Close photo viewer">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightboxSrc}
-            alt="Full size photo"
-            className={styles.lightboxImg}
-            onClick={(e) => e.stopPropagation()}
-          />
+      {/* ── Chat drawer (Messages) ── */}
+      {chatOpen && (
+        <div className={styles.chatOverlay} onClick={closeChat}>
+          <div className={styles.chatDrawer} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.chatHeader}>
+              <div className={styles.chatHeaderLeft}>
+                <div className={styles.chatAvatar}>
+                  <Image src="/assets/images/concierge-avatar.png" alt="" width={36} height={36} style={{ objectFit: "cover" }} sizes="36px" />
+                </div>
+                <div>
+                  <p className={styles.chatTitle}>Your Care Team</p>
+                  <p className={styles.chatSubtitle}>We typically reply within a few hours</p>
+                </div>
+              </div>
+              <button className={styles.chatClose} onClick={closeChat} aria-label="Close messages">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div className={styles.chatBody}>
+              <ChatPanel submissionId={submission?.id ?? null} currentRole="patient" currentName={submission?.name || "Patient"} />
+            </div>
+          </div>
         </div>
       )}
 
-      <BottomNav />
+      <ImpressionStepsModal open={stepsOpen} onClose={() => setStepsOpen(false)} />
+
+      <BottomNav messagesBadge={chatUnread} />
     </main>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<main className={styles.screen} />}>
+      <Landing />
+    </Suspense>
   );
 }
