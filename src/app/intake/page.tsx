@@ -18,9 +18,10 @@ export default function Intake() {
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
       <IntakeHeader
+        label="Your Details"
         pct={20}
         counter="Step 1 of 5"
-        onBack={() => navigate('/welcome', 'backward')}
+        onBack={() => navigate('/dashboard', 'backward')}
         onClose={() => navigate('/', 'backward')}
       />
 

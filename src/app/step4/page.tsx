@@ -36,6 +36,7 @@ export default function Step4() {
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
       <IntakeHeader
+        label="Your Details"
         pct={80}
         counter="Step 4 of 5"
         onBack={() => navigate('/step3', 'backward')}

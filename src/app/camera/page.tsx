@@ -189,6 +189,7 @@ export default function Camera() {
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
       <IntakeHeader
+        label="Teeth Photos"
         pct={25}
         counter="Photo 1 of 4"
         onBack={() => navigate('/photo-intro', 'backward')}
@@ -199,10 +200,10 @@ export default function Camera() {
       <div className={styles.timeline}>
         <PhotoTimeline
           steps={[
-            { label: "Front" },
-            { label: "Side" },
+            { label: "Front closed" },
             { label: "Open" },
-            { label: "Open side" },
+            { label: "Left side" },
+            { label: "Right side" },
           ]}
           currentStep={0}
         />
@@ -213,9 +214,9 @@ export default function Camera() {
 
         <div className={styles.cardHeader}>
           <div className={styles.cardHeaderText}>
-            <h1 className={styles.cardTitle}>Front view — teeth together</h1>
+            <h1 className={styles.cardTitle}>Front — teeth closed</h1>
             <p className={styles.cardSubtitle}>
-              {state === "idle" && "Show your teeth! Pull your lips back so we can see both upper and lower rows."}
+              {state === "idle" && "Bite down and smile so we can see your front teeth closed together."}
               {state === "analyzing" && "AI is scanning your photo…"}
               {state === "pass" && "All checks passed! Ready to submit."}
               {state === "warning" && "Some issues found — you can still continue or retake."}

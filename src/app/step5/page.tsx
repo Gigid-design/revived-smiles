@@ -219,6 +219,7 @@ export default function Step5() {
         const pct = Math.min(100, Math.round((current / total) * 100));
         return (
           <IntakeHeader
+            label="Your Details"
             pct={pct}
             counter={`Step ${current} of ${total}`}
             onBack={() => navigate(getBackForTeethChart(productId), 'backward')}

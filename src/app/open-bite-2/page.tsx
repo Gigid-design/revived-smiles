@@ -178,6 +178,7 @@ export default function OpenBite2() {
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
       <IntakeHeader
+        label="Teeth Photos"
         pct={100}
         counter="Photo 4 of 4"
         onBack={() => navigate('/open-bite', 'backward')}
@@ -188,10 +189,10 @@ export default function OpenBite2() {
       <div className={styles.timeline}>
         <PhotoTimeline
           steps={[
-            { label: "Front" },
-            { label: "Side" },
+            { label: "Front closed" },
             { label: "Open" },
-            { label: "Open side" },
+            { label: "Left side" },
+            { label: "Right side" },
           ]}
           currentStep={3}
         />
@@ -202,9 +203,9 @@ export default function OpenBite2() {
 
         <div className={styles.cardHeader}>
           <div className={styles.cardHeaderText}>
-            <h1 className={styles.cardTitle}>Side view — mouth<br />open</h1>
+            <h1 className={styles.cardTitle}>Right side</h1>
             <p className={styles.cardSubtitle}>
-              {state === "idle" && "Keep your mouth open wide. Turn your head to show one side."}
+              {state === "idle" && "Turn your head to show the right side of your teeth."}
               {state === "analyzing" && "AI is scanning your photo…"}
               {state === "pass" && "All checks passed! Ready to submit."}
               {state === "warning" && "Some issues found — you can still continue or retake."}

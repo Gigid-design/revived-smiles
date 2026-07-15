@@ -21,7 +21,7 @@ interface PhotoEntry {
 }
 
 export default function ImpressionPhotos() {
-  const { navigate } = usePageTransition();
+  const { navigate, back } = usePageTransition();
   const { data, update } = useSubmission();
   const [photos, setPhotos] = useState<Record<number, PhotoEntry>>({});
   const [uploading, setUploading] = useState<number | null>(null);
@@ -111,7 +111,7 @@ export default function ImpressionPhotos() {
       {/* Progress header — label + %, gradient bar, back + step counter */}
       <header className={styles.progressHeader}>
         <div className={styles.progressTop}>
-          <span className={styles.progressLabel}>Revived Smiles</span>
+          <span className={styles.progressLabel}>Impression Photos</span>
           <div className={styles.progressTopRight}>
             <span className={styles.progressPct}>{pct}%</span>
             <button className={styles.closeBtn} aria-label="Close" onClick={() => navigate('/', 'backward')}>
@@ -126,7 +126,7 @@ export default function ImpressionPhotos() {
           <div className={styles.progressFill} style={{ width: `${pct}%` }} />
         </div>
         <div className={styles.progressBottom}>
-          <button className={styles.backBtn} aria-label="Go back" onClick={() => navigate('/open-bite-2', 'backward')}>
+          <button className={styles.backBtn} aria-label="Go back" onClick={() => back('/dashboard')}>
             <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
             </svg>

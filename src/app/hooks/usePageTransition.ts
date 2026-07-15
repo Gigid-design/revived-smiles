@@ -33,5 +33,19 @@ export function usePageTransition(animation: AnimationType = "fade") {
     router.push(url);
   });
 
-  return { cardRef, navigate };
+  /**
+   * Go back to whichever screen the user actually came from (browser history).
+   * Falls back to `fallback` when there's no in-app history to return to
+   * (e.g. the screen was opened via a direct/deep link).
+   */
+  const back = (fallback = "/dashboard") => {
+    sessionStorage.setItem("transitionDirection", "backward");
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(fallback);
+    }
+  };
+
+  return { cardRef, navigate, back };
 }

@@ -6,16 +6,17 @@ import { usePageTransition } from "../hooks/usePageTransition";
 import { IntakeHeader } from "../components/IntakeHeader";
 
 export default function PhotoIntro() {
-  const { navigate } = usePageTransition();
+  const { navigate, back } = usePageTransition();
 
   return (
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
       <IntakeHeader
+        label="Teeth Photos"
         pct={0}
         counter="4 photos"
-        onBack={() => navigate('/step5', 'backward')}
+        onBack={() => back('/dashboard')}
         onClose={() => navigate('/', 'backward')}
       />
 
