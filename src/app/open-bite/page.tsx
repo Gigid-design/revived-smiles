@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRef, useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import PhotoTimeline from "../components/PhotoTimeline";
+import { IntakeHeader } from "../components/IntakeHeader";
 import { useSubmission } from "../context/SubmissionContext";
 import { getSupabase } from "@/lib/supabase";
 
@@ -63,7 +63,6 @@ export default function OpenBite() {
   const [showExample, setShowExample] = useState(false);
   const [teethCenter, setTeethCenter] = useState<{ x: number; y: number } | null>(null);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
-  const [expandedCheck, setExpandedCheck] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startCamera = useCallback(async (facing: "environment" | "user" = "environment") => {
@@ -178,33 +177,12 @@ export default function OpenBite() {
   return (
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
-
-      <div className={styles.bg} aria-hidden="true">
-        <Image src="/assets/images/intake-bg.png" alt="" fill style={{ objectFit: "cover" }} priority sizes="430px" />
-      </div>
-      <div className={styles.bgOverlay} aria-hidden="true">
-        <Image src="/assets/images/intake-card-bg.png" alt="" fill style={{ objectFit: "cover", objectPosition: "center top" }} priority sizes="430px" />
-      </div>
-
-      {/* Progress bar */}
-      <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Photo step" role="progressbar">
-        <rect x="0"   width="23"  height="5" rx="2.5" fill="#0E184D"/>
-        <rect x="31"  width="302" height="5" rx="2.5" fill="white"/>
-        <rect x="31"  width="302" height="5" rx="2.5" fill="#0E184D"/>
-        <rect x="341" width="23"  height="5" rx="2.5" fill="white"/>
-        <rect x="372" width="23"  height="5" rx="2.5" fill="white"/>
-      </svg>
-
-      {/* Nav bar */}
-      <nav className={styles.navBar}>
-        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/camera-1', 'backward')}>
-          <Image src="/assets/images/camera-icon-back.svg" alt="" width={20} height={20} unoptimized />
-        </button>
-        <span className={styles.navTitle}>Teeth Photos</span>
-        <Link href="/" className={styles.navBtn} aria-label="Close">
-          <Image src="/assets/images/camera-icon-close.svg" alt="" width={20} height={20} unoptimized />
-        </Link>
-      </nav>
+      <IntakeHeader
+        pct={75}
+        counter="Photo 3 of 4"
+        onBack={() => navigate('/camera-1', 'backward')}
+        onClose={() => navigate('/', 'backward')}
+      />
 
       {/* Timeline */}
       <div className={styles.timeline}>
@@ -316,53 +294,6 @@ export default function OpenBite() {
           )}
         </div>
 
-        {/* Check results list */}
-        {(state === "pass" || state === "warning") && checks.length > 0 && (
-          <div className={styles.checkList}>
-            {checks.map(c => {
-              const isExpanded = expandedCheck === c.id;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  className={`${styles.checkPill} ${c.pass ? styles.checkPillPass : styles.checkPillFail} ${isExpanded ? styles.checkPillExpanded : ""}`}
-                  onClick={() => setExpandedCheck(isExpanded ? null : c.id)}
-                  aria-expanded={isExpanded}
-                >
-                  <div className={styles.checkPillRow}>
-                    <div className={styles.checkPillIcon}>
-                      {c.pass ? <span className={styles.checkIconPass}>✓</span> : <AlertIcon className={`${styles.alertIcon} ${styles.checkIconFail}`} />}
-                    </div>
-                    <div className={styles.checkPillBody}>
-                      <span className={styles.checkPillLabel}>{c.label}</span>
-                      <span className={styles.checkPillDetail}>{c.detail}</span>
-                    </div>
-                    <span className={styles.checkPillStatus}>{c.pass ? "Pass" : "Review"}</span>
-                    <span className={`${styles.checkPillChevron} ${isExpanded ? styles.checkPillChevronOpen : ""}`}>▾</span>
-                  </div>
-                  {isExpanded && c.observation && (
-                    <div className={styles.checkPillObservation}>
-                      <span className={styles.observationLabel}>AI Observation</span>
-                      <p className={styles.observationText}>{c.observation}</p>
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* AI Summary card */}
-        {(state === "pass" || state === "warning") && aiSummary && (
-          <div className={styles.aiSummaryCard}>
-            <div className={styles.aiSummaryHeader}>
-              <span className={styles.aiSummaryIcon}>🤖</span>
-              <span className={styles.aiSummaryTitle}>AI Analysis</span>
-            </div>
-            <p className={styles.aiSummaryText}>{aiSummary}</p>
-          </div>
-        )}
-
         {/* Tip card — fail state */}
         {state === "warning" && tip && (
           <div className={styles.tipCard}>
@@ -385,7 +316,7 @@ export default function OpenBite() {
         {state === "idle" && (
           <>
             <button className={`${styles.controlBtn} ${styles.controlBtnTimer}`} aria-label="Choose from gallery" onClick={() => fileInputRef.current?.click()}>
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#0e1b4d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#121723" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                 <circle cx="8.5" cy="8.5" r="1.5"/>
                 <polyline points="21 15 16 10 5 21"/>
@@ -435,7 +366,7 @@ export default function OpenBite() {
               <div className={styles.shutterInner} />
             </button>
             <button className={`${styles.controlBtn} ${styles.controlBtnGrid}`} aria-label="Flip camera" onClick={flipCamera}>
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#0e1b4d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#121723" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M1 4v6h6"/>
                 <path d="M23 20v-6h-6"/>
                 <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
@@ -455,7 +386,6 @@ export default function OpenBite() {
               setPill(null);
               setTip(null);
               setAiSummary(null);
-              setExpandedCheck(null);
               setState("idle");
             }}>Retake Photo</button>
             <button className={styles.continueAnywayBtn} onClick={handleSubmitPhoto}>{submitting ? "Saving…" : "Continue Anyway"}</button>

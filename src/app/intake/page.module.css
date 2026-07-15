@@ -3,122 +3,24 @@
   position: relative;
   width: 100%;
   min-height: 100svh;
+  background: #fdfdfd;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-/* Outer texture bg */
-.outerBg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* Card gradient bg overlay */
-.cardBg {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
 /* =============================================
-   PROGRESS BAR — Figma: top:37px
-   Seg1: left:17, w:333 (bg white) + active overlay w:48 (navy)
-   Seg2: left:358, w:23 (white)
-   Seg3: left:389, w:23 (white)
-   ============================================= */
-.progressBar {
-  position: absolute;
-  top: 2.3125em;   /* 37px */
-  left: 1.0625em;  /* 17px */
-  right: 1.1875em; /* 19px */
-  z-index: 3;
-  width: calc(100% - 2.25em);
-  height: 0.3125em; /* 5px */
-}
-
-/* Segment 1 track — fluid, fills available space */
-.segTrack {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  height: 0.3125em;  /* 5px */
-  background: #ffffff;
-  border-radius: 6.1875em;
-}
-
-/* Active portion on seg1 — 48px navy */
-.segActive {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 3em;        /* 48px */
-  height: 100%;
-  background: #0e1b4d;
-  border-radius: 6.1875em;
-}
-
-/* Small segments — 23px, white, with 8px gaps before them */
-.segSmall {
-  width: 1.4375em;   /* 23px */
-  height: 0.3125em;  /* 5px */
-  background: #ffffff;
-  border-radius: 6.1875em;
-  flex-shrink: 0;
-  margin-left: 0.5em; /* 8px gap */
-}
-
-/* =============================================
-   NAV BAR — Figma: top≈82px (calc 50%-384px = 466-384)
-   Back: left:45px | Title centered | Close: left:362px
-   ============================================= */
-.navBar {
-  position: absolute;
-  top: 5.125em;     /* 82px */
-  left: 0;
-  right: 0;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-inline: 2.8125em; /* 45px — aligns back btn */
-}
-
-.navBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25em;    /* 20px */
-  height: 1.25em;
-  flex-shrink: 0;
-}
-
-/* "Intake form" — Inter Medium 15px white tracking:-0.15px */
-.navTitle {
-  font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 0.9375em;  /* 15px */
-  line-height: 1;
-  letter-spacing: -0.15px;
-  color: #ffffff;
-}
-
-/* =============================================
-   WHITE CARD
-   Figma: left:16 right:16, top:114px, h:820px
-   Rounded top corners only (32px)
+   WHITE CARD — floats on #fdfdfd, rounded top, soft shadow
    ============================================= */
 .card {
   position: absolute;
   left: 1em;         /* 16px */
   right: 1em;        /* 16px */
-  top: 7.125em;      /* 114px */
+  top: 8.5em;
   height: 51.25em;   /* 820px */
   background: #ffffff;
-  border-radius: 2em 2em 0 0;  /* 32px top corners */
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 10px 24px 3px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   z-index: 2;
 }
@@ -135,7 +37,7 @@
   font-weight: 500;
   font-size: 1.75em; /* 28px */
   line-height: 1;
-  color: #000000;
+  color: #121723;
   white-space: nowrap;
 }
 
@@ -165,7 +67,7 @@
   font-family: var(--font-body);
   font-size: 1.0625em;  /* 17px */
   font-weight: 500;
-  color: #0e1b4d;
+  color: #121723;
   outline: none;
 }
 
@@ -234,12 +136,13 @@
   justify-content: center;
   width: 100%;
   height: 3.5em;     /* 56px */
-  background-color: #e0e7f3;
-  color: #ffffff;
+  background-color: #eef0f5;
+  color: #aab0be;
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 0.875em; /* 14px */
   line-height: 1.543;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   border: none;
   border-radius: 9999px;
@@ -247,16 +150,17 @@
 }
 
 .btn:hover {
-  background-color: #c8d8ef;
+  background-color: #e6eaf3;
 }
 
 /* Active state — when input has a value */
 .btnActive {
-  background-color: #0e1b4d;
+  background-color: #121723;
+  color: #ffffff;
 }
 
 .btnActive:hover {
-  background-color: #1a2a6b;
+  background-color: #26304a;
 }
 
 @media (max-width: 479px) {

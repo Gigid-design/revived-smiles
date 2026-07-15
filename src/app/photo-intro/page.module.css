@@ -3,57 +3,8 @@
   position: relative;
   width: 100%;
   height: 100dvh;
+  background: #fdfdfd;
   overflow: hidden;
-}
-
-/* ── Background ── */
-.bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* ── Progress bar ── */
-.progressBar {
-  position: absolute;
-  top: 2.3125em;   /* 37px */
-  left: 1.0625em;
-  right: 1.1875em;
-  z-index: 3;
-  width: calc(100% - 2.25em);
-  height: 0.3125em;
-}
-
-/* ── Back button: left=45px, vertically at ~82px ── */
-.backBtn {
-  position: absolute;
-  top: 5.125em;  /* 82px */
-  left: 2.8125em; /* 45px */
-  z-index: 4;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25em;
-  height: 1.25em;
-}
-
-/* ── Close button: right=~45px ── */
-.closeBtn {
-  position: absolute;
-  top: 5.125em;
-  right: 2.8125em;
-  z-index: 4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25em;
-  height: 1.25em;
-  text-decoration: none;
 }
 
 /* ── Content card — scrollable white card ── */
@@ -61,10 +12,11 @@
   position: absolute;
   left: 1em;
   right: 1em;
-  top: 7.125em;
+  top: 8.5em;
   bottom: 0;
   background: #ffffff;
-  border-radius: 2em 2em 0 0;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 10px 24px 3px rgba(0, 0, 0, 0.06);
   z-index: 2;
   overflow-y: auto;
   overflow-x: hidden;
@@ -78,7 +30,7 @@
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 1.625em; /* 26px */
-  color: #0e1b4d;
+  color: #121723;
   margin: 0;
   line-height: 1.2;
 }
@@ -116,7 +68,7 @@
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 0.8125em;
-  color: #0e1b4d;
+  color: #121723;
 }
 
 .summaryCount {
@@ -146,7 +98,7 @@
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 0.9375em; /* 15px */
-  color: #0e1b4d;
+  color: #121723;
   margin: 0;
   line-height: 1.3;
 }
@@ -202,7 +154,7 @@
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 0.875em;
-  color: #0e1b4d;
+  color: #121723;
   margin: 0 0 0.5em;
 }
 
@@ -247,7 +199,7 @@
   justify-content: center;
   width: 100%;
   height: 56px;
-  background-color: #0e1b4d;
+  background-color: #121723;
   color: #ffffff;
   font-family: var(--font-heading);
   font-weight: 700;
@@ -259,4 +211,4 @@
   cursor: pointer;
 }
 
-.btn:hover { background-color: #1a2a6b; }
+.btn:hover { background-color: #26304a; }

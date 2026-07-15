@@ -25,7 +25,7 @@
   z-index: 0;
 }
 .connectorActive {
-  background: #0e184d;
+  background: #121723;
 }
 
 /* Circle */
@@ -42,12 +42,12 @@
 }
 
 .circleCompleted {
-  background: #0e184d;
+  background: #121723;
 }
 
 .circleCurrent {
   background: white;
-  border: 2px solid #0e184d;
+  border: 2px solid #121723;
   box-shadow: 0 0 0 4px rgba(14, 24, 77, 0.12);
 }
 
@@ -64,7 +64,7 @@
 }
 
 .circleCurrent .circleNumber {
-  color: #0e184d;
+  color: #121723;
 }
 
 .circleUpcoming .circleNumber {
@@ -84,13 +84,13 @@
 }
 
 .labelCompleted {
-  color: white;
+  color: #121723;
 }
 
 .labelCurrent {
-  color: white;
+  color: #121723;
 }
 
 .labelUpcoming {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(18, 23, 35, 0.4);
 }

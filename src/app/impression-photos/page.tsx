@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRef, useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
@@ -30,6 +29,8 @@ export default function ImpressionPhotos() {
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   const uploadedCount = Object.keys(photos).length;
+  const totalPhotos = SLOTS.length;
+  const pct = Math.round((uploadedCount / totalPhotos) * 100);
 
   async function handleFileChange(id: number, file: File | undefined) {
     if (!file) return;
@@ -107,32 +108,33 @@ export default function ImpressionPhotos() {
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
-      <div className={styles.outerBg} aria-hidden="true">
-        <Image src="/assets/images/intake-bg.png" alt="" fill style={{ objectFit: "cover" }} priority sizes="430px" />
-      </div>
-      <div className={styles.cardBg} aria-hidden="true">
-        <Image src="/assets/images/intake-card-bg.png" alt="" fill style={{ objectFit: "cover", objectPosition: "center top" }} priority sizes="430px" />
-      </div>
-
-      {/* Progress bar — active segment fills as photos are uploaded */}
-      <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Impression photos" role="progressbar">
-        <rect x="0"   width="23"  height="5" rx="2.5" fill="#0E184D"/>
-        <rect x="31"  width="23"  height="5" rx="2.5" fill="#0E184D"/>
-        <rect x="62"  width="23"  height="5" rx="2.5" fill="#0E184D"/>
-        <rect x="93"  width="302" height="5" rx="2.5" fill="white"/>
-        <rect x="93"  width={80 + (222 * uploadedCount / 4)} height="5" rx="2.5" fill="#0E184D"/>
-      </svg>
-
-      {/* Nav bar */}
-      <nav className={styles.navBar}>
-        <button className={styles.navBtn} aria-label="Go back" onClick={() => navigate('/instructions-4', 'backward')}>
-          <Image src="/assets/images/imp-icon-back.svg" alt="" width={20} height={20} unoptimized />
-        </button>
-        <span className={styles.navTitle}>Impression Photos</span>
-        <Link href="/" className={styles.navBtn} aria-label="Close">
-          <Image src="/assets/images/imp-icon-close.svg" alt="" width={20} height={20} unoptimized />
-        </Link>
-      </nav>
+      {/* Progress header — label + %, gradient bar, back + step counter */}
+      <header className={styles.progressHeader}>
+        <div className={styles.progressTop}>
+          <span className={styles.progressLabel}>Revived Smiles</span>
+          <div className={styles.progressTopRight}>
+            <span className={styles.progressPct}>{pct}%</span>
+            <button className={styles.closeBtn} aria-label="Close" onClick={() => navigate('/', 'backward')}>
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M15 5L5 15" stroke="currentColor" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5 5L15 15" stroke="currentColor" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className={styles.progressTrack} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Impression photos progress">
+          <div className={styles.progressFill} style={{ width: `${pct}%` }} />
+        </div>
+        <div className={styles.progressBottom}>
+          <button className={styles.backBtn} aria-label="Go back" onClick={() => navigate('/open-bite-2', 'backward')}>
+            <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Back
+          </button>
+          <span className={styles.stepCount}>{uploadedCount} of {totalPhotos} photos</span>
+        </div>
+      </header>
 
       {/* White card */}
       <div className={styles.card} id="main-content">
@@ -173,16 +175,6 @@ export default function ImpressionPhotos() {
             <strong>Good lighting matters.</strong>{" "}
             <span>Place your mold on a white surface and ensure the arch shape is clearly visible before snapping.</span>
           </p>
-        </div>
-
-        {/* Upload progress */}
-        <div className={styles.progressRow}>
-          <p className={styles.progressText}><strong>{uploadedCount}</strong> of 4 photos added</p>
-          <div className={styles.dots}>
-            {SLOTS.map(s => (
-              <span key={s.id} className={`${styles.dot} ${photos[s.id] ? styles.dotActive : ""}`} />
-            ))}
-          </div>
         </div>
 
         {/* Upper Arch */}

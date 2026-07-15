@@ -58,8 +58,8 @@ function intakeDone(sub: SubmissionData): number {
 }
 
 /* Routes for the "Start Here" actions. */
-const ROUTE_VIDEO = "/instructions";       // impression how-to video + steps
-const ROUTE_STEPS = "/instructions";       // written step-by-step
+const ROUTE_VIDEO = "/impression-photos";  // impression how-to (examples + tips live here)
+const ROUTE_STEPS = "/impression-photos";  // written step-by-step
 const ROUTE_TAKE_PHOTOS = "/photo-intro";  // impression photo capture flow
 const ROUTE_INTAKE = "/intake";            // resume intake form
 const REORDER_URL = "https://revivedsmiles.com";

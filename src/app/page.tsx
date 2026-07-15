@@ -88,7 +88,7 @@ export default function Home() {
 
     // 4. Impression photos
     const impressions = (s.impression_photos as string[] | null) ?? [];
-    if (impressions.length < 4) return "/instructions";
+    if (impressions.length < 4) return "/impression-photos";
 
     // Everything filled — should have been submitted already
     return "/dashboard";
