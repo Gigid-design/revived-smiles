@@ -136,6 +136,18 @@ export default function Home() {
     <main className={styles.screen} ref={screenRef}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
+      <video
+        className={styles.videoBg}
+        autoPlay
+        loop
+        muted
+        playsInline
+        poster="/assets/images/login-bg-poster.jpg"
+        aria-hidden="true"
+      >
+        <source src="/assets/videos/login-bg.mp4" type="video/mp4" />
+      </video>
+
       <div className={styles.card} id="main-content">
         <Image
           src="/assets/images/logo-revived-smiles.png"
