@@ -45,6 +45,8 @@
   width: 168px;
   height: auto;
   object-fit: contain;
+  /* recolor the dark logo to white */
+  filter: brightness(0) invert(1) drop-shadow(0 1px 8px rgba(0, 0, 0, 0.25));
 }
 
 .heading {
@@ -55,7 +57,8 @@
   line-height: 1.15;
   letter-spacing: -0.03em;
   text-align: center;
-  color: #121723;
+  color: #ffffff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
 /* ── Form ── */
@@ -126,13 +129,14 @@
   content: "";
   flex: 1;
   height: 1px;
-  background: #e4e7ee;
+  background: rgba(255, 255, 255, 0.4);
 }
 .dividerText {
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 0.8125rem;
-  color: #8a90a0;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
   white-space: nowrap;
 }
 
@@ -179,8 +183,9 @@
   font-family: var(--font-heading);
   font-weight: 500;
   font-size: 0.8125rem;
-  color: #8a90a0;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
   text-decoration: none;
   transition: color 0.15s ease;
 }
-.footerLink:hover { color: #121723; }
+.footerLink:hover { color: #ffffff; text-decoration: underline; }
