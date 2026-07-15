@@ -182,7 +182,7 @@ export default function OpenBite2() {
         pct={100}
         counter="Photo 4 of 4"
         onBack={() => navigate('/open-bite', 'backward')}
-        onClose={() => navigate('/', 'backward')}
+        onClose={() => navigate('/dashboard', 'backward')}
       />
 
       {/* Timeline */}

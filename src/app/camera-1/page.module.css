@@ -499,14 +499,14 @@
   left: 50%; top: 50%;
   transform: translate(-50%, -50%);
   width: 23.75em;
-  height: 3em;
+  height: 43px;
   background: #121723;
   color: #ffffff;
   font-family: var(--font-heading);
   font-size: 0.9375em;
   font-weight: 600;
   border: none;
-  border-radius: 999px;
+  border-radius: 100px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -517,14 +517,14 @@
   left: 50%; top: 50%;
   transform: translate(-50%, -50%);
   width: 23.75em;
-  height: 3em;
+  height: 43px;
   background: #121723;
   color: #ffffff;
   font-family: var(--font-heading);
   font-size: 0.9375em;
   font-weight: 600;
   border: none;
-  border-radius: 999px;
+  border-radius: 100px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -940,20 +940,20 @@
   position: static;
   transform: none;
   width: auto;
-  height: 3.25em;
+  height: 43px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(14, 27, 77, 0.14);
   color: #121723;
-  border-radius: 1em;
+  border-radius: 100px;
   font-size: 0.875em;
 }
 .continueAnywayBtn {
-  height: 3.25em;
+  height: 43px;
   background: #121723;
 
   color: #ffffff;
   border: none;
-  border-radius: 1em;
+  border-radius: 100px;
   box-shadow: 0 8px 18px rgba(14, 27, 77, 0.24);
   font-family: var(--font-heading);
   font-weight: 700;
@@ -962,7 +962,7 @@
   cursor: pointer;
   white-space: nowrap;
 }
-.continueAnywayBtn:hover { background: #142869; }
+.continueAnywayBtn:hover { background: #26304a; }
 
 
 /* Warning badge */

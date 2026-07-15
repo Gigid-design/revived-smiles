@@ -17,7 +17,7 @@ export default function PhotoIntro() {
         pct={0}
         counter="4 photos"
         onBack={() => back('/dashboard')}
-        onClose={() => navigate('/', 'backward')}
+        onClose={() => navigate('/dashboard', 'backward')}
       />
 
       {/* Scrollable content card */}

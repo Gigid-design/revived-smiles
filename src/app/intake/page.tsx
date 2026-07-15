@@ -22,7 +22,7 @@ export default function Intake() {
         pct={20}
         counter="Step 1 of 5"
         onBack={() => navigate('/dashboard', 'backward')}
-        onClose={() => navigate('/', 'backward')}
+        onClose={() => navigate('/dashboard', 'backward')}
       />
 
       {/* White card */}

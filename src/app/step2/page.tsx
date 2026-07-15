@@ -47,7 +47,7 @@ export default function Step2() {
         pct={40}
         counter="Step 2 of 5"
         onBack={() => navigate('/intake', 'backward')}
-        onClose={() => navigate('/', 'backward')}
+        onClose={() => navigate('/dashboard', 'backward')}
       />
 
       {/* White card */}

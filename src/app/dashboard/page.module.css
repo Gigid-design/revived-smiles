@@ -162,6 +162,8 @@
   color: #121723;
   transition: background 0.15s, border-color 0.15s;
   border: 2px solid transparent;
+  background: none;
+  cursor: pointer;
 }
 
 .toggleActive {
@@ -180,7 +182,7 @@
   gap: 8px;
   height: 43px;
   margin-top: 17px;
-  border-radius: 999px;
+  border-radius: 100px;
   background: #121723;
   color: #ffffff;
   font-family: var(--font-heading);
@@ -448,7 +450,7 @@
 }
 
 .retryBtn {
-  height: 44px;
+  height: 43px;
   padding: 0 2em;
   background: #121723;
   color: #ffffff;
@@ -458,7 +460,7 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   border: none;
-  border-radius: 9999px;
+  border-radius: 100px;
   cursor: pointer;
 }
 .retryBtn:hover { background: #26304a; }

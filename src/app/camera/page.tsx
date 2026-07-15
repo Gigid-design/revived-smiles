@@ -193,7 +193,7 @@ export default function Camera() {
         pct={25}
         counter="Photo 1 of 4"
         onBack={() => navigate('/photo-intro', 'backward')}
-        onClose={() => navigate('/', 'backward')}
+        onClose={() => navigate('/dashboard', 'backward')}
       />
 
       {/* Timeline */}

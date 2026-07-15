@@ -223,7 +223,7 @@ export default function Step5() {
             pct={pct}
             counter={`Step ${current} of ${total}`}
             onBack={() => navigate(getBackForTeethChart(productId), 'backward')}
-            onClose={() => navigate('/', 'backward')}
+            onClose={() => navigate('/dashboard', 'backward')}
           />
         );
       })()}

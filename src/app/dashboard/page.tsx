@@ -8,8 +8,8 @@ import styles from "./page.module.css";
 import { getSupabase } from "@/lib/supabase";
 import { BottomNav } from "@/app/components/BottomNav";
 import { ChatPanel } from "@/app/components/ChatPanel";
+import { ImpressionStepsModal } from "@/app/components/ImpressionStepsModal";
 import { useChat } from "@/app/hooks/useChat";
-import { PRODUCTS } from "@/app/context/productConfig";
 
 /* ── Types ── */
 interface SubmissionData {
@@ -30,17 +30,6 @@ interface SubmissionData {
   impression_photos: string[];
 }
 
-/* ── Helpers ── */
-function formatProductLabel(products: string[]): string {
-  if (!products?.length) return "Dental product";
-  return products
-    .map((slug) => {
-      const found = PRODUCTS.find((p) => p.id === slug);
-      return found ? found.label : slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    })
-    .join(", ");
-}
-
 /* Placeholder total until Nate confirms the per-product step count (to-do #10).
    The design shows "4 / 8"; step mapping will be wired to the product flag later. */
 const INTAKE_TOTAL_STEPS = 8;
@@ -59,8 +48,7 @@ function intakeDone(sub: SubmissionData): number {
 
 /* Routes for the "Start Here" actions. */
 const ROUTE_VIDEO = "/impression-photos";  // impression how-to (examples + tips live here)
-const ROUTE_STEPS = "/impression-photos";  // written step-by-step
-const ROUTE_TAKE_PHOTOS = "/photo-intro";  // impression photo capture flow
+const ROUTE_UPLOAD = "/impression-photos";  // impression photo upload page
 const ROUTE_INTAKE = "/intake";            // resume intake form
 const REORDER_URL = "https://revivedsmiles.com";
 
@@ -94,6 +82,7 @@ function Landing() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [stepsOpen, setStepsOpen] = useState(false);
 
   const patientName = submission?.name?.trim().split(" ")[0] || "there";
 
@@ -161,9 +150,6 @@ function Landing() {
     fetchSubmission();
   }, []);
 
-  const productLabel = submission?.products?.length
-    ? formatProductLabel(submission.products)
-    : "Acrylic partial denture";
   const done = submission ? intakeDone(submission) : 0;
 
   return (
@@ -237,17 +223,17 @@ function Landing() {
                 <Link href={ROUTE_VIDEO} className={`${styles.toggleBtn} ${styles.toggleActive}`}>
                   Watch the video
                 </Link>
-                <Link href={ROUTE_STEPS} className={styles.toggleBtn}>
+                <button type="button" onClick={() => setStepsOpen(true)} className={styles.toggleBtn}>
                   Read steps
-                </Link>
+                </button>
               </div>
 
               {/* Primary action */}
-              <Link href={ROUTE_TAKE_PHOTOS} className={styles.primaryBtn}>
+              <Link href={ROUTE_UPLOAD} className={styles.primaryBtn}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
-                  <path d="M9 3l-1.7 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.3L15 3H9zm3 4.5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+                  <path d="M12 3l5.5 5.5-1.42 1.42L13 6.83V16h-2V6.83L7.92 9.92 6.5 8.5 12 3zM5 19h14v2H5v-2z" />
                 </svg>
-                Take my impression photos
+                Upload my impression photos
               </Link>
             </section>
 
@@ -273,8 +259,8 @@ function Landing() {
                   <Image src="/assets/images/subscription-product.png" alt="" width={40} height={48} style={{ objectFit: "contain" }} sizes="40px" />
                 </div>
                 <div className={styles.subInfo}>
-                  <p className={styles.subName}>{productLabel}</p>
-                  <p className={styles.subDesc}>Description about the reorder</p>
+                  <p className={styles.subName}>Whitening Gel Refill</p>
+                  <p className={styles.subDesc}>Receive professional whitening gel delivered automatically.</p>
                 </div>
               </div>
               <div className={styles.subActions}>
@@ -318,6 +304,8 @@ function Landing() {
           </div>
         </div>
       )}
+
+      <ImpressionStepsModal open={stepsOpen} onClose={() => setStepsOpen(false)} />
 
       <BottomNav messagesBadge={chatUnread} />
     </main>

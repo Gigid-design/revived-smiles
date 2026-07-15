@@ -198,7 +198,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 56px;
+  height: 43px;
   background-color: #121723;
   color: #ffffff;
   font-family: var(--font-heading);
@@ -207,7 +207,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border: none;
-  border-radius: 9999px;
+  border-radius: 100px;
   cursor: pointer;
 }
 

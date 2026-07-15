@@ -122,9 +122,9 @@
 }
 
 .retryBtn {
-  height: 36px;
+  height: 43px;
   padding: 0 1.5em;
-  background: #0e1b4d;
+  background: #121723;
   color: #ffffff;
   font-family: var(--font-heading);
   font-weight: 700;
@@ -132,12 +132,12 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   border: none;
-  border-radius: 9999px;
+  border-radius: 100px;
   cursor: pointer;
 }
 
 .retryBtn:hover {
-  background: #1a2a6b;
+  background: #26304a;
 }
 
 /* ── Action bar ── */
@@ -148,9 +148,9 @@
 }
 
 .downloadBtn {
-  height: 44px;
+  height: 43px;
   padding: 0 2em;
-  background: #0e1b4d;
+  background: #121723;
   color: #ffffff;
   font-family: var(--font-heading);
   font-weight: 700;
@@ -158,7 +158,7 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   border: none;
-  border-radius: 9999px;
+  border-radius: 100px;
   cursor: pointer;
   width: 100%;
   display: flex;
@@ -168,7 +168,7 @@
 }
 
 .downloadBtn:hover {
-  background: #1a2a6b;
+  background: #26304a;
 }
 
 .downloadBtn:disabled {
