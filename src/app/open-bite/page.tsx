@@ -53,7 +53,7 @@ function AlertIcon({ className }: { className?: string }) {
 
 export default function OpenBite() {
   const { navigate } = usePageTransition();
-  const { data } = useSubmission();
+  const { data, update } = useSubmission();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -161,8 +161,12 @@ export default function OpenBite() {
 
   const handleSubmitPhoto = async () => {
     if (submitting) return;
-    // Design mode: no backend to upload to — just advance to the next screen.
-    if (DESIGN_MODE) { navigate('/open-bite-2', 'forward'); return; }
+    // Design mode: record the photo so the dashboard reflects intake progress.
+    if (DESIGN_MODE) {
+      update({ openBitePhotos: [capturedImage ?? DEMO_PHOTO] });
+      navigate('/open-bite-2', 'forward');
+      return;
+    }
     setSubmitting(true);
     try {
       if (capturedImage) {

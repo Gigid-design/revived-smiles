@@ -12,6 +12,10 @@ export interface SubmissionState {
   gumShade: string | null;
   selectedTeeth: number[];
   teethNotSure: boolean;
+  /* Teeth photos — bite closed (front, side) and mouth open (left, right).
+     Kept here so the dashboard can reflect intake progress without a backend. */
+  closeBitePhotos: string[];
+  openBitePhotos: string[];
   impressionPhotos: { slot: number; url: string; path: string }[];
   submissionId: string | null;
 }
@@ -37,6 +41,8 @@ const defaults: SubmissionState = {
   gumShade: null,
   selectedTeeth: [],
   teethNotSure: false,
+  closeBitePhotos: [],
+  openBitePhotos: [],
   impressionPhotos: [],
   submissionId: null,
 };

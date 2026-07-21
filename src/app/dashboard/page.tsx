@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { getSupabase } from "@/lib/supabase";
-import { useSubmission } from "@/app/context/SubmissionContext";
+import { useSubmission, SubmissionState } from "@/app/context/SubmissionContext";
 import { BottomNav } from "@/app/components/BottomNav";
 import { ImpressionStepsModal } from "@/app/components/ImpressionStepsModal";
 import { useMessages } from "@/app/context/MessagesContext";
@@ -29,9 +29,10 @@ interface SubmissionData {
   impression_photos: string[];
 }
 
-/* Placeholder total until Nate confirms the per-product step count (to-do #10).
-   The design shows "4 / 8"; step mapping will be wired to the product flag later. */
-const INTAKE_TOTAL_STEPS = 8;
+/* Intake ends once the teeth photos are taken — impression photos are a separate
+   task from "Start Here", not an intake step. Total tracks the steps counted
+   below; per-product step mapping is still to be wired (to-do #10). */
+const INTAKE_TOTAL_STEPS = 6;
 
 /* Rough completed-step count for the "Continue My Intake" progress. */
 function intakeDone(sub: SubmissionData): number {
@@ -39,9 +40,26 @@ function intakeDone(sub: SubmissionData): number {
   if (sub.state) done++;
   if (sub.products?.length) done++;
   if (sub.white_shade || sub.gum_shade) done++;
-  if (sub.close_bite_photos?.length) done++;
-  if (sub.open_bite_photos?.length) done++;
+  if (sub.close_bite_photos?.length) done++;  // teeth photos — bite closed
+  if (sub.open_bite_photos?.length) done++;   // teeth photos — mouth open
   return Math.min(done, INTAKE_TOTAL_STEPS);
+}
+
+/* Stages after everything is submitted — mirrors the My Order tracker so the
+   dashboard turns into a "where is my order" view once there's nothing to do. */
+const POST_SUBMIT_STAGES = [
+  "In review by your care team",
+  "In production",
+  "On its way to you",
+];
+
+/* A row on the "Your Progress" timeline. */
+type StageState = "done" | "current" | "upcoming";
+
+interface ProgressStep {
+  label: string;
+  state: StageState;
+  action: { href: string; text: string } | null;
 }
 
 /* Routes for the "Start Here" actions. */
@@ -49,6 +67,13 @@ const ROUTE_VIDEO = "/impression-photos";  // impression how-to (examples + tips
 const ROUTE_UPLOAD = "/impression-photos";  // impression photo upload page
 const ROUTE_INTAKE = "/intake";            // resume intake form
 const REORDER_URL = "https://revivedsmiles.com";
+
+/* Maps a step's state to its row styling (avoids a nested template literal). */
+const STAGE_CLASS: Record<StageState, string> = {
+  done: styles.stageDone,
+  current: styles.stageCurrent,
+  upcoming: "",
+};
 
 /* Design mode (local design sessions): always render with mock data so the whole
    dashboard — including the Messages tab — is populated without a live backend. */
@@ -73,6 +98,22 @@ const DEMO_SUBMISSION: SubmissionData = {
   impression_photos: [],
 };
 
+/* Design/demo mode has no backend, so the dashboard reads progress from whatever
+   the user walked through this session. Without this, finishing the flow would
+   never flip the "Intake Complete" / "Impression Photos Complete" states. */
+function mergeDemoProgress(ctx: SubmissionState): SubmissionData {
+  const sub = { ...DEMO_SUBMISSION };
+  if (ctx.name) sub.name = ctx.name;
+  if (ctx.state) sub.state = ctx.state;
+  if (ctx.products?.length) sub.products = ctx.products;
+  if (ctx.whiteShade) sub.white_shade = ctx.whiteShade;
+  if (ctx.gumShade) sub.gum_shade = ctx.gumShade;
+  if (ctx.closeBitePhotos?.length) sub.close_bite_photos = ctx.closeBitePhotos;
+  if (ctx.openBitePhotos?.length) sub.open_bite_photos = ctx.openBitePhotos;
+  if (ctx.impressionPhotos?.length) sub.impression_photos = ctx.impressionPhotos.map(p => p.url);
+  return sub;
+}
+
 /* ══════════════════════════════════════
    Landing (dashboard) — "Start Here" design
    ══════════════════════════════════════ */
@@ -94,11 +135,7 @@ function Landing() {
     async function fetchSubmission() {
       // Design-preview mode: `?demo=1` (or design mode) renders with mock data.
       if (DESIGN_MODE || (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "1")) {
-        const withContextData = { ...DEMO_SUBMISSION };
-        if (contextData.impressionPhotos?.length) {
-          withContextData.impression_photos = contextData.impressionPhotos.map(p => p.url);
-        }
-        setSubmission(withContextData);
+        setSubmission(mergeDemoProgress(contextData));
         setLoading(false);
         return;
       }
@@ -138,9 +175,35 @@ function Landing() {
       }
     }
     fetchSubmission();
-  }, [contextData.impressionPhotos]);
+  }, [contextData]);
 
   const done = submission ? intakeDone(submission) : 0;
+
+  /* Each task is an action card until it's done, then it converts into a
+     completed step on the progress timeline below. */
+  const intakeComplete = done === INTAKE_TOTAL_STEPS;
+  const impressionsComplete = (submission?.impression_photos?.length ?? 0) > 0;
+  const allSubmitted = intakeComplete && impressionsComplete;
+  const showTimeline = intakeComplete || impressionsComplete;
+
+  const steps: ProgressStep[] = [];
+  if (intakeComplete) {
+    steps.push({ label: "Intake complete", state: "done", action: { href: ROUTE_INTAKE, text: "Review" } });
+  }
+  if (impressionsComplete) {
+    steps.push({ label: "Impression photos submitted", state: "done", action: { href: ROUTE_UPLOAD, text: "Replace" } });
+  }
+  /* Downstream stages only make sense once everything is in */
+  if (allSubmitted) {
+    POST_SUBMIT_STAGES.forEach((label, i) => {
+      steps.push({
+        label,
+        state: i === 0 ? "current" : "upcoming",
+        action: i === 0 ? { href: "/my-order", text: "Track" } : null,
+      });
+    });
+  }
+  const doneCount = steps.filter((s) => s.state === "done").length;
 
   return (
     <main className={styles.screen}>
@@ -185,7 +248,9 @@ function Landing() {
 
         {!loading && !error && (
           <>
-            {/* ══ Start Here ══ */}
+            {/* ══ Start Here — until impressions are in, then it becomes a
+                   completed step on the timeline below ══ */}
+            {!impressionsComplete && (
             <section className={styles.startCard}>
               <h2 className={styles.startLabel}>Start Here</h2>
 
@@ -218,27 +283,22 @@ function Landing() {
                 </button>
               </div>
 
-              {/* Primary action — shows status based on upload progress */}
-              <Link href={ROUTE_UPLOAD} className={`${styles.primaryBtn} ${submission?.impression_photos?.length ? styles.primaryBtnComplete : ""}`} aria-label={submission?.impression_photos?.length ? "Impression photos complete, click to replace" : "Upload my impression photos"}>
-                {submission?.impression_photos?.length ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                  </svg>
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
-                    <path d="M12 3l5.5 5.5-1.42 1.42L13 6.83V16h-2V6.83L7.92 9.92 6.5 8.5 12 3zM5 19h14v2H5v-2z" />
-                  </svg>
-                )}
-                {submission?.impression_photos?.length ? "Impression Photos Complete" : "Upload my impression photos"}
+              {/* Primary action */}
+              <Link href={ROUTE_UPLOAD} className={styles.primaryBtn} aria-label="Upload my impression photos">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
+                  <path d="M12 3l5.5 5.5-1.42 1.42L13 6.83V16h-2V6.83L7.92 9.92 6.5 8.5 12 3zM5 19h14v2H5v-2z" />
+                </svg>
+                Upload my impression photos
               </Link>
             </section>
+            )}
 
-            {/* ══ Continue My Intake / Intake Complete ══ */}
-            <Link href={ROUTE_INTAKE} className={styles.intakeCard} aria-label={done === INTAKE_TOTAL_STEPS ? "Intake complete, click to edit" : `Continue your intake, ${done} of ${INTAKE_TOTAL_STEPS} steps done`}>
+            {/* ══ Continue My Intake — until it's done, then it becomes a
+                   completed step on the timeline below ══ */}
+            {!intakeComplete && (
+            <Link href={ROUTE_INTAKE} className={styles.intakeCard} aria-label={`Continue your intake, ${done} of ${INTAKE_TOTAL_STEPS} steps done`}>
               <div className={styles.intakeHead}>
-                <h2 className={styles.cardTitle}>
-                  {done === INTAKE_TOTAL_STEPS ? "Intake Complete" : "Continue My Intake"}
-                </h2>
+                <h2 className={styles.cardTitle}>Continue My Intake</h2>
                 <svg className={styles.chevron} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c0c4ce" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
@@ -248,6 +308,59 @@ function Landing() {
                 <div className={styles.progressFill} style={{ width: `${(done / INTAKE_TOTAL_STEPS) * 100}%` }} />
               </div>
             </Link>
+            )}
+
+            {/* ══ Your Progress — completed tasks convert into steps here, and
+                   once everything's submitted it extends into the review and
+                   production stages (same tracker as My Order) ══ */}
+            {showTimeline && (
+              <section className={styles.progressCard}>
+                <div className={styles.progressHead}>
+                  <h2 className={styles.cardTitle}>Your Progress</h2>
+                  <span className={styles.progressCount}>{doneCount} done</span>
+                </div>
+
+                <ol className={styles.timeline}>
+                  {steps.map((step) => (
+                    <li
+                      key={step.label}
+                      className={`${styles.stage} ${STAGE_CLASS[step.state]}`}
+                    >
+                      <span className={styles.stageDot} aria-hidden="true">
+                        {step.state === "done" && (
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 12.5L9.5 18L20 6.5" />
+                          </svg>
+                        )}
+                        {step.state === "current" && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="8.5" />
+                            <path d="M12 7.5v5l3 1.8" />
+                          </svg>
+                        )}
+                      </span>
+
+                      <div className={styles.stageBody}>
+                        <span className={styles.stageLabel}>{step.label}</span>
+                        <span className={styles.stageRight}>
+                          {step.state === "done" && (
+                            <span className={`${styles.stageChip} ${styles.chipDone}`}>Completed</span>
+                          )}
+                          {step.state === "current" && (
+                            <span className={`${styles.stageChip} ${styles.chipCurrent}`}>In progress</span>
+                          )}
+                          {step.action && (
+                            <Link href={step.action.href} className={styles.stageAction}>
+                              {step.action.text}
+                            </Link>
+                          )}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
 
             {/* ══ My Subscriptions ══ */}
             <section className={styles.subCard}>
@@ -263,7 +376,7 @@ function Landing() {
               </div>
               <div className={styles.subActions}>
                 <a href={REORDER_URL} target="_blank" rel="noopener noreferrer" className={styles.reorderBtn}>Reorder</a>
-                <Link href="/profile" className={styles.manageBtn}>
+                <Link href="/my-order" className={styles.manageBtn}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#121723" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <circle cx="12" cy="12" r="3" />
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />

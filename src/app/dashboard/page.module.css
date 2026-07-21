@@ -234,6 +234,155 @@
   transition: width 0.4s ease;
 }
 
+/* ══════════════════════════════════════
+   Your Progress — completed steps convert from action cards into this
+   timeline, then it extends into the post-submission stages.
+   ══════════════════════════════════════ */
+.progressCard {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 24px 3px rgba(0, 0, 0, 0.06);
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.progressHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Green count chip — reads as a win at a glance */
+.progressCount {
+  flex-shrink: 0;
+  font-family: var(--font-heading);
+  font-size: 0.6875em; /* 11px */
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1f6b46;
+  background: #e2f6ec;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.timeline {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 20px;
+}
+.stage:last-child { padding-bottom: 0; }
+
+/* Connector — fades green through the completed run */
+.stage:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 13px; /* centre of the 28px marker */
+  top: 32px;
+  bottom: -4px;
+  width: 2px;
+  border-radius: 2px;
+  background: #eef0f5;
+}
+.stageDone:not(:last-child)::before {
+  background: linear-gradient(180deg, #52b487 0%, #cfe9db 100%);
+}
+
+/* ── Markers ── */
+.stageDot {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px dashed #dfe4ee;
+  color: #a8b2c6;
+}
+
+/* Completed — filled green with a white check (3:1+ so the check stays crisp) */
+.stageDone .stageDot {
+  background: linear-gradient(135deg, #2f9463 0%, #1c6041 100%);
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(31, 107, 70, 0.30);
+}
+
+/* In progress — navy ring with a soft halo */
+.stageCurrent .stageDot {
+  background: #ffffff;
+  border: 2px solid #0e1b4d;
+  color: #0e1b4d;
+  box-shadow: 0 0 0 5px rgba(14, 27, 77, 0.10);
+}
+
+.stageBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.stageLabel {
+  font-size: 0.875em; /* 14px */
+  color: #9299a5;
+  line-height: 1.35;
+}
+.stageDone .stageLabel { color: #121723; font-weight: 600; }
+.stageCurrent .stageLabel {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: #121723;
+}
+
+.stageRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Status chips — same language as the request badges in Messages */
+.stageChip {
+  font-family: var(--font-heading);
+  font-size: 0.625em; /* 10px */
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.chipDone { color: #1f6b46; background: #e2f6ec; }
+.chipCurrent { color: #8a6100; background: #fff5da; }
+
+/* Completed rows stay tappable so the customer can still review/replace */
+.stageAction {
+  flex-shrink: 0;
+  font-family: var(--font-heading);
+  font-size: 0.75em; /* 12px */
+  font-weight: 700;
+  color: #0e6c9c; /* AA-safe teal for text */
+  text-decoration: none;
+}
+.stageAction:hover { text-decoration: underline; }
+
 /* ══ My Subscriptions ══ */
 .subRow {
   display: flex;

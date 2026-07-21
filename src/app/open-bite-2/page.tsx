@@ -53,7 +53,7 @@ function AlertIcon({ className }: { className?: string }) {
 
 export default function OpenBite2() {
   const { navigate } = usePageTransition();
-  const { data } = useSubmission();
+  const { data, update } = useSubmission();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -161,8 +161,13 @@ export default function OpenBite2() {
 
   const handleSubmitPhoto = async () => {
     if (submitting) return;
-    // Design mode: no backend to upload to — just advance to the next screen.
-    if (DESIGN_MODE) { navigate('/impression-photos', 'forward'); return; }
+    // Design mode: no backend to upload to — record the photo so the dashboard
+    // reflects a finished intake, then show the completion screen.
+    if (DESIGN_MODE) {
+      update({ openBitePhotos: [...(data.openBitePhotos ?? []), capturedImage ?? DEMO_PHOTO] });
+      navigate('/intake-complete', 'forward');
+      return;
+    }
     setSubmitting(true);
     try {
       if (capturedImage) {
@@ -182,7 +187,8 @@ export default function OpenBite2() {
           await supabase.from("submissions").update({ open_bite_photos: photos, photo_analyses: analyses }).eq("id", id);
         }
       }
-      navigate('/dashboard', 'forward');
+      // Teeth photos are the final intake step — celebrate, then back to the dashboard.
+      navigate('/intake-complete', 'forward');
     } catch (err) {
       console.error("Photo upload failed:", err);
       setSubmitting(false);
