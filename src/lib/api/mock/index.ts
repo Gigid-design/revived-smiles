@@ -1,0 +1,38 @@
+/**
+ * The demo backend.
+ *
+ * Implements the whole `ApiClient` contract against seeded in-memory data, so
+ * every screen works with no server, no API keys and no network. This folder
+ * is the only thing that gets deleted when a real backend arrives.
+ */
+
+import type { ApiClient } from "../contract";
+import { mockAuth } from "./auth";
+import { mockMessages } from "./messages";
+import { mockNotifications } from "./notifications";
+import { mockPhotos } from "./photos";
+import { mockPrompts } from "./prompts";
+import { mockShipping } from "./shipping";
+import { mockSubmissions } from "./submissions";
+import { mockThreads } from "./threads";
+
+export const mockApi: ApiClient = {
+  auth: mockAuth,
+  submissions: mockSubmissions,
+  photos: mockPhotos,
+  messages: mockMessages,
+  threads: mockThreads,
+  notifications: mockNotifications,
+  prompts: mockPrompts,
+  shipping: mockShipping,
+};
+
+export { resetDb } from "./store";
+export {
+  CARE_TEAM_NAME,
+  DEMO_ADMIN_EMAIL,
+  DEMO_IMPRESSION_PHOTO,
+  DEMO_PATIENT,
+  DEMO_PHOTOS,
+  DEMO_SUBMISSION_ID,
+} from "./seed";
