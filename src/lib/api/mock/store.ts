@@ -16,6 +16,7 @@ import type {
   PromptConfig,
   Submission,
   SubmissionChange,
+  Subscription,
 } from "../types";
 import { SEED_VERSION, buildSeed } from "./seed";
 
@@ -28,6 +29,7 @@ export interface MockDb {
   /** Which seed produced this state. See `SEED_VERSION`. */
   version: number;
   submissions: Submission[];
+  subscriptions: Subscription[];
   messages: ChatMessage[];
   notifications: AppNotification[];
   promptConfigs: PromptConfig[];

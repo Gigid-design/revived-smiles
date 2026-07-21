@@ -67,6 +67,8 @@ export type {
   StatusUpdate,
   StoredPhoto,
   Submission,
+  Subscription,
+  SubscriptionStatus,
   SubmissionChange,
   SubmissionDraft,
   SubmissionQuery,

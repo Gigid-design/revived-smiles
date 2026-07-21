@@ -32,10 +32,13 @@ import type {
   StatusUpdate,
   StoredPhoto,
   Submission,
+  Subscription,
+  SubscriptionStatus,
   SubmissionChange,
   SubmissionDraft,
   SubmissionQuery,
   SubmissionStats,
+  Timestamp,
   Unsubscribe,
 } from "./types";
 
@@ -329,6 +332,31 @@ export interface PromptsApi {
 
 /* ------------------------------------------------------------------ */
 
+export interface SubscriptionsApi {
+  /** The signed-in patient's subscriptions. Scoped to the caller server-side. */
+  list(): Promise<Subscription[]>;
+
+  /**
+   * Moves the next delivery to a new date.
+   *
+   * Must reject a date in the past, and should refuse one beyond a sensible
+   * horizon — a delivery pushed out indefinitely is a cancellation wearing a
+   * disguise, and the patient should be told that plainly instead.
+   */
+  reschedule(id: string, nextDeliveryAt: Timestamp): Promise<Subscription>;
+
+  /**
+   * Skips the next delivery, moving it on by one interval.
+   * Billing must skip too — the patient is not charged for a skipped cycle.
+   */
+  skipNext(id: string): Promise<Subscription>;
+
+  /** Pauses or resumes. A paused subscription bills nothing and ships nothing. */
+  setStatus(id: string, status: SubscriptionStatus): Promise<Subscription>;
+}
+
+/* ------------------------------------------------------------------ */
+
 export interface ShippingApi {
   /**
    * The return-shipping label PDF.
@@ -349,5 +377,6 @@ export interface ApiClient {
   messages: MessagesApi;
   notifications: NotificationsApi;
   prompts: PromptsApi;
+  subscriptions: SubscriptionsApi;
   shipping: ShippingApi;
 }

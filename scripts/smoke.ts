@@ -185,7 +185,57 @@ async function main() {
   await api.notifications.markAllRead();
   check("mark-all-read works", (await api.notifications.list()).every((n) => n.read));
 
-  console.log("\n7. Admin sign-in");
+  console.log("\n7. The subscription card behaves like a subscription");
+  const [sub] = await api.subscriptions.list();
+  check("a subscription loads", Boolean(sub), sub?.productName);
+  check("with a next delivery in the future", new Date(sub.nextDeliveryAt).getTime() > Date.now());
+
+  const before = new Date(sub.nextDeliveryAt).getTime();
+  const skipped = await api.subscriptions.skipNext(sub.id);
+  const expected = before + sub.intervalWeeks * 7 * 86_400_000;
+  check(
+    "skipping moves it on by exactly one interval",
+    Math.abs(new Date(skipped.nextDeliveryAt).getTime() - expected) < 60_000,
+    `${sub.intervalWeeks} weeks later`,
+  );
+  check("and records that a delivery was skipped", skipped.lastSkippedAt !== null);
+
+  const target = new Date(Date.now() + 10 * 86_400_000).toISOString();
+  const moved = await api.subscriptions.reschedule(sub.id, target);
+  check("rescheduling lands on the chosen date", moved.nextDeliveryAt === target);
+
+  let pastRejected: string | null = null;
+  try {
+    await api.subscriptions.reschedule(sub.id, new Date(Date.now() - 5 * 86_400_000).toISOString());
+  } catch (err) {
+    pastRejected = err instanceof Error ? err.message : String(err);
+  }
+  check("a date in the past is refused", pastRejected !== null, pastRejected ?? "it was allowed!");
+
+  let farRejected: string | null = null;
+  try {
+    await api.subscriptions.reschedule(sub.id, new Date(Date.now() + 400 * 86_400_000).toISOString());
+  } catch (err) {
+    farRejected = err instanceof Error ? err.message : String(err);
+  }
+  check(
+    "and so is pushing it out indefinitely",
+    farRejected !== null,
+    "a delivery moved forever is a cancellation in disguise",
+  );
+
+  const paused = await api.subscriptions.setStatus(sub.id, "paused");
+  check("it can be paused", paused.status === "paused");
+  let skipWhilePaused: string | null = null;
+  try {
+    await api.subscriptions.skipNext(sub.id);
+  } catch (err) {
+    skipWhilePaused = err instanceof Error ? err.message : String(err);
+  }
+  check("and a paused subscription has nothing to skip", skipWhilePaused !== null);
+  await api.subscriptions.setStatus(sub.id, "active");
+
+  console.log("\n8. Admin sign-in");
   let badAdmin: string | null = null;
   try {
     await api.auth.signInAdmin("nobody@example.com", "whatever");

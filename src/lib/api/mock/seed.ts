@@ -14,6 +14,7 @@ import type {
   PromptConfig,
   Submission,
   SubmissionStatus,
+  Subscription,
 } from "../types";
 import { REQUEST_LABELS, REQUEST_OUTCOMES } from "../types";
 import type { MockDb } from "./store";
@@ -31,7 +32,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 4;
+export const SEED_VERSION = 5;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -84,6 +85,10 @@ export const DEMO_TRACKING = "1Z999AA10123456784";
 
 function minutesAgo(n: number): string {
   return new Date(Date.now() - n * 60_000).toISOString();
+}
+
+function daysInFuture(n: number): string {
+  return new Date(Date.now() + n * 86_400_000).toISOString();
 }
 
 function daysAgo(n: number): string {
@@ -373,6 +378,24 @@ function buildNotifications(): AppNotification[] {
 
 /* ------------------------------------------------------------------ */
 
+/** A live subscription with its next delivery a few weeks out. */
+function buildSubscriptions(): Subscription[] {
+  return [
+    {
+      id: "sub-whitening-1",
+      productName: "Whitening Gel Refill",
+      description: "Professional whitening gel, delivered automatically.",
+      imageUrl: "/assets/images/subscription-product.png",
+      intervalWeeks: 8,
+      pricePerDelivery: 2900,
+      currency: "USD",
+      status: "active",
+      nextDeliveryAt: daysInFuture(19),
+      lastSkippedAt: null,
+    },
+  ];
+}
+
 export function buildSeed(): MockDb {
   const demo = submission({
     id: DEMO_SUBMISSION_ID,
@@ -393,6 +416,7 @@ export function buildSeed(): MockDb {
   return {
     version: SEED_VERSION,
     submissions: [demo, ...buildQueue()],
+    subscriptions: buildSubscriptions(),
     messages: buildMessages(),
     notifications: buildNotifications(),
     promptConfigs: buildPromptConfigs(),

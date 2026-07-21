@@ -172,9 +172,9 @@ export interface Submission {
    * Comes from the Shopify order, not from intake — see `SubmissionDraft`.
    */
   products: string[];
-  /** "A1" | "A2" | "A3" */
+  /** The VITA A range: "A1" | "A2" | "A3" | "A4", lightest to darkest. */
   whiteShade: string | null;
-  /** "G1" | "G2" | "G3" | "G4" */
+  /** "G1" (dark) | "G2" (pink) | "G3" (clear). Not a light-to-dark scale. */
   gumShade: string | null;
   /** Universal tooth numbering, 1–32. */
   selectedTeeth: number[];
@@ -426,8 +426,35 @@ export type OAuthProvider = "google" | "azure";
 export type AuthEvent = "signed_in" | "signed_out" | "password_recovery";
 
 /* ------------------------------------------------------------------ */
-/* Errors                                                              */
+/* Subscriptions (recurring consumable deliveries)                     */
 /* ------------------------------------------------------------------ */
+
+export type SubscriptionStatus = "active" | "paused";
+
+/**
+ * A recurring delivery, e.g. whitening gel refills.
+ *
+ * Separate from `Submission`: a submission is the one-off appliance being
+ * made, a subscription is a consumable that keeps arriving. The patient's
+ * question about a subscription is almost always "when is the next one?",
+ * so `nextDeliveryAt` is the field the card is built around.
+ */
+export interface Subscription {
+  id: string;
+  productName: string;
+  description: string;
+  imageUrl: string;
+  /** Weeks between deliveries. */
+  intervalWeeks: number;
+  /** Price per delivery in minor units (cents), to avoid float rounding. */
+  pricePerDelivery: number;
+  /** ISO-4217, e.g. "USD". */
+  currency: string;
+  status: SubscriptionStatus;
+  nextDeliveryAt: Timestamp;
+  /** When a delivery was last skipped, so the card can say so. */
+  lastSkippedAt: Timestamp | null;
+}
 
 /**
  * Every adapter rejects with this, so screens can show a message without

@@ -98,45 +98,177 @@ function LowerIncisor({ sel }: { sel: boolean }) {
 
 /* ── Tooth definitions ── */
 type ToothShape = "molar" | "premolar" | "canine" | "incisor";
-interface ToothDef { num: number; shape: ToothShape; w: number; h: number; cx: number; }
+interface ToothDef { num: number; shape: ToothShape; w: number; }
 
+/* Universal numbering. Upper runs 1–16 left to right across the screen, lower
+   runs 17–32 the same way — the mapping the flat chart already used, kept
+   unchanged so a given tooth still means the same tooth. */
 const UPPER: ToothDef[] = [
-  { num: 1,  shape: "molar",    w: 20, h: 30, cx: -151 },
-  { num: 2,  shape: "molar",    w: 20, h: 30, cx: -127 },
-  { num: 3,  shape: "molar",    w: 20, h: 30, cx: -103 },
-  { num: 4,  shape: "premolar", w: 16, h: 29, cx: -81  },
-  { num: 5,  shape: "premolar", w: 16, h: 29, cx: -61  },
-  { num: 6,  shape: "canine",   w: 13, h: 33, cx: -42.5},
-  { num: 7,  shape: "incisor",  w: 13, h: 30, cx: -25.5},
-  { num: 8,  shape: "incisor",  w: 13, h: 30, cx: -8.5 },
-  { num: 9,  shape: "incisor",  w: 13, h: 30, cx:  8.5 },
-  { num: 10, shape: "incisor",  w: 13, h: 30, cx:  25.5},
-  { num: 11, shape: "canine",   w: 13, h: 33, cx:  42.5},
-  { num: 12, shape: "premolar", w: 16, h: 29, cx:  61  },
-  { num: 13, shape: "premolar", w: 16, h: 29, cx:  81  },
-  { num: 14, shape: "molar",    w: 20, h: 30, cx:  103 },
-  { num: 15, shape: "molar",    w: 20, h: 30, cx:  127 },
-  { num: 16, shape: "molar",    w: 20, h: 30, cx:  151 },
+  { num: 1,  shape: "molar",    w: 20 },
+  { num: 2,  shape: "molar",    w: 20 },
+  { num: 3,  shape: "molar",    w: 20 },
+  { num: 4,  shape: "premolar", w: 16 },
+  { num: 5,  shape: "premolar", w: 16 },
+  { num: 6,  shape: "canine",   w: 13 },
+  { num: 7,  shape: "incisor",  w: 13 },
+  { num: 8,  shape: "incisor",  w: 13 },
+  { num: 9,  shape: "incisor",  w: 13 },
+  { num: 10, shape: "incisor",  w: 13 },
+  { num: 11, shape: "canine",   w: 13 },
+  { num: 12, shape: "premolar", w: 16 },
+  { num: 13, shape: "premolar", w: 16 },
+  { num: 14, shape: "molar",    w: 20 },
+  { num: 15, shape: "molar",    w: 20 },
+  { num: 16, shape: "molar",    w: 20 },
 ];
 
-const LOWER: ToothDef[] = [
-  { num: 17, shape: "molar",    w: 20, h: 30, cx: -151 },
-  { num: 18, shape: "molar",    w: 20, h: 30, cx: -127 },
-  { num: 19, shape: "molar",    w: 20, h: 30, cx: -103 },
-  { num: 20, shape: "premolar", w: 16, h: 29, cx: -81  },
-  { num: 21, shape: "premolar", w: 16, h: 29, cx: -61  },
-  { num: 22, shape: "canine",   w: 13, h: 33, cx: -42.5},
-  { num: 23, shape: "incisor",  w: 13, h: 30, cx: -25.5},
-  { num: 24, shape: "incisor",  w: 13, h: 30, cx: -8.5 },
-  { num: 25, shape: "incisor",  w: 13, h: 30, cx:  8.5 },
-  { num: 26, shape: "incisor",  w: 13, h: 30, cx:  25.5},
-  { num: 27, shape: "canine",   w: 13, h: 33, cx:  42.5},
-  { num: 28, shape: "premolar", w: 16, h: 29, cx:  61  },
-  { num: 29, shape: "premolar", w: 16, h: 29, cx:  81  },
-  { num: 30, shape: "molar",    w: 20, h: 30, cx:  103 },
-  { num: 31, shape: "molar",    w: 20, h: 30, cx:  127 },
-  { num: 32, shape: "molar",    w: 20, h: 30, cx:  151 },
-];
+const LOWER: ToothDef[] = UPPER.map((t) => ({ ...t, num: t.num + 16 }));
+
+/* ── Arch geometry ──
+   A real dental arch is a horseshoe, not a shallow bow: it is about as deep
+   front-to-back as it is wide, the incisors run almost flat across the front,
+   the curve turns hard at the canines, and the molars run back in near-parallel
+   rows. A half-ellipse gets none of that.
+
+   So the curve is a superellipse, |x/a|^n + |y/b|^n = 1. At n = 2 it is the old
+   ellipse; above 2 the front flattens and the sides straighten, which is what
+   turns a bow into a horseshoe. */
+const ARCH_POWER = 2.6;
+/** Depth as a multiple of half-width. Real arches are deeper than they are wide. */
+const ARCH_DEPTH_RATIO = 1.15;
+/** Teeth touch in a real mouth; this is just enough to read them apart. */
+const TOOTH_GAP = 3;
+/** How far past a tooth its number sits, measured outward from the arch. */
+const NUMBER_OFFSET = 24;
+/** Keeps the arch and its numbers inside the 430px screen. */
+const MAX_HALF_WIDTH = 104;
+/** Gap between the two arches, where the molars face each other. */
+const ARCH_SEPARATION = 42;
+/** Room above and below for the outermost teeth and their numbers. */
+const ARCH_MARGIN = 44;
+
+/** A point on the arch, with the direction that points out of the mouth. */
+interface ArchPoint { x: number; y: number; nx: number; ny: number; }
+
+/** The superellipse, traversed left to right over t ∈ [π, 0]. */
+function archPoint(t: number, halfWidth: number, depth: number, sign: number): { x: number; y: number } {
+  const c = Math.cos(t);
+  const p = 2 / ARCH_POWER;
+  return {
+    x: halfWidth * Math.sign(c) * Math.abs(c) ** p,
+    y: sign * depth * Math.abs(Math.sin(t)) ** p,
+  };
+}
+
+/**
+ * Samples the curve into an arc-length table.
+ *
+ * Teeth are spaced by distance *along* the curve, never by angle. Even angles
+ * look right across the front and crush the back, because the curve covers far
+ * less distance per degree near its ends — exactly where the widest teeth are.
+ */
+function sampleArch(halfWidth: number, depth: number, sign: number) {
+  const STEPS = 900;
+  const pts: { x: number; y: number }[] = [];
+  for (let i = 0; i <= STEPS; i++) {
+    pts.push(archPoint(Math.PI * (1 - i / STEPS), halfWidth, depth, sign));
+  }
+
+  const walked: number[] = [0];
+  for (let i = 1; i <= STEPS; i++) {
+    walked.push(walked[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+  }
+
+  /** The point at a given distance along the curve, plus its outward normal. */
+  function at(distance: number): ArchPoint {
+    let k = 1;
+    while (k < STEPS && walked[k] < distance) k++;
+    const span = walked[k] - walked[k - 1] || 1;
+    const f = (distance - walked[k - 1]) / span;
+
+    const a = pts[k - 1];
+    const b = pts[k];
+    const x = a.x + (b.x - a.x) * f;
+    const y = a.y + (b.y - a.y) * f;
+
+    /* Perpendicular to the local tangent, turned so it points away from the
+       inside of the arch. Taken from the curve itself rather than assumed to
+       be radial, which is only true of a circle. */
+    const tx = b.x - a.x;
+    const ty = b.y - a.y;
+    const len = Math.hypot(tx, ty) || 1;
+    return { x, y, nx: (-sign * ty) / len, ny: (sign * tx) / len };
+  }
+
+  return { total: walked[STEPS], at };
+}
+
+interface PlacedTooth extends ToothDef {
+  /** Centre, in px from the chart's horizontal centre / top. */
+  x: number;
+  y: number;
+  /** Degrees, so the root points out of the arch rather than always up. */
+  rot: number;
+  /** Where the number label goes — further out along the same direction. */
+  labelX: number;
+  labelY: number;
+}
+
+/** Total run the teeth need along the curve. */
+const ARCH_RUN = UPPER.reduce((sum, t) => sum + t.w + TOOTH_GAP, 0);
+
+/**
+ * The arch is sized by its teeth, not chosen: sixteen teeth of a known total
+ * width have to sit on it, so the only free choice is how that length is split
+ * between width and depth. Solve for the scale that makes the curve exactly
+ * long enough, at the depth ratio above.
+ */
+function solveArchSize(): { halfWidth: number; depth: number } {
+  const unit = sampleArch(1, ARCH_DEPTH_RATIO, -1).total;
+  const halfWidth = Math.min(ARCH_RUN / unit, MAX_HALF_WIDTH);
+  return { halfWidth, depth: halfWidth * ARCH_DEPTH_RATIO };
+}
+
+const { halfWidth: ARCH_HALF_WIDTH, depth: ARCH_DEPTH } = solveArchSize();
+
+const UPPER_CENTRE_Y = ARCH_MARGIN + ARCH_DEPTH;
+const LOWER_CENTRE_Y = UPPER_CENTRE_Y + ARCH_SEPARATION;
+export const CHART_HEIGHT = Math.round(LOWER_CENTRE_Y + ARCH_DEPTH + ARCH_MARGIN);
+
+function layOutArch(defs: ToothDef[], jaw: "upper" | "lower"): PlacedTooth[] {
+  const sign = jaw === "upper" ? -1 : 1;
+  const centreY = jaw === "upper" ? UPPER_CENTRE_Y : LOWER_CENTRE_Y;
+  const curve = sampleArch(ARCH_HALF_WIDTH, ARCH_DEPTH, sign);
+
+  const spans = defs.map((d) => d.w + TOOTH_GAP);
+  /* Centre the run on the curve if it doesn't quite fill it. */
+  let along = (curve.total - spans.reduce((a, b) => a + b, 0)) / 2;
+
+  return defs.map((def, i) => {
+    const point = curve.at(along + spans[i] / 2);
+    along += spans[i];
+
+    /* Turn the tooth so its root follows the outward normal. Upper teeth are
+       drawn root-up, lower teeth root-down, hence the two forms. */
+    const rot =
+      jaw === "upper"
+        ? Math.atan2(point.nx, -point.ny)
+        : Math.atan2(-point.nx, point.ny);
+
+    return {
+      ...def,
+      x: point.x,
+      y: centreY + point.y,
+      rot: (rot * 180) / Math.PI,
+      labelX: point.x + point.nx * NUMBER_OFFSET,
+      labelY: centreY + point.y + point.ny * NUMBER_OFFSET,
+    };
+  });
+}
+
+/* Pure geometry, so it's worked out once rather than on every render. */
+const UPPER_ARCH = layOutArch(UPPER, "upper");
+const LOWER_ARCH = layOutArch(LOWER, "lower");
 
 const UPPER_SVG: Record<ToothShape, (s: boolean) => React.ReactElement> = {
   molar:    (s) => <UpperMolar    sel={s} />,
@@ -152,33 +284,37 @@ const LOWER_SVG: Record<ToothShape, (s: boolean) => React.ReactElement> = {
 };
 
 function ToothButton({ tooth, jaw, selected, onToggle }: {
-  tooth: ToothDef; jaw: "upper" | "lower"; selected: boolean; onToggle: (n: number) => void;
+  tooth: PlacedTooth; jaw: "upper" | "lower"; selected: boolean; onToggle: (n: number) => void;
 }) {
   const svgFn = jaw === "upper" ? UPPER_SVG[tooth.shape] : LOWER_SVG[tooth.shape];
-  const toothTop = jaw === "upper" ? 35 : 108;
 
   return (
-    <button
-      type="button"
-      aria-label={`Tooth ${tooth.num}${selected ? " (selected)" : ""}`}
-      aria-pressed={selected}
-      className={styles.tooth}
-      style={{ left: `calc(50% + ${tooth.cx}px)`, top: `${toothTop}px` }}
-      onClick={() => onToggle(tooth.num)}
-    >
-      {/* Number above for lower, below for upper */}
-      {jaw === "lower" && (
-        <span className={styles.toothNum} style={{ bottom: "100%", marginBottom: 2 }}>
-          {tooth.num}
-        </span>
-      )}
-      {svgFn(selected)}
-      {jaw === "upper" && (
-        <span className={styles.toothNum} style={{ top: "100%", marginTop: 2 }}>
-          {tooth.num}
-        </span>
-      )}
-    </button>
+    <>
+      <button
+        type="button"
+        aria-label={`Tooth ${tooth.num}${selected ? " (selected)" : ""}`}
+        aria-pressed={selected}
+        className={styles.tooth}
+        style={{
+          left: `calc(50% + ${tooth.x}px)`,
+          top: `${tooth.y}px`,
+          transform: `translate(-50%, -50%) rotate(${tooth.rot}deg)`,
+        }}
+        onClick={() => onToggle(tooth.num)}
+      >
+        {svgFn(selected)}
+      </button>
+
+      {/* Outside the button and never rotated, so the numbers stay upright and
+          readable all the way round the arch. */}
+      <span
+        className={styles.toothNum}
+        style={{ left: `calc(50% + ${tooth.labelX}px)`, top: `${tooth.labelY}px` }}
+        aria-hidden="true"
+      >
+        {tooth.num}
+      </span>
+    </>
   );
 }
 
@@ -203,8 +339,21 @@ export default function Step5() {
   }
 
   const count = selectedTeeth.size;
-  const summaryTitle = notSure ? "Not sure" : count === 0 ? "No teeth selected" : `${count} tooth${count > 1 ? " teeth" : ""} marked`;
-  const summarySubtitle = notSure ? "We'll follow up with you" : count === 0 ? "Tap a tooth to mark it" : `Tooth ${[...selectedTeeth].sort((a, b) => a - b).join(", ")}`;
+
+  /* Read as sentences rather than as a template: the old one-liner produced
+     "2 tooth teeth marked" for any count above one. */
+  function summaryTitle(): string {
+    if (notSure) return "Not sure";
+    if (count === 0) return "No teeth selected";
+    return `${count} ${count === 1 ? "tooth" : "teeth"} marked`;
+  }
+
+  function summarySubtitle(): string {
+    if (notSure) return "We'll follow up with you";
+    if (count === 0) return "Tap a tooth to mark it";
+    const numbers = [...selectedTeeth].sort((a, b) => a - b).join(", ");
+    return `${count === 1 ? "Tooth" : "Teeth"} ${numbers}`;
+  }
 
   return (
     <main className={styles.screen}>
@@ -239,8 +388,8 @@ export default function Step5() {
         <div className={styles.summary}>
           <div className={styles.summaryIcon}>🦷</div>
           <div className={styles.summaryText}>
-            <span className={styles.summaryTitle}>{summaryTitle}</span>
-            <span className={styles.summarySubtitle}>{summarySubtitle}</span>
+            <span className={styles.summaryTitle}>{summaryTitle()}</span>
+            <span className={styles.summarySubtitle}>{summarySubtitle()}</span>
           </div>
         </div>
 
@@ -250,10 +399,10 @@ export default function Step5() {
             <span className={styles.chartLabel}>Upper jaw</span>
             <span className={styles.chartLabel}>Right ←</span>
           </div>
-          <div className={styles.chart}>
-            {UPPER.map(t => <ToothButton key={t.num} tooth={t} jaw="upper" selected={selectedTeeth.has(t.num)} onToggle={toggleTooth} />)}
+          <div className={styles.chart} style={{ height: CHART_HEIGHT }}>
+            {UPPER_ARCH.map(t => <ToothButton key={t.num} tooth={t} jaw="upper" selected={selectedTeeth.has(t.num)} onToggle={toggleTooth} />)}
             <div className={styles.chartDivider} />
-            {LOWER.map(t => <ToothButton key={t.num} tooth={t} jaw="lower" selected={selectedTeeth.has(t.num)} onToggle={toggleTooth} />)}
+            {LOWER_ARCH.map(t => <ToothButton key={t.num} tooth={t} jaw="lower" selected={selectedTeeth.has(t.num)} onToggle={toggleTooth} />)}
             <span className={styles.lowerLabel}>Lower jaw</span>
           </div>
           <div className={styles.legend}>

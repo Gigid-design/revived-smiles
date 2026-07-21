@@ -101,17 +101,19 @@
   flex-shrink: 0;
 }
 
-/* Swatch row */
+/* Swatch row — four tooth shades have to fit across 430px, so the gap is
+   tighter than the original three-up row and the cards may shrink. */
 .swatchRow {
   display: flex;
-  gap: 0.625em;          /* ~10px */
+  gap: 0.5em;            /* 8px */
   margin-bottom: 1.25em;
   flex-shrink: 0;
 }
 
-/* Individual swatch card — 80px × 105px, rounded 14px */
+/* Individual swatch card — rounded 14px */
 .swatchCard {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   height: 6.5625em;      /* 105px */
   background: #ffffff;
   border: 2px solid #e8e8e4;
@@ -138,6 +140,18 @@
   border-radius: 0.5em 0.5em 0.875em 0.875em; /* 8px top, 14px bottom */
   border: 1px solid rgba(0,0,0,0.09);
   flex-shrink: 0;
+}
+
+/* Clear gum — there's no colour to show, so show transparency.
+   The checkerboard is the conventional "nothing here" signal, kept faint so it
+   reads as material rather than as a broken image. */
+.chipClear {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(45deg, #e4e8ef 25%, transparent 25%, transparent 75%, #e4e8ef 75%),
+    linear-gradient(45deg, #e4e8ef 25%, transparent 25%, transparent 75%, #e4e8ef 75%);
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
 }
 
 /* Shade code e.g. "A1" */

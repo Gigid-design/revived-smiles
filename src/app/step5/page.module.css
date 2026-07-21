@@ -125,18 +125,18 @@
   text-transform: uppercase;
 }
 
-/* Chart area — 173px, relative container for all teeth */
+/* Chart area. Its height comes from the arch geometry in the page, set inline,
+   so the container can't drift out of step with what it holds. */
 .chart {
   position: relative;
-  height: 10.8125em;  /* 173px */
   width: 100%;
 }
 
-/* Horizontal center divider */
+/* Horizontal centre divider, sitting in the gap between the two arches */
 .chartDivider {
   position: absolute;
   left: 8px; right: 8px;
-  top: 86px;
+  top: 50%;
   height: 1px;
   background: linear-gradient(90deg, rgba(220,228,240,0) 0%, rgb(220,228,240) 20%, rgb(220,228,240) 80%, rgba(220,228,240,0) 100%);
 }
@@ -155,27 +155,30 @@
   text-transform: uppercase;
 }
 
-/* Individual tooth button */
+/* Individual tooth button.
+   Positioned by its centre and rotated to sit on the arch — the full transform
+   comes from the element's inline style, so none is set here. */
 .tooth {
   position: absolute;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
-  transform: translateX(-50%);
+  transform-origin: center;
 }
 
-/* Tooth number — below for upper, above for lower */
+/* Tooth number — placed just outside the arch, always upright */
 .toothNum {
   position: absolute;
+  transform: translate(-50%, -50%);
   font-family: var(--font-heading);
   font-weight: 500;
   font-size: 9px;  /* fixed px so it doesn't scale */
   line-height: 1;
-  color: #b0bec5;
+  color: #7c8a99;  /* 4.5:1 on the chart's #f7f9fc panel */
   white-space: nowrap;
   pointer-events: none;
 }

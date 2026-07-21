@@ -65,7 +65,11 @@ export default function ProductStep() {
   const openFlag = requests.find((m) => m.request?.kind === "order" && m.request.status === "pending");
 
   const config = product ? PRODUCTS.find((p) => p.id === product) : undefined;
-  const total = product ? getTotalSteps(product) : 1;
+
+  /* How long the wizard is depends on the product. Until one is known there is
+     no honest total, and claiming one would show a full bar on a screen she
+     can't move past. */
+  const total = product ? getTotalSteps(product) : null;
 
   async function flagOrder(detail: string, note: string) {
     await sendRequest("order", detail, note);
@@ -77,8 +81,8 @@ export default function ProductStep() {
 
       <IntakeHeader
         label="Your Details"
-        pct={Math.round((1 / total) * 100)}
-        counter={`Step 1 of ${total}`}
+        pct={total ? Math.round((1 / total) * 100) : 0}
+        counter={total ? `Step 1 of ${total}` : "Step 1"}
         onBack={() => navigate('/dashboard', 'backward')}
         onClose={() => navigate('/dashboard', 'backward')}
       />
