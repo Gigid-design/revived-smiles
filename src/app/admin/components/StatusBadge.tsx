@@ -1,20 +1,13 @@
 "use client";
 
-type SubmissionStatus =
-  | "pending"
-  | "in_review"
-  | "approved"
-  | "rejected"
-  | "changes_requested"
-  | "in_fabrication"
-  | "shipped"
-  | "completed";
+import type { SubmissionStatus } from "@/lib/api";
 
 interface StatusBadgeProps {
   status: SubmissionStatus;
 }
 
 const STATUS_CONFIG: Record<SubmissionStatus, { label: string; bg: string; text: string }> = {
+  draft: { label: "Draft", bg: "#f1f5f9", text: "#475569" },
   pending: { label: "Pending", bg: "#fef3c7", text: "#92400e" },
   in_review: { label: "In Review", bg: "#dbeafe", text: "#1e40af" },
   approved: { label: "Approved", bg: "#dcfce7", text: "#166534" },

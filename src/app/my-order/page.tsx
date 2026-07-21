@@ -2,28 +2,50 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
+import { api } from "@/lib/api";
+import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
+import { productLabels } from "@/app/context/productConfig";
 import { useMessages, REQUEST_LABELS, RequestStatus } from "@/app/context/MessagesContext";
 
-/* Placeholder order summary. Wiring this to the real submission/Shopify order
-   is a separate scope — this pass covers the customer-facing surface. */
-const ORDER = {
-  product: "Flexible Partial Denture",
-  reference: "RS-10428",
-  placed: "Jul 14, 2026",
-  status: "In review",
+/* Fulfilment stages shown in the tracker, in order. */
+const STAGE_LABELS = [
+  "Order placed",
+  "Impression kit shipped",
+  "Impressions received",
+  "In review by your care team",
+  "In production",
+  "On its way to you",
+];
+
+/* How far along the tracker each order status sits — the count of stages above
+   that are complete. The last completed stage is the one highlighted. */
+const STAGES_COMPLETE: Record<SubmissionStatus, number> = {
+  draft: 2,
+  pending: 3,
+  in_review: 4,
+  changes_requested: 4,
+  rejected: 4,
+  approved: 4,
+  in_fabrication: 5,
+  shipped: 6,
+  completed: 6,
 };
 
-/* Fulfilment stages shown in the tracker. `done` marks progress so far. */
-const STAGES: { label: string; done: boolean }[] = [
-  { label: "Order placed", done: true },
-  { label: "Impression kit shipped", done: true },
-  { label: "Impressions received", done: true },
-  { label: "In review by your care team", done: false },
-  { label: "In production", done: false },
-  { label: "On its way to you", done: false },
-];
+/* The patient-facing wording for an order status. */
+const ORDER_STATUS_COPY: Record<SubmissionStatus, string> = {
+  draft: "In progress",
+  pending: "In review",
+  in_review: "In review",
+  changes_requested: "Action needed",
+  rejected: "Declined",
+  approved: "Approved",
+  in_fabrication: "In production",
+  shipped: "Shipped",
+  completed: "Completed",
+};
 
 const STATUS_COPY: Record<RequestStatus, string> = {
   pending: "Awaiting review",
@@ -35,11 +57,52 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function formatPlaced(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+/* The domain model has no customer-facing order reference, so the one shown here
+   is derived from the submission id — the same reference printed on the return
+   shipping label, so the two always agree. */
+function orderReference(id: string): string {
+  return `RS-${id.slice(0, 8).toUpperCase()}`;
+}
+
 export default function MyOrder() {
   const { threads, unreadCount } = useMessages();
 
+  const [order, setOrder] = useState<Submission | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadOrder() {
+      try {
+        const mine = await api.submissions.getMine();
+        if (!cancelled) setOrder(mine);
+      } catch (err) {
+        console.error("Could not load your order:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadOrder();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   /* Only threads opened by a supplies request are tracked here. */
   const requestThreads = threads.filter((t) => t.request);
+
+  const stagesComplete = order ? STAGES_COMPLETE[order.status] : 0;
 
   const STATUS_CLASS: Record<RequestStatus, string> = {
     pending: styles.statusPending,
@@ -73,33 +136,54 @@ export default function MyOrder() {
         <h1 className={styles.heading}>My Order</h1>
 
         {/* ── Order summary ── */}
-        <section className={styles.orderCard}>
-          <div className={styles.orderHead}>
-            <div>
-              <h2 className={styles.orderProduct}>{ORDER.product}</h2>
-              <p className={styles.orderMeta}>
-                {ORDER.reference} · Placed {ORDER.placed}
-              </p>
-            </div>
-            <span className={styles.orderStatus}>{ORDER.status}</span>
+        {loading ? (
+          /* Hold the frame until the order loads */
+          <section className={styles.orderCard} aria-busy="true" />
+        ) : !order ? (
+          <div className={styles.emptyCard}>
+            <p className={styles.emptyTitle}>No order yet</p>
+            <p className={styles.emptyBody}>
+              Once you finish your intake, your order and its progress will show up here.
+            </p>
           </div>
+        ) : (
+          <section className={styles.orderCard}>
+            <div className={styles.orderHead}>
+              <div>
+                <h2 className={styles.orderProduct}>
+                  {order.products.length ? productLabels(order.products) : "Your order"}
+                </h2>
+                <p className={styles.orderMeta}>
+                  {orderReference(order.id)} · Placed {formatPlaced(order.createdAt)}
+                </p>
+              </div>
+              <span className={styles.orderStatus}>{ORDER_STATUS_COPY[order.status]}</span>
+            </div>
 
-          {/* Fulfilment tracker */}
-          <ol className={styles.timeline}>
-            {STAGES.map((stage, i) => {
-              const isCurrent = stage.done && !STAGES[i + 1]?.done;
-              return (
-                <li
-                  key={stage.label}
-                  className={`${styles.stage} ${stage.done ? styles.stageDone : ""} ${isCurrent ? styles.stageCurrent : ""}`}
-                >
-                  <span className={styles.stageDot} aria-hidden="true" />
-                  <span className={styles.stageLabel}>{stage.label}</span>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
+            {/* Fulfilment tracker */}
+            <ol className={styles.timeline}>
+              {STAGE_LABELS.map((label, i) => {
+                const done = i < stagesComplete;
+                const isCurrent = i === stagesComplete - 1;
+                return (
+                  <li
+                    key={label}
+                    className={`${styles.stage} ${done ? styles.stageDone : ""} ${isCurrent ? styles.stageCurrent : ""}`}
+                  >
+                    <span className={styles.stageDot} aria-hidden="true" />
+                    <span className={styles.stageLabel}>{label}</span>
+                  </li>
+                );
+              })}
+            </ol>
+
+            {order.trackingNumber && (
+              <p className={styles.tracking}>
+                Tracking <span className={styles.trackingNo}>{order.trackingNumber}</span>
+              </p>
+            )}
+          </section>
+        )}
 
         {/* ── Requests ── */}
         <section className={styles.requestsSection}>
@@ -142,9 +226,9 @@ export default function MyOrder() {
                         </svg>
                         <span>{req.outcome}</span>
                       </div>
-                      {req.tracking && (
+                      {req.trackingNumber && (
                         <p className={styles.tracking}>
-                          Tracking <span className={styles.trackingNo}>{req.tracking}</span>
+                          Tracking <span className={styles.trackingNo}>{req.trackingNumber}</span>
                         </p>
                       )}
                     </div>

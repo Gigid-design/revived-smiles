@@ -4,18 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "./page.module.css";
-import { getSupabase } from "@/lib/supabase";
-
-/** Emails allowed to access the admin portal.
- *  Extend this list or replace with a DB lookup as the team grows. */
-const ADMIN_EMAILS = [
-  "admin@revivedsmiles.com",
-  "ivan.lomelin@unosquare.com",
-];
-
-function isAdminEmail(email: string): boolean {
-  return ADMIN_EMAILS.includes(email.toLowerCase().trim());
-}
+import { api, ApiError } from "@/lib/api";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -29,50 +18,13 @@ export default function AdminLoginPage() {
     setError("");
     setLoading(true);
 
-    const trimmedEmail = email.trim().toLowerCase();
-
-    /* 1. Gate: only allowed admin emails */
-    if (!isAdminEmail(trimmedEmail)) {
-      setError("This account does not have admin access.");
-      setLoading(false);
-      return;
-    }
-
-    /* 2. Authenticate via Supabase Auth */
+    /* The backend decides who counts as an admin and starts the session. */
     try {
-      const supabase = getSupabase();
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: trimmedEmail,
-        password,
-      });
-
-      if (authError) {
-        let msg = authError.message;
-        if (msg.includes("Invalid login credentials")) msg = "Incorrect email or password.";
-        setError(msg);
-        setLoading(false);
-        return;
-      }
-
-      /* 3. Fetch the user profile for display name */
-      const { data: { user } } = await supabase.auth.getUser();
-      const displayName = user?.user_metadata?.full_name
-        || user?.user_metadata?.name
-        || trimmedEmail.split("@")[0];
-
-      /* 4. Persist admin session metadata for the auth guard */
-      const session = {
-        name: displayName,
-        email: trimmedEmail,
-        role: "Admin",
-        loggedInAt: new Date().toISOString(),
-      };
-      sessionStorage.setItem("rs_admin_session", JSON.stringify(session));
-
+      await api.auth.signInAdmin(email, password);
       router.push("/admin");
     } catch (err) {
       console.error("Admin login failed:", err);
-      setError("Something went wrong. Please try again.");
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
       setLoading(false);
     }
   }
@@ -131,7 +83,7 @@ export default function AdminLoginPage() {
 
         <div className={styles.demoHint}>
           Demo credentials:<br />
-          <strong>admin@revivedsmiles.com</strong> / <strong>demo1234</strong>
+          <strong>admin@revivedsmiles.com</strong> / <strong>any password</strong>
         </div>
       </div>
     </div>

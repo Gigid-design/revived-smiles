@@ -4,26 +4,13 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
 import { StatusBadge } from "../components/StatusBadge";
-import { getSupabase } from "@/lib/supabase";
-import { PRODUCTS } from "@/app/context/productConfig";
+import { api } from "@/lib/api";
+import type { Submission, SubmissionStatus } from "@/lib/api";
+import { productLabel } from "@/app/context/productConfig";
 import { useRealtimeContext } from "../AdminShell";
 
-function productLabel(id: string): string {
-  return PRODUCTS.find((p) => p.id === id)?.label ?? id;
-}
-
-interface Submission {
-  id: string;
-  name: string;
-  email: string;
-  state: string;
-  status: string;
-  products: string[];
-  created_at: string;
-}
-
 const PAGE_SIZE = 25;
-const STATUS_OPTIONS = [
+const STATUS_OPTIONS: { value: SubmissionStatus | ""; label: string }[] = [
   { value: "", label: "All Statuses" },
   { value: "pending", label: "Pending" },
   { value: "in_review", label: "In Review" },
@@ -49,41 +36,27 @@ export default function SubmissionsListPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<SubmissionStatus | "">("");
   const [searchQuery, setSearchQuery] = useState("");
   const { lastEvent } = useRealtimeContext();
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   const fetchSubmissions = useCallback(async () => {
     setLoading(true);
-    const supabase = getSupabase();
-
-    let query = supabase
-      .from("submissions")
-      .select("id, name, email, state, status, products, created_at", { count: "exact" })
-      .neq("status", "draft")
-      .order("created_at", { ascending: false })
-      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-
-    if (statusFilter) {
-      query = query.eq("status", statusFilter);
-    }
-
-    if (searchQuery.trim()) {
-      query = query.or(`name.ilike.%${searchQuery.trim()}%,email.ilike.%${searchQuery.trim()}%`);
-    }
-
-    const { data, error, count } = await query;
-
-    if (error) {
-      console.error("Failed to fetch submissions:", error);
+    try {
+      const { rows, total } = await api.submissions.list({
+        page,
+        pageSize: PAGE_SIZE,
+        status: statusFilter,
+        search: searchQuery.trim(),
+      });
+      setSubmissions(rows);
+      setTotalCount(total);
+    } catch (err) {
+      console.error("Failed to fetch submissions:", err);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setSubmissions((data ?? []) as Submission[]);
-    setTotalCount(count ?? 0);
-    setLoading(false);
   }, [page, statusFilter, searchQuery]);
 
   useEffect(() => {
@@ -94,11 +67,9 @@ export default function SubmissionsListPage() {
   useEffect(() => {
     async function fetchUnreadCounts() {
       if (submissions.length === 0) return;
-      const ids = submissions.map((s) => s.id).join(",");
       try {
-        const res = await fetch(`/api/messages?unreadCounts=${ids}`);
-        const data = await res.json();
-        if (data.counts) setUnreadCounts(data.counts);
+        const counts = await api.messages.unreadCounts(submissions.map((s) => s.id));
+        setUnreadCounts(counts);
       } catch {}
     }
     fetchUnreadCounts();
@@ -116,7 +87,7 @@ export default function SubmissionsListPage() {
         <select
           className={styles.filterSelect}
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
+          onChange={(e) => { setStatusFilter(e.target.value as SubmissionStatus | ""); setPage(0); }}
           aria-label="Filter by status"
         >
           {STATUS_OPTIONS.map((opt) => (
@@ -195,11 +166,11 @@ export default function SubmissionsListPage() {
                         : "—"}
                     </td>
                     <td>
-                      <StatusBadge status={(sub.status || "pending") as "pending"} />
+                      <StatusBadge status={sub.status} />
                     </td>
                     <td>
                       <span className={styles.dateText}>
-                        {sub.created_at ? formatDate(sub.created_at) : "—"}
+                        {sub.createdAt ? formatDate(sub.createdAt) : "—"}
                       </span>
                     </td>
                     <td>

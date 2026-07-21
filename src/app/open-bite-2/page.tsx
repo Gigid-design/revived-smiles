@@ -7,22 +7,12 @@ import { usePageTransition } from "../hooks/usePageTransition";
 import PhotoTimeline from "../components/PhotoTimeline";
 import { IntakeHeader } from "../components/IntakeHeader";
 import { useSubmission } from "../context/SubmissionContext";
-import { getSupabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
+import type { AnalysisCheck, PhotoAnalysis, PhotoType } from "@/lib/api";
 
 type State = "idle" | "analyzing" | "pass" | "warning";
 
-/* Design mode (local design sessions): simulate capture + skip backend saves so
-   the flow is clickable without a camera or backend. Auto-off in real environments. */
-const DESIGN_MODE = process.env.NEXT_PUBLIC_DESIGN_MODE === "1";
-const DEMO_PHOTO = "/assets/images/open-bite-left.png";
-
-interface Check {
-  id: string;
-  label: string;
-  pass: boolean;
-  detail: string;
-  observation?: string;
-}
+const PHOTO_TYPE: PhotoType = "open-bite-side";
 
 interface PillState {
   label: string;
@@ -62,12 +52,11 @@ export default function OpenBite2() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [pill, setPill] = useState<PillState | null>(null);
   const [tip, setTip] = useState<string | null>(null);
-  const [checks, setChecks] = useState<Check[]>([]);
+  const [analysis, setAnalysis] = useState<PhotoAnalysis | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [showExample, setShowExample] = useState(false);
   const [teethCenter, setTeethCenter] = useState<{ x: number; y: number } | null>(null);
-  const [aiSummary, setAiSummary] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startCamera = useCallback(async (facing: "environment" | "user" = "environment") => {
@@ -93,7 +82,7 @@ export default function OpenBite2() {
     setFacingMode((prev) => prev === "environment" ? "user" : "environment");
   };
 
-  const runChecks = useCallback(async (checks: Check[]) => {
+  const runChecks = useCallback(async (checks: AnalysisCheck[]) => {
     for (let i = 0; i < checks.length; i++) {
       const c = checks[i];
       setPill({ label: c.label, detail: "", status: "checking" });
@@ -106,7 +95,6 @@ export default function OpenBite2() {
     const failedCheck = checks.find((c) => !c.pass);
 
     setPill(null);
-    setChecks(checks);
 
     if (allPass) {
       setState("pass");
@@ -116,76 +104,59 @@ export default function OpenBite2() {
     }
   }, []);
 
-  const captureAndAnalyze = async () => {
-    // Design mode: skip live camera + AI analysis — show a passing result with a
-    // sample photo so the screen is clickable without a camera or backend.
-    if (DESIGN_MODE) {
-      setCapturedImage(DEMO_PHOTO);
-      setChecks([]);
-      setState("pass");
-      return;
+  /* One analysis path for both the shutter and the gallery picker. */
+  const analyzePhoto = useCallback(async (dataUrl: string) => {
+    setCapturedImage(dataUrl);
+    setState("analyzing");
+    setPill({ label: "Starting scan…", detail: "", status: "checking" });
+
+    try {
+      const result = await api.photos.analyze(dataUrl, PHOTO_TYPE);
+      setAnalysis(result);
+      if (result.teethCenter) setTeethCenter(result.teethCenter);
+      await runChecks(result.checks);
+    } catch {
+      const fallback: PhotoAnalysis = {
+        checks: FALLBACK_CHECK_IDS.map((id) => ({
+          id, label: id, pass: false, detail: "Could not analyze. Try again.",
+        })),
+        summary: null,
+        teethCenter: null,
+        pass: false,
+      };
+      setAnalysis(fallback);
+      await runChecks(fallback.checks);
     }
+  }, [runChecks]);
+
+  const captureAndAnalyze = async () => {
     if (!videoRef.current || !canvasRef.current) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
     canvas.getContext("2d")!.drawImage(video, 0, 0);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
 
-    setCapturedImage(dataUrl);
-    setState("analyzing");
-    setPill({ label: "Starting scan…", detail: "", status: "checking" });
-
-    const base64 = dataUrl.split(",")[1];
-
-    try {
-      const res = await fetch("/api/analyze-photo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64, photoType: "open-bite-side" }),
-      });
-      const data = await res.json();
-      if (data.teethCenter) setTeethCenter(data.teethCenter);
-      if (data.summary) setAiSummary(data.summary);
-      await runChecks(data.checks);
-    } catch {
-      const fallback: Check[] = FALLBACK_CHECK_IDS.map((id) => ({
-        id, label: id, pass: false, detail: "Could not analyze. Try again.",
-      }));
-      await runChecks(fallback);
-    }
+    await analyzePhoto(canvas.toDataURL("image/jpeg", 0.85));
   };
 
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmitPhoto = async () => {
     if (submitting) return;
-    // Design mode: no backend to upload to — record the photo so the dashboard
-    // reflects a finished intake, then show the completion screen.
-    if (DESIGN_MODE) {
-      update({ openBitePhotos: [...(data.openBitePhotos ?? []), capturedImage ?? DEMO_PHOTO] });
-      navigate('/intake-complete', 'forward');
-      return;
-    }
     setSubmitting(true);
     try {
       if (capturedImage) {
-        const supabase = getSupabase();
         const blob = await fetch(capturedImage).then(r => r.blob());
-        const path = `open-bite/${Date.now()}-side.jpg`;
-        await supabase.storage.from("impression-photos").upload(path, blob, { contentType: "image/jpeg", upsert: true });
-        const { data: urlData } = supabase.storage.from("impression-photos").getPublicUrl(path);
+        const { url } = await api.photos.upload(blob, "open-bite");
 
         const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
-        if (id) {
-          const { data: row } = await supabase.from("submissions").select("open_bite_photos,photo_analyses").eq("id", id).single();
-          const photos = row?.open_bite_photos || [];
-          photos[1] = urlData.publicUrl;
-          const analyses = row?.photo_analyses || {};
-          analyses["open-bite-side"] = { checks, summary: aiSummary, teethCenter, pass: checks.every(c => c.pass) };
-          await supabase.from("submissions").update({ open_bite_photos: photos, photo_analyses: analyses }).eq("id", id);
-        }
+        if (id) await api.photos.attachToSubmission(id, PHOTO_TYPE, url, analysis);
+
+        // Keep the dashboard's progress in step with what was just saved.
+        const nextPhotos = [...data.openBitePhotos];
+        nextPhotos[1] = url;
+        update({ openBitePhotos: nextPhotos });
       }
       // Teeth photos are the final intake step — celebrate, then back to the dashboard.
       navigate('/intake-complete', 'forward');
@@ -252,7 +223,7 @@ export default function OpenBite2() {
                 src={capturedImage}
                 alt="Captured"
                 className={styles.capturedImg}
-                style={teethCenter ? { objectPosition: `${teethCenter.x}% ${teethCenter.y}%` } : undefined}
+                style={teethCenter ? { objectPosition: `${teethCenter.x * 100}% ${teethCenter.y * 100}%` } : undefined}
               />
             )}
             {cameraError && (
@@ -354,28 +325,7 @@ export default function OpenBite2() {
                 if (!file) return;
                 const reader = new FileReader();
                 reader.onload = () => {
-                  const dataUrl = reader.result as string;
-                  const base64 = dataUrl.split(",")[1];
-                  setCapturedImage(dataUrl);
-                  setState("analyzing");
-                  setPill({ label: "Starting scan…", detail: "", status: "checking" });
-                  fetch("/api/analyze-photo", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ imageBase64: base64, photoType: "open-bite-side" }),
-                  })
-                    .then((res) => res.json())
-                    .then((data) => {
-                      if (data.teethCenter) setTeethCenter(data.teethCenter);
-                      if (data.summary) setAiSummary(data.summary);
-                      return runChecks(data.checks);
-                    })
-                    .catch(() => {
-                      const fallback: Check[] = FALLBACK_CHECK_IDS.map((id) => ({
-                        id, label: id, pass: false, detail: "Could not analyze. Try again.",
-                      }));
-                      runChecks(fallback);
-                    });
+                  void analyzePhoto(reader.result as string);
                 };
                 reader.readAsDataURL(file);
                 e.target.value = "";
@@ -407,7 +357,8 @@ export default function OpenBite2() {
               setCapturedImage(null);
               setPill(null);
               setTip(null);
-              setAiSummary(null);
+              setAnalysis(null);
+              setTeethCenter(null);
               setState("idle");
             }}>Retake Photo</button>
             <button className={styles.continueAnywayBtn} onClick={handleSubmitPhoto}>{submitting ? "Saving…" : "Continue Anyway"}</button>

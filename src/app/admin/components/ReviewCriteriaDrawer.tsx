@@ -2,23 +2,10 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import styles from "./ReviewCriteriaDrawer.module.css";
+import { api } from "@/lib/api";
+import type { AdvisorMessage, PhotoAnalysis, PhotoType } from "@/lib/api";
 
 /* ── Types ── */
-
-interface Check {
-  id: string;
-  label: string;
-  pass: boolean;
-  detail: string;
-  observation?: string;
-}
-
-interface AnalysisEntry {
-  checks: Check[];
-  summary: string | null;
-  teethCenter: { x: number; y: number } | null;
-  pass: boolean;
-}
 
 interface DrawerMessage {
   id: string;
@@ -32,13 +19,13 @@ export interface ReviewCriteriaDrawerProps {
   onClose: () => void;
   photoUrl: string;
   photoLabel: string;
-  photoType: string;
-  analysis: AnalysisEntry | null;
+  photoType: PhotoType | "";
+  analysis: PhotoAnalysis | null;
 }
 
 /* ── Label map ── */
 
-const PHOTO_TYPE_MAP: Record<string, string> = {
+const PHOTO_TYPE_MAP: Record<string, PhotoType> = {
   "Close Bite — Front": "close-bite-front",
   "Close Bite — Left": "close-bite-side",
   "Close Bite — Right": "close-bite-side",
@@ -49,7 +36,7 @@ const PHOTO_TYPE_MAP: Record<string, string> = {
 
 /* ── Helpers ── */
 
-function buildInitialMessage(analysis: AnalysisEntry, label: string): string {
+function buildInitialMessage(analysis: PhotoAnalysis, label: string): string {
   const failedChecks = analysis.checks.filter((c) => !c.pass);
   const passedChecks = analysis.checks.filter((c) => c.pass);
 
@@ -269,31 +256,22 @@ export function ReviewCriteriaDrawer({
       setIsLoading(true);
 
       try {
-        const apiMessages = [...messages, userMsg].map((m) => ({
+        const apiMessages: AdvisorMessage[] = [...messages, userMsg].map((m) => ({
           role: m.role,
           content: m.content,
         }));
 
-        const res = await fetch("/api/agent/prompt-advisor", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: apiMessages,
-            context: {
-              photoType: resolvedType,
-              photoLabel,
-              photoUrl,
-              analysisResult: analysis,
-            },
-          }),
+        const response = await api.prompts.advise(apiMessages, {
+          photoType: resolvedType || undefined,
+          photoLabel,
+          photoUrl,
+          analysis,
         });
-
-        const data = await res.json();
 
         const assistantMsg: DrawerMessage = {
           id: `ai-${Date.now()}`,
           role: "assistant",
-          content: data.response || "I couldn't generate a response. Please try again.",
+          content: response || "I couldn't generate a response. Please try again.",
           timestamp: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, assistantMsg]);

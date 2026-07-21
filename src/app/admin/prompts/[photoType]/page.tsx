@@ -4,26 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
-
-interface ContentCheck {
-  id: string;
-  label: string;
-  requirement: string;
-}
-
-interface PromptConfig {
-  id: string;
-  photo_type: string;
-  version: number;
-  label: string;
-  pose_description: string;
-  content_checks: ContentCheck[];
-  quality_checks: ContentCheck[];
-  is_active: boolean;
-  created_by: string | null;
-  change_notes: string | null;
-  created_at: string;
-}
+import { api, ApiError, isPhotoType } from "@/lib/api";
+import type { PhotoType, PromptCheck, PromptConfig } from "@/lib/api";
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -37,7 +19,8 @@ function formatDate(dateStr: string): string {
 
 export default function PromptEditorPage() {
   const params = useParams();
-  const photoType = decodeURIComponent(params.photoType as string);
+  const photoTypeParam = decodeURIComponent(params.photoType as string);
+  const photoType: PhotoType | null = isPhotoType(photoTypeParam) ? photoTypeParam : null;
 
   const [versions, setVersions] = useState<PromptConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,20 +30,22 @@ export default function PromptEditorPage() {
   /* Editable fields */
   const [label, setLabel] = useState("");
   const [poseDescription, setPoseDescription] = useState("");
-  const [contentChecks, setContentChecks] = useState<ContentCheck[]>([]);
-  const [qualityChecks, setQualityChecks] = useState<ContentCheck[]>([]);
+  const [contentChecks, setContentChecks] = useState<PromptCheck[]>([]);
+  const [qualityChecks, setQualityChecks] = useState<PromptCheck[]>([]);
   const [changeNotes, setChangeNotes] = useState("");
 
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
 
   const loadVersions = useCallback(async () => {
+    if (!photoType) {
+      setLoading(false);
+      return;
+    }
     try {
-      const res = await fetch(`/api/prompts?photoType=${encodeURIComponent(photoType)}`);
-      const data = await res.json();
-      const configs = (data.configs ?? []) as PromptConfig[];
+      const configs = await api.prompts.listByType(photoType);
       setVersions(configs);
 
-      const active = configs.find((c) => c.is_active) ?? configs[0];
+      const active = configs.find((c) => c.isActive) ?? configs[0];
       if (active) {
         loadIntoEditor(active);
         setSelectedVersion(active.id);
@@ -78,10 +63,10 @@ export default function PromptEditorPage() {
 
   function loadIntoEditor(config: PromptConfig) {
     setLabel(config.label);
-    setPoseDescription(config.pose_description);
-    setContentChecks(config.content_checks.map((c) => ({ ...c })));
+    setPoseDescription(config.poseDescription);
+    setContentChecks(config.contentChecks.map((c) => ({ ...c })));
     setQualityChecks(
-      (config.quality_checks ?? []).map((c) => ({ ...c }))
+      (config.qualityChecks ?? []).map((c) => ({ ...c }))
     );
     setChangeNotes("");
   }
@@ -123,6 +108,11 @@ export default function PromptEditorPage() {
 
   /* ── Save ── */
   async function handleSave() {
+    if (!photoType) {
+      showToast("Unknown photo type.", "error");
+      return;
+    }
+
     if (!changeNotes.trim()) {
       showToast("Please describe what you changed before saving.", "error");
       return;
@@ -141,30 +131,21 @@ export default function PromptEditorPage() {
 
     setSaving(true);
     try {
-      const res = await fetch("/api/prompts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          photoType,
-          label: label.trim(),
-          poseDescription: poseDescription.trim(),
-          contentChecks: validChecks,
-          qualityChecks: qualityChecks.filter((c) => c.label.trim() && c.requirement.trim()),
-          changeNotes: changeNotes.trim(),
-          createdBy: "Admin", // TODO: pull from auth
-        }),
+      const created = await api.prompts.create({
+        photoType,
+        label: label.trim(),
+        poseDescription: poseDescription.trim(),
+        contentChecks: validChecks,
+        qualityChecks: qualityChecks.filter((c) => c.label.trim() && c.requirement.trim()),
+        changeNotes: changeNotes.trim(),
+        createdBy: "Admin", // TODO: pull from auth
       });
 
-      const data = await res.json();
-      if (data.error) {
-        showToast(data.error, "error");
-      } else {
-        showToast(`Saved as version ${data.config.version} — now active.`);
-        setChangeNotes("");
-        await loadVersions();
-      }
-    } catch {
-      showToast("Failed to save. Please try again.", "error");
+      showToast(`Saved as version ${created.version} — now active.`);
+      setChangeNotes("");
+      await loadVersions();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : "Something went wrong.", "error");
     } finally {
       setSaving(false);
     }
@@ -172,23 +153,19 @@ export default function PromptEditorPage() {
 
   /* ── Restore a previous version ── */
   async function handleRestore(config: PromptConfig) {
+    if (!photoType) {
+      showToast("Unknown photo type.", "error");
+      return;
+    }
+
     try {
-      const res = await fetch("/api/prompts", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: config.id, photoType }),
-      });
-      const data = await res.json();
-      if (data.error) {
-        showToast(data.error, "error");
-      } else {
-        showToast(`Restored version ${config.version} as active.`);
-        loadIntoEditor(config);
-        setSelectedVersion(config.id);
-        await loadVersions();
-      }
-    } catch {
-      showToast("Failed to restore. Please try again.", "error");
+      await api.prompts.activate(config.id, photoType);
+      showToast(`Restored version ${config.version} as active.`);
+      loadIntoEditor(config);
+      setSelectedVersion(config.id);
+      await loadVersions();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : "Something went wrong.", "error");
     }
   }
 
@@ -213,8 +190,8 @@ export default function PromptEditorPage() {
         Back to Prompts
       </Link>
 
-      <h1 className={styles.title}>{label || photoType}</h1>
-      <p className={styles.subtitle}>Photo type: <code>{photoType}</code></p>
+      <h1 className={styles.title}>{label || photoTypeParam}</h1>
+      <p className={styles.subtitle}>Photo type: <code>{photoTypeParam}</code></p>
 
       <div className={styles.columns}>
         {/* Left: Editor */}
@@ -361,19 +338,19 @@ export default function PromptEditorPage() {
                   <div className={styles.historyItemHeader}>
                     <span className={styles.historyVersion}>
                       v{v.version}
-                      {v.is_active && (
+                      {v.isActive && (
                         <span className={styles.activeBadge}>Active</span>
                       )}
                     </span>
-                    <span className={styles.historyDate}>{formatDate(v.created_at)}</span>
+                    <span className={styles.historyDate}>{formatDate(v.createdAt)}</span>
                   </div>
-                  {v.change_notes && (
-                    <p className={styles.historyNotes}>{v.change_notes}</p>
+                  {v.changeNotes && (
+                    <p className={styles.historyNotes}>{v.changeNotes}</p>
                   )}
-                  {v.created_by && (
-                    <span className={styles.historyAuthor}>by {v.created_by}</span>
+                  {v.createdBy && (
+                    <span className={styles.historyAuthor}>by {v.createdBy}</span>
                   )}
-                  {!v.is_active && selectedVersion === v.id && (
+                  {!v.isActive && selectedVersion === v.id && (
                     <button
                       className={styles.restoreBtn}
                       onClick={(e) => {

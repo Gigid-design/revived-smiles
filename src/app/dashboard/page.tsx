@@ -4,30 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import styles from "./page.module.css";
-import { getSupabase } from "@/lib/supabase";
-import { useSubmission, SubmissionState } from "@/app/context/SubmissionContext";
+import { api, ApiError } from "@/lib/api";
+import type { Submission } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { ImpressionStepsModal } from "@/app/components/ImpressionStepsModal";
 import { useMessages } from "@/app/context/MessagesContext";
-
-/* ── Types ── */
-interface SubmissionData {
-  id: string;
-  name: string;
-  email: string;
-  state: string;
-  products: string[];
-  white_shade: string | null;
-  gum_shade: string | null;
-  status: string;
-  review_notes: string | null;
-  reviewed_at: string | null;
-  created_at: string | null;
-  tracking_number: string | null;
-  close_bite_photos: string[];
-  open_bite_photos: string[];
-  impression_photos: string[];
-}
 
 /* Intake ends once the teeth photos are taken — impression photos are a separate
    task from "Start Here", not an intake step. Total tracks the steps counted
@@ -35,13 +16,13 @@ interface SubmissionData {
 const INTAKE_TOTAL_STEPS = 6;
 
 /* Rough completed-step count for the "Continue My Intake" progress. */
-function intakeDone(sub: SubmissionData): number {
+function intakeDone(sub: Submission): number {
   let done = 1; // intake started
   if (sub.state) done++;
   if (sub.products?.length) done++;
-  if (sub.white_shade || sub.gum_shade) done++;
-  if (sub.close_bite_photos?.length) done++;  // teeth photos — bite closed
-  if (sub.open_bite_photos?.length) done++;   // teeth photos — mouth open
+  if (sub.whiteShade || sub.gumShade) done++;
+  if (sub.closeBitePhotos?.length) done++;  // teeth photos — bite closed
+  if (sub.openBitePhotos?.length) done++;   // teeth photos — mouth open
   return Math.min(done, INTAKE_TOTAL_STEPS);
 }
 
@@ -75,52 +56,11 @@ const STAGE_CLASS: Record<StageState, string> = {
   upcoming: "",
 };
 
-/* Design mode (local design sessions): always render with mock data so the whole
-   dashboard — including the Messages tab — is populated without a live backend. */
-const DESIGN_MODE = process.env.NEXT_PUBLIC_DESIGN_MODE === "1";
-
-/* Mock data for `?demo=1` design-preview mode. */
-const DEMO_SUBMISSION: SubmissionData = {
-  id: "demo-1",
-  name: "Angela Carter",
-  email: "angela@example.com",
-  state: "",
-  products: [],
-  white_shade: null,
-  gum_shade: null,
-  status: "draft",
-  review_notes: null,
-  reviewed_at: null,
-  created_at: new Date().toISOString(),
-  tracking_number: null,
-  close_bite_photos: [],
-  open_bite_photos: [],
-  impression_photos: [],
-};
-
-/* Design/demo mode has no backend, so the dashboard reads progress from whatever
-   the user walked through this session. Without this, finishing the flow would
-   never flip the "Intake Complete" / "Impression Photos Complete" states. */
-function mergeDemoProgress(ctx: SubmissionState): SubmissionData {
-  const sub = { ...DEMO_SUBMISSION };
-  if (ctx.name) sub.name = ctx.name;
-  if (ctx.state) sub.state = ctx.state;
-  if (ctx.products?.length) sub.products = ctx.products;
-  if (ctx.whiteShade) sub.white_shade = ctx.whiteShade;
-  if (ctx.gumShade) sub.gum_shade = ctx.gumShade;
-  if (ctx.closeBitePhotos?.length) sub.close_bite_photos = ctx.closeBitePhotos;
-  if (ctx.openBitePhotos?.length) sub.open_bite_photos = ctx.openBitePhotos;
-  if (ctx.impressionPhotos?.length) sub.impression_photos = ctx.impressionPhotos.map(p => p.url);
-  return sub;
-}
-
 /* ══════════════════════════════════════
    Landing (dashboard) — "Start Here" design
    ══════════════════════════════════════ */
 function Landing() {
-  const { data: contextData } = useSubmission();
-
-  const [submission, setSubmission] = useState<SubmissionData | null>(null);
+  const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stepsOpen, setStepsOpen] = useState(false);
@@ -132,57 +72,35 @@ function Landing() {
 
   /* ── Fetch submission (latest of any status, incl. draft) ── */
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchSubmission() {
-      // Design-preview mode: `?demo=1` (or design mode) renders with mock data.
-      if (DESIGN_MODE || (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "1")) {
-        setSubmission(mergeDemoProgress(contextData));
-        setLoading(false);
-        return;
-      }
       try {
-        setLoading(true);
-        const supabase = getSupabase();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setLoading(false); return; }
-
-        const cols = "id, name, email, state, products, white_shade, gum_shade, status, review_notes, reviewed_at, created_at, tracking_number, close_bite_photos, open_bite_photos, impression_photos";
-
-        let { data } = await supabase
-          .from("submissions")
-          .select(cols)
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (!data && user.email) {
-          const fallback = await supabase
-            .from("submissions")
-            .select(cols)
-            .eq("email", user.email)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          data = fallback.data;
-        }
-
-        if (data) setSubmission(data as SubmissionData);
+        const mine = await api.submissions.getMine();
+        if (!cancelled) setSubmission(mine);
       } catch (err) {
         console.error("Failed to fetch submission:", err);
-        setError("Unable to load your details. Please try again.");
+        if (!cancelled) {
+          setError(err instanceof ApiError ? err.message : "Something went wrong.");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
+
     fetchSubmission();
-  }, [contextData]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const done = submission ? intakeDone(submission) : 0;
 
   /* Each task is an action card until it's done, then it converts into a
      completed step on the progress timeline below. */
   const intakeComplete = done === INTAKE_TOTAL_STEPS;
-  const impressionsComplete = (submission?.impression_photos?.length ?? 0) > 0;
+  const impressionsComplete = (submission?.impressionPhotos?.length ?? 0) > 0;
   const allSubmitted = intakeComplete && impressionsComplete;
   const showTimeline = intakeComplete || impressionsComplete;
 

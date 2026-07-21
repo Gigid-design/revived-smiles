@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
-import { getSupabase } from "@/lib/supabase";
+import { api, ApiError } from "@/lib/api";
 
 export default function ResetPassword() {
   const router = useRouter();
@@ -17,40 +17,32 @@ export default function ResetPassword() {
   const [sessionReady, setSessionReady] = useState(false);
   const [sessionError, setSessionError] = useState(false);
 
-  // Supabase sends the user here with a hash fragment containing the access token.
-  // The Supabase client auto-detects the hash and establishes a session.
-  // We need to wait for that to complete before allowing the password update.
+  // The patient arrives here from the emailed link. The backend decides whether
+  // that link produced a valid recovery session; the form stays gated until it
+  // says yes, and a later recovery event unlocks it if one arrives.
   useEffect(() => {
-    const supabase = getSupabase();
+    let cancelled = false;
 
-    // Listen for the PASSWORD_RECOVERY event
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event) => {
-        if (event === "PASSWORD_RECOVERY") {
-          setSessionReady(true);
-        }
-      }
-    );
-
-    // Also check if we already have a session (user may have refreshed)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setSessionReady(true);
-      } else {
-        // Give Supabase a moment to process the hash fragment
-        setTimeout(() => {
-          supabase.auth.getSession().then(({ data: { session: s } }) => {
-            if (s) {
-              setSessionReady(true);
-            } else {
-              setSessionError(true);
-            }
-          });
-        }, 2000);
-      }
+    const unsubscribe = api.auth.onAuthChange((event) => {
+      if (event === "password_recovery" && !cancelled) setSessionReady(true);
     });
 
-    return () => subscription.unsubscribe();
+    api.auth
+      .hasRecoverySession()
+      .then((valid) => {
+        if (cancelled) return;
+        if (valid) setSessionReady(true);
+        else setSessionError(true);
+      })
+      .catch((err) => {
+        console.error("Could not verify the reset link:", err);
+        if (!cancelled) setSessionError(true);
+      });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
 
   async function handleSubmit(e: FormEvent) {
@@ -68,19 +60,13 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      const supabase = getSupabase();
-      const { error: updateError } = await supabase.auth.updateUser({
-        password,
-      });
-      if (updateError) throw updateError;
+      await api.auth.updatePassword(password);
       setSuccess(true);
 
       // Redirect to home after a short delay
       setTimeout(() => router.push("/"), 3000);
     } catch (err: unknown) {
-      let msg = err instanceof Error ? err.message : "Something went wrong";
-      if (msg.includes("same_password")) msg = "New password must be different from your current password.";
-      setError(msg);
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }

@@ -2,24 +2,10 @@
 
 import { useState } from "react";
 import { PRODUCTS, CATEGORY_LABELS, type ProductConfig } from "@/app/context/productConfig";
-
-interface SubmissionData {
-  name: string;
-  email: string;
-  state: string;
-  products: string[];
-  white_shade: string;
-  gum_shade: string;
-  selected_teeth: number[];
-  teeth_not_sure: boolean;
-  close_bite_photos: string[];
-  open_bite_photos: string[];
-  impression_photos: string[];
-  status: string;
-}
+import type { Submission } from "@/lib/api";
 
 interface CompletenessCheckProps {
-  submission: SubmissionData;
+  submission: Submission;
   defaultOpen?: boolean;
 }
 
@@ -84,26 +70,26 @@ export function CompletenessCheck({ submission, defaultOpen = true }: Completene
   if (needsShade) {
     productItems.push({
       label: "White shade",
-      detail: submission.white_shade || "Not provided",
-      status: submission.white_shade ? "pass" : "fail",
+      detail: submission.whiteShade || "Not provided",
+      status: submission.whiteShade ? "pass" : "fail",
     });
     productItems.push({
       label: "Gum shade",
-      detail: submission.gum_shade || "Not provided",
-      status: submission.gum_shade ? "pass" : "fail",
+      detail: submission.gumShade || "Not provided",
+      status: submission.gumShade ? "pass" : "fail",
     });
   }
 
   if (needsTeethChart) {
-    const teethInfo = submission.selected_teeth?.length
-      ? `Teeth: ${submission.selected_teeth.join(", ")}`
-      : submission.teeth_not_sure
+    const teethInfo = submission.selectedTeeth?.length
+      ? `Teeth: ${submission.selectedTeeth.join(", ")}`
+      : submission.teethNotSure
         ? "Not sure (requested help)"
         : "Not provided";
     productItems.push({
       label: "Teeth selection",
       detail: teethInfo,
-      status: submission.selected_teeth?.length || submission.teeth_not_sure ? "pass" : "fail",
+      status: submission.selectedTeeth?.length || submission.teethNotSure ? "pass" : "fail",
     });
   }
 
@@ -115,9 +101,9 @@ export function CompletenessCheck({ submission, defaultOpen = true }: Completene
   });
 
   /* ---- Photos ---- */
-  const closeBiteCount = (submission.close_bite_photos ?? []).filter(Boolean).length;
-  const openBiteCount = (submission.open_bite_photos ?? []).filter(Boolean).length;
-  const impressionCount = (submission.impression_photos ?? []).filter(Boolean).length;
+  const closeBiteCount = (submission.closeBitePhotos ?? []).filter(Boolean).length;
+  const openBiteCount = (submission.openBitePhotos ?? []).filter(Boolean).length;
+  const impressionCount = (submission.impressionPhotos ?? []).filter(Boolean).length;
 
   const photoItems: CheckItem[] = [
     {

@@ -4,26 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
-import { getSupabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
+import type { Submission } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
-import { PRODUCTS } from "@/app/context/productConfig";
-
-interface ProfileData {
-  name: string;
-  email: string;
-  state: string;
-  products: string[];
-  created_at: string | null;
-}
+import { productLabels } from "@/app/context/productConfig";
 
 function formatProductLabel(products: string[]): string {
   if (!products?.length) return "—";
-  return products
-    .map((slug) => {
-      const found = PRODUCTS.find((p) => p.id === slug);
-      return found ? found.label : slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    })
-    .join(", ");
+  return productLabels(products);
 }
 
 function formatDate(dateStr: string | null): string {
@@ -36,48 +24,44 @@ function formatDate(dateStr: string | null): string {
 }
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [profile, setProfile] = useState<Submission | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchProfile() {
       try {
-        const supabase = getSupabase();
-        const { data: { user } } = await supabase.auth.getUser();
+        const user = await api.auth.getUser();
+        if (cancelled) return;
         if (!user) {
           setLoading(false);
           return;
         }
-        setUserEmail(user.email ?? null);
+        setUserEmail(user.email);
 
-        const { data } = await supabase
-          .from("submissions")
-          .select("name, email, state, products, created_at")
-          .eq("user_id", user.id)
-          .neq("status", "draft")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (data) {
-          setProfile(data as ProfileData);
-        }
+        const mine = await api.submissions.getMine();
+        if (!cancelled && mine) setProfile(mine);
       } catch (err) {
         console.error("Failed to load profile:", err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
+
     fetchProfile();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleSignOut() {
     setSigningOut(true);
     try {
-      const supabase = getSupabase();
-      await supabase.auth.signOut();
+      await api.auth.signOut();
     } catch (err) {
       console.error("Sign out error:", err);
     }
@@ -160,7 +144,7 @@ export default function ProfilePage() {
 
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>Member since</span>
-                <span className={styles.infoValue}>{formatDate(profile?.created_at ?? null)}</span>
+                <span className={styles.infoValue}>{formatDate(profile?.createdAt ?? null)}</span>
               </div>
             </div>
 

@@ -16,9 +16,6 @@ const STATUS_COPY: Record<RequestStatus, string> = {
   rejected: "Declined",
 };
 
-/* Design mode: stands in for the support console so every state is reviewable. */
-const DESIGN_MODE = process.env.NEXT_PUBLIC_DESIGN_MODE === "1";
-
 function formatWhen(iso: string): string {
   const date = new Date(iso);
   const diffMin = Math.floor((Date.now() - date.getTime()) / 60000);
@@ -34,6 +31,7 @@ export default function ThreadView() {
   const id = typeof params.id === "string" ? params.id : params.id?.[0] ?? "";
   const { getThread, reply, markRead, setRequestStatus, unreadCount, ready } = useMessages();
   const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const thread = getThread(id);
@@ -41,7 +39,7 @@ export default function ThreadView() {
 
   /* Opening the thread clears its unread flag */
   useEffect(() => {
-    if (thread?.unread) markRead(id);
+    if (thread?.unread) void markRead(id);
   }, [thread?.unread, id, markRead]);
 
   useEffect(() => {
@@ -54,10 +52,18 @@ export default function ThreadView() {
     rejected: styles.statusRejected,
   };
 
-  function send() {
-    if (!draft.trim()) return;
-    reply(id, draft);
+  async function send() {
+    const body = draft.trim();
+    if (!body || sending) return;
+    setSending(true);
     setDraft("");
+    try {
+      await reply(id, body);
+    } catch (err) {
+      console.error("Could not send your reply:", err);
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -122,14 +128,15 @@ export default function ThreadView() {
                   </p>
                 )}
 
-                {/* Design-mode only — never rendered in real environments */}
-                {DESIGN_MODE && thread.request.status === "pending" && (
+                {/* Stands in for the support console until an admin backend
+                    decides these requests — see ThreadsApi.setRequestStatus. */}
+                {thread.request.status === "pending" && (
                   <div className={styles.simulateRow}>
                     <span className={styles.simulateLabel}>Preview:</span>
-                    <button type="button" className={styles.simulateBtn} onClick={() => setRequestStatus(id, "accepted")}>
+                    <button type="button" className={styles.simulateBtn} onClick={() => void setRequestStatus(id, "accepted")}>
                       Accept
                     </button>
-                    <button type="button" className={styles.simulateBtn} onClick={() => setRequestStatus(id, "rejected")}>
+                    <button type="button" className={styles.simulateBtn} onClick={() => void setRequestStatus(id, "rejected")}>
                       Decline
                     </button>
                   </div>
@@ -173,15 +180,15 @@ export default function ThreadView() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    send();
+                    void send();
                   }
                 }}
               />
               <button
                 type="button"
                 className={styles.sendBtn}
-                disabled={!draft.trim()}
-                onClick={send}
+                disabled={!draft.trim() || sending}
+                onClick={() => void send()}
                 aria-label="Send reply"
               >
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>

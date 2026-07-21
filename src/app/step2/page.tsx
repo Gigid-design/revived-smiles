@@ -33,7 +33,7 @@ const STATE_ABBR: Record<string, string> = {
 };
 
 export default function Step2() {
-  const { data, update, patchSubmission } = useSubmission();
+  const { data, saveDraft } = useSubmission();
   const [selected, setSelected] = useState(data.state || "");
   const hasValue = selected !== "";
   const { cardRef, navigate } = usePageTransition("fade");
@@ -96,7 +96,7 @@ export default function Step2() {
         <button
           type="button"
           className={`${styles.btn} ${hasValue ? styles.btnActive : ""}`}
-          onClick={() => { if (hasValue) { update({ state: selected }); patchSubmission({ state: selected }); navigate('/step3', 'forward'); } }}
+          onClick={async () => { if (hasValue) { await saveDraft({ state: selected }); navigate('/step3', 'forward'); } }}
         >
           CONTINUE
         </button>

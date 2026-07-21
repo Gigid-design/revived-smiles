@@ -8,7 +8,8 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import styles from "./page.module.css";
 import { useSubmission } from "./context/SubmissionContext";
-import { supabase } from "../lib/supabase";
+import { api, ApiError } from "@/lib/api";
+import type { OAuthProvider } from "@/lib/api";
 
 gsap.registerPlugin(useGSAP);
 
@@ -32,13 +33,13 @@ export default function Home() {
 
   const { contextSafe } = useGSAP(() => {}, { scope: screenRef });
 
-  async function signInWithOAuth(provider: "google" | "azure") {
+  async function signInWithOAuth(provider: OAuthProvider) {
     setError(null);
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/dashboard` },
-    });
-    if (oauthError) setError(oauthError.message);
+    try {
+      await api.auth.signInWithProvider(provider, `${window.location.origin}/dashboard`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    }
   }
 
   // eslint-disable-next-line react-hooks/refs -- GSAP contextSafe requires render-time wrapping
@@ -67,67 +68,44 @@ export default function Home() {
 
     try {
       if (mode === "signup") {
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: emailValue,
-          password: passwordValue,
-        });
-        if (signUpError) throw signUpError;
-
-        // Supabase returns a user with no session when the email already exists
-        // (security: doesn't reveal whether an account exists)
-        if (!signUpData.session) {
-          setError("An account with this email may already exist. Try signing in instead.");
-          setLoading(false);
-          return;
-        }
+        const user = await api.auth.signUp(emailValue, passwordValue);
 
         update({ email: emailValue });
-        const userId = signUpData.user?.id;
-        if (userId) await createDraft(emailValue, userId);
+        await createDraft(emailValue, user.id);
         animateOut("/dashboard");
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: emailValue,
-          password: passwordValue,
-        });
-        if (signInError) throw signInError;
+        await api.auth.signIn(emailValue, passwordValue);
         update({ email: emailValue });
 
         // Check if user has an existing submission
-        const res = await fetch(`/api/lookup?email=${encodeURIComponent(emailValue)}`);
-        const lookupData = await res.json();
+        const existing = await api.submissions.findByEmail(emailValue);
 
-        if (lookupData.found) {
-          const s = lookupData.submission;
-          if (s.status === 'draft') {
+        if (existing) {
+          if (existing.status === 'draft') {
             // Resume draft — restore context so the dashboard reflects saved progress
             update({
-              submissionId: s.id,
+              submissionId: existing.id,
               email: emailValue,
-              name: s.name || '',
-              state: s.state || '',
-              products: s.products || [],
-              whiteShade: s.white_shade || null,
-              gumShade: s.gum_shade || null,
-              selectedTeeth: s.selected_teeth || [],
-              teethNotSure: s.teeth_not_sure || false,
+              name: existing.name || '',
+              state: existing.state || '',
+              products: existing.products,
+              whiteShade: existing.whiteShade,
+              gumShade: existing.gumShade,
+              selectedTeeth: existing.selectedTeeth,
+              teethNotSure: existing.teethNotSure,
             });
-            try { sessionStorage.setItem('rs_submission_id', s.id); } catch {}
+            try { sessionStorage.setItem('rs_submission_id', existing.id); } catch {}
           }
           animateOut("/dashboard");
         } else {
           // No submission found — create a new draft
-          const user = (await supabase.auth.getUser()).data.user;
+          const user = await api.auth.getUser();
           if (user) await createDraft(emailValue, user.id);
           animateOut("/dashboard");
         }
       }
     } catch (err: unknown) {
-      let msg = err instanceof Error ? err.message : "Something went wrong";
-      // Make Supabase error messages more user-friendly
-      if (msg.includes("Invalid login credentials")) msg = "Incorrect email or password. Please try again.";
-      if (msg.includes("Password should be")) msg = "Password must be at least 6 characters.";
-      setError(msg);
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
       setLoading(false);
     }
   });

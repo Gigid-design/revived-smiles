@@ -25,7 +25,7 @@ function CheckIcon({ checked }: { checked: boolean }) {
 }
 
 export default function Step3() {
-  const { data, update, patchSubmission } = useSubmission();
+  const { data, saveDraft } = useSubmission();
   const [selected, setSelected] = useState<string | null>(data.products[0] || null);
   const { cardRef, navigate } = usePageTransition();
 
@@ -88,11 +88,9 @@ export default function Step3() {
         <button
           type="button"
           className={`${styles.btn} ${hasSelection ? styles.btnActive : ""}`}
-          onClick={() => {
+          onClick={async () => {
             if (hasSelection && selected) {
-              const arr = [selected];
-              update({ products: arr });
-              patchSubmission({ products: arr });
+              await saveDraft({ products: [selected] });
               navigate(getNextAfterProduct(selected), 'forward');
             }
           }}

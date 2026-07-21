@@ -9,8 +9,9 @@ import { PhotoViewer } from "../../components/PhotoViewer";
 import { CompletenessCheck } from "../../components/CompletenessCheck";
 import { AnalysisResults } from "../../components/AnalysisResults";
 import { useAdminUser } from "../../components/AdminAuthGuard";
-import { getSupabase } from "@/lib/supabase";
-import { PRODUCTS, CATEGORY_LABELS, type ProductConfig } from "@/app/context/productConfig";
+import { api, ApiError } from "@/lib/api";
+import type { PhotoType, Submission, SubmissionStatus } from "@/lib/api";
+import { PRODUCTS, CATEGORY_LABELS, productLabel, productLabels, type ProductConfig } from "@/app/context/productConfig";
 import { ChatPanel } from "@/app/components/ChatPanel";
 import { useChat } from "@/app/hooks/useChat";
 import { ReviewCriteriaDrawer } from "../../components/ReviewCriteriaDrawer";
@@ -49,35 +50,6 @@ function IconRefresh({ size = 14 }: { size?: number }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    Types
    ═══════════════════════════════════════════════════════════════════════════ */
-
-interface SubmissionDetail {
-  id: string;
-  email: string;
-  name: string;
-  state: string;
-  products: string[];
-  white_shade: string;
-  gum_shade: string;
-  selected_teeth: number[];
-  teeth_not_sure: boolean;
-  impression_photos: string[];
-  close_bite_photos: string[];
-  open_bite_photos: string[];
-  status: string;
-  review_notes: string;
-  reviewed_by: string;
-  reviewed_at: string;
-  tracking_number: string | null;
-  shipped_at: string | null;
-  completed_at: string | null;
-  created_at: string;
-  photo_analyses: Record<string, {
-    checks: { id: string; label: string; pass: boolean; detail: string; observation?: string }[];
-    summary: string | null;
-    teethCenter: { x: number; y: number } | null;
-    pass: boolean;
-  }>;
-}
 
 interface LightboxState {
   photos: { url: string; label: string }[];
@@ -156,7 +128,7 @@ export default function SubmissionDetailPage() {
   const adminUser = useAdminUser();
   const id = params.id as string;
 
-  const [submission, setSubmission] = useState<SubmissionDetail | null>(null);
+  const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reviewNotes, setReviewNotes] = useState("");
@@ -168,7 +140,7 @@ export default function SubmissionDetailPage() {
   const [reviewDrawer, setReviewDrawer] = useState<{
     photoUrl: string;
     photoLabel: string;
-    photoType: string;
+    photoType: PhotoType;
   } | null>(null);
 
   const { unreadCount } = useChat(id, "admin", adminUser?.name ?? "Admin");
@@ -176,22 +148,15 @@ export default function SubmissionDetailPage() {
   /* ── Data fetch ── */
   useEffect(() => {
     async function fetchSubmission() {
-      const supabase = getSupabase();
-      const { data, error: fetchError } = await supabase
-        .from("submissions")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (fetchError || !data) {
-        setError("Submission not found.");
+      try {
+        const data = await api.submissions.getById(id);
+        setSubmission(data);
+        setReviewNotes(data.reviewNotes || "");
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : "Something went wrong.");
+      } finally {
         setLoading(false);
-        return;
       }
-
-      setSubmission(data as SubmissionDetail);
-      setReviewNotes(data.review_notes || "");
-      setLoading(false);
     }
 
     fetchSubmission();
@@ -203,7 +168,7 @@ export default function SubmissionDetailPage() {
   }
 
   /* ── Status update (unchanged business logic) ── */
-  async function handleStatusUpdate(newStatus: string) {
+  async function handleStatusUpdate(newStatus: SubmissionStatus) {
     if (!submission || saving) return;
 
     if ((newStatus === "rejected" || newStatus === "changes_requested") && !reviewNotes.trim()) {
@@ -223,47 +188,25 @@ export default function SubmissionDetailPage() {
     }
 
     setSaving(true);
-    const supabase = getSupabase();
     const reviewerName = adminUser?.name ?? "Admin User";
 
-    const updatePayload: Record<string, unknown> = {
-      status: newStatus,
-      reviewed_by: reviewerName,
-      reviewed_at: new Date().toISOString(),
-    };
-
-    if (reviewNotes.trim()) {
-      updatePayload.review_notes = reviewNotes.trim();
-    }
-
-    if (newStatus === "shipped" && trackingNumber.trim()) {
-      updatePayload.tracking_number = trackingNumber.trim();
-      updatePayload.shipped_at = new Date().toISOString();
-    }
-
-    if (newStatus === "completed") {
-      updatePayload.completed_at = new Date().toISOString();
-    }
-
-    const { error: updateError } = await supabase
-      .from("submissions")
-      .update(updatePayload)
-      .eq("id", submission.id);
-
-    if (updateError) {
-      console.error("Update failed:", updateError);
-      showToast("Failed to update status. Please try again.", "error");
+    let updated: Submission;
+    try {
+      updated = await api.submissions.updateStatus(submission.id, {
+        status: newStatus,
+        reviewedBy: reviewerName,
+        reviewNotes: reviewNotes.trim() || undefined,
+        trackingNumber:
+          newStatus === "shipped" && trackingNumber.trim() ? trackingNumber.trim() : undefined,
+      });
+    } catch (err) {
+      console.error("Update failed:", err);
+      showToast(err instanceof ApiError ? err.message : "Something went wrong.", "error");
       setSaving(false);
       return;
     }
 
-    setSubmission({
-      ...submission,
-      status: newStatus,
-      review_notes: reviewNotes.trim() || submission.review_notes,
-      reviewed_by: reviewerName,
-      reviewed_at: new Date().toISOString(),
-    });
+    setSubmission(updated);
     setSaving(false);
 
     const statusLabels: Record<string, string> = {
@@ -294,24 +237,22 @@ export default function SubmissionDetailPage() {
   const productConfigs = (submission.products ?? []).map(resolveProduct).filter(Boolean) as ProductConfig[];
   const needsShade = productConfigs.some((c) => c.needsShade);
   const needsTeethChart = productConfigs.some((c) => c.needsTeethChart);
-  const primaryProductLabel = productConfigs.length > 0
-    ? productConfigs.map((c) => c.label).join(", ")
-    : (submission.products ?? []).join(", ") || "—";
+  const primaryProductLabel = productLabels(submission.products ?? []) || "—";
 
-  const closeBitePhotos = (submission.close_bite_photos ?? []).map((url, i) => ({
+  const closeBitePhotos = (submission.closeBitePhotos ?? []).map((url, i) => ({
     url, label: CLOSE_BITE_LABELS[i] || `Close Bite ${i + 1}`,
   }));
 
-  const openBitePhotos = (submission.open_bite_photos ?? []).map((url, i) => ({
+  const openBitePhotos = (submission.openBitePhotos ?? []).map((url, i) => ({
     url, label: OPEN_BITE_LABELS[i] || `Open Bite ${i + 1}`,
   }));
 
-  const impressionPhotos = (submission.impression_photos ?? []).map((url, i) => ({
+  const impressionPhotos = (submission.impressionPhotos ?? []).map((url, i) => ({
     url, label: IMPRESSION_LABELS[i] || `Impression ${i + 1}`,
   }));
 
   const allTeethPhotos = [...closeBitePhotos, ...openBitePhotos];
-  const hasAnalysis = submission.photo_analyses && Object.keys(submission.photo_analyses).length > 0;
+  const hasAnalysis = submission.photoAnalyses && Object.keys(submission.photoAnalyses).length > 0;
 
   function isStepCompleted(idx: number): boolean {
     if (isBranchStatus) return idx <= 1;
@@ -348,11 +289,11 @@ export default function SubmissionDetailPage() {
       <div className={styles.header}>
         <div className={styles.headerTop}>
           <h1 className={styles.patientName}>{submission.name || submission.email}</h1>
-          <StatusBadge status={status as "pending"} />
+          <StatusBadge status={status} />
         </div>
         <div className={styles.headerSubline}>
           {submission.email} · {primaryProductLabel}
-          {submission.created_at && <> · {formatDateShort(submission.created_at)}</>}
+          {submission.createdAt && <> · {formatDateShort(submission.createdAt)}</>}
         </div>
       </div>
 
@@ -390,9 +331,9 @@ export default function SubmissionDetailPage() {
             {status === "rejected" ? <IconX size={14} /> : <IconRefresh size={14} />}
             <div>
               <span className={styles.branchBannerLabel}>{meta.title}</span>
-              {submission.reviewed_at && (
+              {submission.reviewedAt && (
                 <span className={styles.branchBannerMeta}>
-                  {" "}— {formatDateTime(submission.reviewed_at)} by {submission.reviewed_by || "Admin"}
+                  {" "}— {formatDateTime(submission.reviewedAt)} by {submission.reviewedBy || "Admin"}
                 </span>
               )}
             </div>
@@ -406,7 +347,7 @@ export default function SubmissionDetailPage() {
             <div className={styles.terminalText}>
               <span className={styles.terminalTitle}>Order Delivered</span>
               <span className={styles.terminalSub}>
-                {submission.completed_at ? `Completed ${formatDateTime(submission.completed_at)}` : "This order has been fulfilled."}
+                {submission.completedAt ? `Completed ${formatDateTime(submission.completedAt)}` : "This order has been fulfilled."}
               </span>
             </div>
           </div>
@@ -426,14 +367,14 @@ export default function SubmissionDetailPage() {
             </div>
             <div className={styles.actionCardBody}>
 
-              {submission.review_notes && (
+              {submission.reviewNotes && (
                 <div className={styles.previousNotesBanner}>
                   <span className={styles.previousNotesLabel}>Previous Notes</span>
-                  <span className={styles.previousNotesText}>{submission.review_notes}</span>
-                  {submission.reviewed_by && (
+                  <span className={styles.previousNotesText}>{submission.reviewNotes}</span>
+                  {submission.reviewedBy && (
                     <span className={styles.previousNotesMeta}>
-                      by {submission.reviewed_by}
-                      {submission.reviewed_at && <> · {formatDateTime(submission.reviewed_at)}</>}
+                      by {submission.reviewedBy}
+                      {submission.reviewedAt && <> · {formatDateTime(submission.reviewedAt)}</>}
                     </span>
                   )}
                 </div>
@@ -553,8 +494,8 @@ export default function SubmissionDetailPage() {
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>Submitted</span>
                 <span className={styles.infoValue}>
-                  {submission.created_at
-                    ? new Date(submission.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+                  {submission.createdAt
+                    ? new Date(submission.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
                     : "—"}
                 </span>
               </div>
@@ -570,7 +511,7 @@ export default function SubmissionDetailPage() {
                         </span>
                       ))
                     : (submission.products ?? []).length > 0
-                      ? submission.products.map((p) => <span key={p} className={styles.productPill}>{p}</span>)
+                      ? submission.products.map((p) => <span key={p} className={styles.productPill}>{productLabel(p)}</span>)
                       : <span className={styles.infoValue}>—</span>
                   }
                 </div>
@@ -581,13 +522,13 @@ export default function SubmissionDetailPage() {
                   <div className={styles.infoItem}>
                     <span className={styles.infoLabel}>White Shade</span>
                     <span className={styles.infoValue}>
-                      {submission.white_shade || <span className={styles.missingField}>Not provided</span>}
+                      {submission.whiteShade || <span className={styles.missingField}>Not provided</span>}
                     </span>
                   </div>
                   <div className={styles.infoItem}>
                     <span className={styles.infoLabel}>Gum Shade</span>
                     <span className={styles.infoValue}>
-                      {submission.gum_shade || <span className={styles.missingField}>Not provided</span>}
+                      {submission.gumShade || <span className={styles.missingField}>Not provided</span>}
                     </span>
                   </div>
                 </>
@@ -596,36 +537,36 @@ export default function SubmissionDetailPage() {
               {needsTeethChart && (
                 <div className={styles.infoItemFull}>
                   <span className={styles.infoLabel}>Selected Teeth</span>
-                  {submission.selected_teeth?.length ? (
+                  {submission.selectedTeeth?.length ? (
                     <div className={styles.teethList}>
-                      {submission.selected_teeth.map((tooth) => (
+                      {submission.selectedTeeth.map((tooth) => (
                         <span key={tooth} className={styles.toothBadge}>{tooth}</span>
                       ))}
                     </div>
                   ) : (
                     <span className={styles.infoValue}>
-                      {submission.teeth_not_sure ? "Not sure (requested help)" : <span className={styles.missingField}>Not provided</span>}
+                      {submission.teethNotSure ? "Not sure (requested help)" : <span className={styles.missingField}>Not provided</span>}
                     </span>
                   )}
                 </div>
               )}
 
-              {submission.tracking_number && (
+              {submission.trackingNumber && (
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>Tracking Number</span>
-                  <span className={styles.infoValue}>{submission.tracking_number}</span>
+                  <span className={styles.infoValue}>{submission.trackingNumber}</span>
                 </div>
               )}
-              {submission.shipped_at && (
+              {submission.shippedAt && (
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>Shipped</span>
-                  <span className={styles.infoValue}>{formatDateTime(submission.shipped_at)}</span>
+                  <span className={styles.infoValue}>{formatDateTime(submission.shippedAt)}</span>
                 </div>
               )}
-              {submission.completed_at && (
+              {submission.completedAt && (
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>Completed</span>
-                  <span className={styles.infoValue}>{formatDateTime(submission.completed_at)}</span>
+                  <span className={styles.infoValue}>{formatDateTime(submission.completedAt)}</span>
                 </div>
               )}
             </div>
@@ -651,8 +592,8 @@ export default function SubmissionDetailPage() {
                 <div className={styles.photoSectionTitle}>Close Bite</div>
                 <div className={styles.photoGrid}>
                   {closeBitePhotos.map((photo, idx) => {
-                    const pType = idx === 0 ? "close-bite-front" : "close-bite-side";
-                    const analysis = submission.photo_analyses?.[pType];
+                    const pType: PhotoType = idx === 0 ? "close-bite-front" : "close-bite-side";
+                    const analysis = submission.photoAnalyses?.[pType];
                     return (
                       <div key={photo.url} className={styles.photoThumb} onClick={() => openLightbox(allTeethPhotos, idx)}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -675,8 +616,8 @@ export default function SubmissionDetailPage() {
                 <div className={styles.photoSectionTitle}>Open Bite</div>
                 <div className={styles.photoGrid}>
                   {openBitePhotos.map((photo, idx) => {
-                    const pType = idx === 0 ? "open-bite-front" : "open-bite-side";
-                    const analysis = submission.photo_analyses?.[pType];
+                    const pType: PhotoType = idx === 0 ? "open-bite-front" : "open-bite-side";
+                    const analysis = submission.photoAnalyses?.[pType];
                     return (
                       <div key={photo.url} className={styles.photoThumb} onClick={() => openLightbox(allTeethPhotos, closeBitePhotos.length + idx)}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -718,7 +659,7 @@ export default function SubmissionDetailPage() {
                 <div className={styles.sectionDivider} />
                 <div className={styles.sectionHeading}>AI Quality Analysis</div>
                 <AnalysisResults
-                  photoAnalyses={submission.photo_analyses}
+                  photoAnalyses={submission.photoAnalyses}
                   closeBitePhotos={closeBitePhotos}
                   openBitePhotos={openBitePhotos}
                   defaultOpen={true}
@@ -739,7 +680,7 @@ export default function SubmissionDetailPage() {
         photoUrl={reviewDrawer?.photoUrl ?? ""}
         photoLabel={reviewDrawer?.photoLabel ?? ""}
         photoType={reviewDrawer?.photoType ?? ""}
-        analysis={reviewDrawer ? (submission.photo_analyses?.[reviewDrawer.photoType] ?? null) : null}
+        analysis={reviewDrawer ? (submission.photoAnalyses?.[reviewDrawer.photoType] ?? null) : null}
       />
 
       {/* Lightbox */}

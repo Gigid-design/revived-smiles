@@ -2,33 +2,14 @@
 
 import { useState } from "react";
 import styles from "./AnalysisResults.module.css";
-
-interface Check {
-  id: string;
-  label: string;
-  pass: boolean;
-  detail: string;
-  observation?: string;
-}
-
-interface AnalysisEntry {
-  checks: Check[];
-  summary: string | null;
-  teethCenter: { x: number; y: number } | null;
-  pass: boolean;
-}
-
-/**
- * photo_analyses is stored as a JSONB object keyed by photo type:
- * { "close-bite-front": { checks, summary, teethCenter, pass }, ... }
- */
-type PhotoAnalyses = Record<string, AnalysisEntry>;
+import { PHOTO_TYPES, PHOTO_TYPE_LABELS } from "@/lib/api";
+import type { PhotoAnalyses, PhotoAnalysis, PhotoType } from "@/lib/api";
 
 interface PhotoWithAnalysis {
   url: string;
   label: string;
-  photoType: string;
-  analysis: AnalysisEntry | null;
+  photoType: PhotoType | "";
+  analysis: PhotoAnalysis | null;
 }
 
 interface AnalysisResultsProps {
@@ -36,10 +17,10 @@ interface AnalysisResultsProps {
   closeBitePhotos: { url: string; label: string }[];
   openBitePhotos: { url: string; label: string }[];
   defaultOpen?: boolean;
-  onReviewCriteria?: (photoUrl: string, photoLabel: string, photoType: string) => void;
+  onReviewCriteria?: (photoUrl: string, photoLabel: string, photoType: PhotoType) => void;
 }
 
-const PHOTO_TYPE_MAP: Record<string, string> = {
+const PHOTO_TYPE_MAP: Record<string, PhotoType> = {
   "Close Bite — Front": "close-bite-front",
   "Close Bite — Left": "close-bite-side",
   "Close Bite — Right": "close-bite-side",
@@ -49,19 +30,7 @@ const PHOTO_TYPE_MAP: Record<string, string> = {
 };
 
 /* Ordered list matching camera flow */
-const ANALYSIS_ORDER = [
-  "close-bite-front",
-  "close-bite-side",
-  "open-bite-front",
-  "open-bite-side",
-];
-
-const PHOTO_TYPE_LABELS: Record<string, string> = {
-  "close-bite-front": "Close Bite — Front",
-  "close-bite-side": "Close Bite — Side",
-  "open-bite-front": "Open Bite — Front",
-  "open-bite-side": "Open Bite — Side",
-};
+const ANALYSIS_ORDER = PHOTO_TYPES;
 
 export function AnalysisResults({
   photoAnalyses,
@@ -87,25 +56,26 @@ export function AnalysisResults({
       url: photo.url,
       label: photo.label,
       photoType,
-      analysis: photoAnalyses[photoType] ?? null,
+      analysis: (photoType ? photoAnalyses[photoType] : null) ?? null,
     });
   }
 
   /* Also add any analyses that don't have a matching photo (edge case) */
   for (const key of ANALYSIS_ORDER) {
-    if (!allPhotos.some((p) => p.photoType === key) && photoAnalyses[key]) {
+    const entry = photoAnalyses[key];
+    if (!allPhotos.some((p) => p.photoType === key) && entry) {
       allPhotos.push({
         url: "",
         label: PHOTO_TYPE_LABELS[key] ?? key,
         photoType: key,
-        analysis: photoAnalyses[key],
+        analysis: entry,
       });
     }
   }
 
   /* Stats */
   const totalAnalyses = Object.keys(photoAnalyses).length;
-  const passCount = Object.values(photoAnalyses).filter((a) => a.pass).length;
+  const passCount = Object.values(photoAnalyses).filter((a) => a?.pass).length;
   const failCount = totalAnalyses - passCount;
 
   const verdict = failCount === 0
@@ -157,8 +127,9 @@ export function AnalysisResults({
       {open && (
         <div className={styles.body}>
           {allPhotos.map((photo) => {
-            if (!photo.analysis) return null;
+            if (!photo.analysis || !photo.photoType) return null;
             const a = photo.analysis;
+            const photoType = photo.photoType;
             const isExpanded = expandedCards.has(photo.photoType);
             const checksPassed = a.checks.filter((c) => c.pass).length;
             const checksTotal = a.checks.length;
@@ -195,7 +166,7 @@ export function AnalysisResults({
                         className={styles.reviewCriteriaBtn}
                         onClick={(e) => {
                           e.stopPropagation();
-                          onReviewCriteria(photo.url, photo.label, photo.photoType);
+                          onReviewCriteria(photo.url, photo.label, photoType);
                         }}
                       >
                         🤖 Review Criteria

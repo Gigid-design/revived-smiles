@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { api, ApiError } from "@/lib/api";
 import styles from "./ShippingLabelModal.module.css";
 
 interface ShippingLabelModalProps {
@@ -15,42 +16,48 @@ export function ShippingLabelModal({ open, onClose, submissionId, patientName }:
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const blobUrlRef = useRef<string | null>(null);
+  /* Ignores a label that arrives after the modal closed or a retry superseded it. */
+  const requestRef = useRef(0);
 
-  // Fetch PDF when modal opens
+  /* One loader, shared by opening the modal and by the retry button. */
+  const loadLabel = useCallback(async () => {
+    const seq = ++requestRef.current;
+
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+    setPdfUrl(null);
+    setError(null);
+    setLoading(true);
+
+    try {
+      const blob = await api.shipping.label(submissionId, patientName);
+      if (seq !== requestRef.current) return;
+      const url = URL.createObjectURL(blob);
+      blobUrlRef.current = url;
+      setPdfUrl(url);
+    } catch (err) {
+      console.error("Shipping label error:", err);
+      if (seq === requestRef.current) {
+        setError(err instanceof ApiError ? err.message : "Something went wrong.");
+      }
+    } finally {
+      if (seq === requestRef.current) setLoading(false);
+    }
+  }, [submissionId, patientName]);
+
+  // Build the PDF when the modal opens
   useEffect(() => {
     if (!open || !submissionId) return;
 
-    let cancelled = false;
-
-    async function fetchPdf() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch("/api/shipping-label", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ submissionId, patientName }),
-        });
-        if (!res.ok) throw new Error("Failed to generate label");
-        const blob = await res.blob();
-        if (cancelled) return;
-        const url = URL.createObjectURL(blob);
-        blobUrlRef.current = url;
-        setPdfUrl(url);
-      } catch (err) {
-        console.error("Shipping label fetch error:", err);
-        if (!cancelled) setError("Unable to load shipping label. Please try again.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    fetchPdf();
+    void loadLabel();
 
     return () => {
-      cancelled = true;
+      /* Supersede the in-flight request so its result is dropped. */
+      requestRef.current++;
     };
-  }, [open, submissionId, patientName]);
+  }, [open, submissionId, loadLabel]);
 
   // Revoke blob URL on close
   useEffect(() => {
@@ -92,34 +99,8 @@ export function ShippingLabelModal({ open, onClose, submissionId, patientName }:
   }, [pdfUrl, submissionId]);
 
   const handleRetry = useCallback(() => {
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
-    }
-    setPdfUrl(null);
-    setError(null);
-    setLoading(true);
-
-    fetch("/api/shipping-label", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ submissionId, patientName }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to generate label");
-        return res.blob();
-      })
-      .then((blob) => {
-        const url = URL.createObjectURL(blob);
-        blobUrlRef.current = url;
-        setPdfUrl(url);
-      })
-      .catch((err) => {
-        console.error("Shipping label retry error:", err);
-        setError("Unable to load shipping label. Please try again.");
-      })
-      .finally(() => setLoading(false));
-  }, [submissionId, patientName]);
+    void loadLabel();
+  }, [loadLabel]);
 
   if (!open) return null;
 

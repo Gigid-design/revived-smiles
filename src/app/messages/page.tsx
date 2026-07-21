@@ -61,15 +61,25 @@ export default function NewMessage() {
   const { threads, unreadCount, startQuestion, startRequest } = useMessages();
 
   const [draft, setDraft] = useState("");
+  /* Guards against a second tap while the first thread is still being opened. */
+  const [sending, setSending] = useState(false);
   /* The request form expands inline on this screen — no modal over a modal. */
   const [formOpen, setFormOpen] = useState(false);
   const [kind, setKind] = useState<RequestKind | null>(null);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
 
-  function ask(text: string) {
-    const id = startQuestion(text);
-    router.push(`/messages/${id}`);
+  /* Opening a thread has to finish before we can navigate to it. */
+  async function ask(text: string) {
+    if (sending) return;
+    setSending(true);
+    try {
+      const id = await startQuestion(text);
+      router.push(`/messages/${id}`);
+    } catch (err) {
+      console.error("Could not start the conversation:", err);
+      setSending(false);
+    }
   }
 
   function openForm() {
@@ -82,10 +92,16 @@ export default function NewMessage() {
   /* Tray requests need a reason; material requests don't. */
   const formValid = kind === "material" || (kind === "trays" && !!reason);
 
-  function submitRequest() {
-    if (!kind || !formValid) return;
-    const id = startRequest(kind, kind === "trays" ? reason : "", note.trim());
-    router.push(`/messages/${id}`);
+  async function submitRequest() {
+    if (!kind || !formValid || sending) return;
+    setSending(true);
+    try {
+      const id = await startRequest(kind, kind === "trays" ? reason : "", note.trim());
+      router.push(`/messages/${id}`);
+    } catch (err) {
+      console.error("Could not send the request:", err);
+      setSending(false);
+    }
   }
 
   return (
@@ -129,7 +145,7 @@ export default function NewMessage() {
               key={prompt.text}
               type="button"
               className={styles.promptBtn}
-              onClick={() => ask(prompt.text)}
+              onClick={() => void ask(prompt.text)}
             >
               <span className={`${styles.promptIcon} ${styles[prompt.tint]}`} aria-hidden="true">
                 {prompt.icon}
@@ -216,8 +232,8 @@ export default function NewMessage() {
             <button
               type="button"
               className={`${styles.submitBtn} ${formValid ? "" : styles.submitBtnDisabled}`}
-              disabled={!formValid}
-              onClick={submitRequest}
+              disabled={!formValid || sending}
+              onClick={() => void submitRequest()}
             >
               SEND REQUEST
             </button>
@@ -236,15 +252,15 @@ export default function NewMessage() {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                if (draft.trim()) ask(draft);
+                if (draft.trim()) void ask(draft);
               }
             }}
           />
           <button
             type="button"
             className={styles.sendBtn}
-            disabled={!draft.trim()}
-            onClick={() => draft.trim() && ask(draft)}
+            disabled={!draft.trim() || sending}
+            onClick={() => draft.trim() && void ask(draft)}
             aria-label="Send message"
           >
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>

@@ -3,18 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
-import { getSupabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
+import type { AppNotification } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
-
-interface Notification {
-  id: string;
-  title: string;
-  body: string;
-  type: string;
-  read: boolean;
-  submission_id: string | null;
-  created_at: string;
-}
 
 function timeAgo(dateStr: string): string {
   const now = Date.now();
@@ -37,63 +28,49 @@ const TYPE_ICONS: Record<string, { bg: string; color: string }> = {
 };
 
 export default function Notifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchNotifications() {
       try {
-        setLoading(true);
-        const supabase = getSupabase();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user?.email) {
-          setLoading(false);
-          return;
-        }
-        setUserEmail(user.email);
-
-        const { data } = await supabase
-          .from("notifications")
-          .select("id, title, body, type, read, submission_id, created_at")
-          .eq("email", user.email)
-          .order("created_at", { ascending: false })
-          .limit(50);
-
-        setNotifications((data as Notification[]) || []);
+        const rows = await api.notifications.list();
+        if (!cancelled) setNotifications(rows);
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     fetchNotifications();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const markAsRead = useCallback(async (id: string) => {
-    const supabase = getSupabase();
-    await supabase
-      .from("notifications")
-      .update({ read: true })
-      .eq("id", id);
-
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+    try {
+      await api.notifications.markRead(id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      );
+    } catch (err) {
+      console.error("Could not mark notification as read:", err);
+    }
   }, []);
 
   const markAllRead = useCallback(async () => {
-    if (!userEmail) return;
-    const supabase = getSupabase();
-    await supabase
-      .from("notifications")
-      .update({ read: true })
-      .eq("email", userEmail)
-      .eq("read", false);
-
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }, [userEmail]);
+    try {
+      await api.notifications.markAllRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (err) {
+      console.error("Could not mark notifications as read:", err);
+    }
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -110,7 +87,7 @@ export default function Notifications() {
         </Link>
         <h1 className={styles.title}>Notifications</h1>
         {unreadCount > 0 && (
-          <button className={styles.markAllBtn} onClick={markAllRead}>
+          <button className={styles.markAllBtn} onClick={() => void markAllRead()}>
             Mark all read
           </button>
         )}
@@ -154,7 +131,7 @@ export default function Notifications() {
                   <button
                     className={`${styles.itemBtn} ${!notif.read ? styles.itemUnread : ""}`}
                     onClick={() => {
-                      if (!notif.read) markAsRead(notif.id);
+                      if (!notif.read) void markAsRead(notif.id);
                     }}
                   >
                     <div className={styles.itemDotCol}>
@@ -180,7 +157,7 @@ export default function Notifications() {
                     <div className={styles.itemContent}>
                       <p className={styles.itemTitle}>{notif.title}</p>
                       <p className={styles.itemBody}>{notif.body}</p>
-                      <p className={styles.itemTime}>{timeAgo(notif.created_at)}</p>
+                      <p className={styles.itemTime}>{timeAgo(notif.createdAt)}</p>
                     </div>
                   </button>
                 </li>

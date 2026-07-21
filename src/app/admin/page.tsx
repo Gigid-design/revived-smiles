@@ -5,31 +5,11 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import { StatsCard } from "./components/StatsCard";
 import { StatusBadge } from "./components/StatusBadge";
-import { getSupabase } from "@/lib/supabase";
-import { PRODUCTS } from "@/app/context/productConfig";
+import { api } from "@/lib/api";
+import type { Submission, SubmissionStats } from "@/lib/api";
+import { productLabel } from "@/app/context/productConfig";
 import { useAdminUser } from "./components/AdminAuthGuard";
 import { useRealtimeContext } from "./AdminShell";
-
-function productLabel(id: string): string {
-  return PRODUCTS.find((p) => p.id === id)?.label ?? id;
-}
-
-interface Submission {
-  id: string;
-  name: string;
-  email: string;
-  state: string;
-  status: string;
-  products: string[];
-  created_at: string;
-}
-
-interface Stats {
-  total: number;
-  pending: number;
-  approved: number;
-  changesRequested: number;
-}
 
 function formatRelativeDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -45,38 +25,25 @@ function formatRelativeDate(dateStr: string): string {
 
 export default function AdminDashboard() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [stats, setStats] = useState<Stats>({ total: 0, pending: 0, approved: 0, changesRequested: 0 });
+  const [stats, setStats] = useState<SubmissionStats>({ total: 0, pending: 0, approved: 0, changesRequested: 0 });
   const [loading, setLoading] = useState(true);
   const adminUser = useAdminUser();
   const { lastEvent } = useRealtimeContext();
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   const fetchData = useCallback(async () => {
-    const supabase = getSupabase();
-
-    const { data, error } = await supabase
-      .from("submissions")
-      .select("id, name, email, state, status, products, created_at")
-      .neq("status", "draft")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Failed to fetch submissions:", error);
+    try {
+      const [counters, recent] = await Promise.all([
+        api.submissions.stats(),
+        api.submissions.list({ page: 0, pageSize: 10 }),
+      ]);
+      setStats(counters);
+      setSubmissions(recent.rows);
+    } catch (err) {
+      console.error("Failed to fetch submissions:", err);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const rows = (data ?? []) as Submission[];
-    setSubmissions(rows);
-
-    setStats({
-      total: rows.length,
-      pending: rows.filter((r) => r.status === "pending").length,
-      approved: rows.filter((r) => r.status === "approved").length,
-      changesRequested: rows.filter((r) => r.status === "changes_requested").length,
-    });
-
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -87,11 +54,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchUnreadCounts() {
       if (submissions.length === 0) return;
-      const ids = submissions.map((s) => s.id).join(",");
       try {
-        const res = await fetch(`/api/messages?unreadCounts=${ids}`);
-        const data = await res.json();
-        if (data.counts) setUnreadCounts(data.counts);
+        const counts = await api.messages.unreadCounts(submissions.map((s) => s.id));
+        setUnreadCounts(counts);
       } catch {}
     }
     fetchUnreadCounts();
@@ -100,8 +65,6 @@ export default function AdminDashboard() {
   if (loading) {
     return <div className={styles.loading}>Loading dashboard…</div>;
   }
-
-  const recentSubmissions = submissions.slice(0, 10);
 
   return (
     <div className={styles.dashboard}>
@@ -162,7 +125,7 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        {recentSubmissions.length === 0 ? (
+        {submissions.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
@@ -183,7 +146,7 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {recentSubmissions.map((sub) => (
+              {submissions.map((sub) => (
                 <tr key={sub.id}>
                   <td>
                     <Link href={`/admin/submissions/${sub.id}`} className={styles.nameCell} style={{ textDecoration: "none" }}>
@@ -200,11 +163,11 @@ export default function AdminDashboard() {
                       : "—"}
                   </td>
                   <td>
-                    <StatusBadge status={(sub.status || "pending") as "pending"} />
+                    <StatusBadge status={sub.status} />
                   </td>
                   <td>
                     <span className={styles.dateText}>
-                      {sub.created_at ? formatRelativeDate(sub.created_at) : "—"}
+                      {sub.createdAt ? formatRelativeDate(sub.createdAt) : "—"}
                     </span>
                   </td>
                   <td>

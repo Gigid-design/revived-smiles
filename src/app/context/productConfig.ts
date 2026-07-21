@@ -91,6 +91,26 @@ export const PRODUCTS: ProductConfig[] = [
   },
 ];
 
+/**
+ * The human-readable name for a product slug.
+ *
+ * The single place this conversion happens. Four screens each had their own
+ * copy and two of them fell back to printing the raw slug, which is why
+ * patients saw "flexible-Partial". An unknown slug is title-cased rather than
+ * shown as-is, so a product added to the catalogue later still reads sensibly.
+ */
+export function productLabel(slug: string): string {
+  const config = PRODUCTS.find((p) => p.id === slug);
+  if (config) return config.label;
+
+  return slug.replaceAll("-", " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Comma-separated product names, for a submission's `products` array. */
+export function productLabels(slugs: string[]): string {
+  return slugs.map(productLabel).join(", ");
+}
+
 /** Given a product ID, return the route after the product selection screen (/step3). */
 export function getNextAfterProduct(productId: string): string {
   const config = PRODUCTS.find((p) => p.id === productId);

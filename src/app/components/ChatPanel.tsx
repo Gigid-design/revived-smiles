@@ -55,7 +55,7 @@ export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelP
 
   /* Mark messages as read when panel is visible */
   useEffect(() => {
-    markAsRead();
+    void markAsRead();
   }, [markAsRead]);
 
   async function handleSend() {
@@ -70,7 +70,7 @@ export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelP
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      void handleSend();
     }
   }
 
@@ -107,7 +107,7 @@ export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelP
           </div>
         ) : (
           messages.map((msg) => {
-            const isOwn = msg.sender_role === currentRole;
+            const isOwn = msg.senderRole === currentRole;
             return (
               <div
                 key={msg.id}
@@ -118,9 +118,9 @@ export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelP
                 {!isOwn && (
                   <div className={styles.senderRow}>
                     <div className={styles.avatar}>
-                      {getInitials(msg.sender_name || "?")}
+                      {getInitials(msg.senderName || "?")}
                     </div>
-                    <div className={styles.senderName}>{msg.sender_name}</div>
+                    <div className={styles.senderName}>{msg.senderName}</div>
                   </div>
                 )}
                 <div
@@ -131,8 +131,8 @@ export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelP
                   {msg.body}
                 </div>
                 <div className={styles.timestamp}>
-                  {formatTime(msg.created_at)}
-                  {isOwn && msg.read_at && (
+                  {formatTime(msg.createdAt)}
+                  {isOwn && msg.readAt && (
                     <span className={styles.readIndicator}> · Read</span>
                   )}
                 </div>

@@ -7,7 +7,7 @@ import { useSubmission } from "../context/SubmissionContext";
 import { IntakeHeader } from "../components/IntakeHeader";
 
 export default function Intake() {
-  const { data, update, patchSubmission } = useSubmission();
+  const { data, saveDraft } = useSubmission();
   const [name, setName] = useState(data.name || "");
   const nameRef = useRef<HTMLInputElement>(null);
   const hasValue = name.trim().length > 0;
@@ -53,11 +53,10 @@ export default function Intake() {
         <button
           type="button"
           className={`${styles.btn} ${hasValue ? styles.btnActive : ""}`}
-          onClick={() => {
+          onClick={async () => {
             const trimmed = (name || nameRef.current?.value || "").trim();
             if (trimmed) {
-              update({ name: trimmed });
-              patchSubmission({ name: trimmed });
+              await saveDraft({ name: trimmed });
               navigate('/step2', 'forward');
             }
           }}

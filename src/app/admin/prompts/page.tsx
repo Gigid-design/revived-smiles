@@ -3,21 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
+import { api, PHOTO_TYPES } from "@/lib/api";
+import type { PhotoType, PromptConfig } from "@/lib/api";
 
-interface PromptConfig {
-  id: string;
-  photo_type: string;
-  version: number;
-  label: string;
-  pose_description: string;
-  content_checks: { id: string; label: string; requirement: string }[];
-  is_active: boolean;
-  created_by: string | null;
-  change_notes: string | null;
-  created_at: string;
-}
-
-const PHOTO_TYPE_ORDER = ["close-bite-front", "close-bite-side", "open-bite-front", "open-bite-side"];
+const PHOTO_TYPE_ORDER = PHOTO_TYPES;
 
 const PHOTO_TYPE_IMAGES: Record<string, string> = {
   "close-bite-front": "/assets/images/close-bite-front.png",
@@ -37,15 +26,13 @@ function formatDate(dateStr: string): string {
 }
 
 export default function PromptsListPage() {
-  const [configs, setConfigs] = useState<Record<string, PromptConfig[]>>({});
+  const [configs, setConfigs] = useState<Partial<Record<PhotoType, PromptConfig[]>>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/prompts");
-        const data = await res.json();
-        setConfigs(data.configs ?? {});
+        setConfigs(await api.prompts.listAll());
       } catch (err) {
         console.error("Failed to load prompts:", err);
       } finally {
@@ -61,8 +48,8 @@ export default function PromptsListPage() {
 
   const orderedTypes = PHOTO_TYPE_ORDER.filter((t) => configs[t]?.length);
   // Include any types not in the predefined order
-  for (const key of Object.keys(configs)) {
-    if (!orderedTypes.includes(key)) orderedTypes.push(key);
+  for (const key of Object.keys(configs) as PhotoType[]) {
+    if (!orderedTypes.includes(key) && configs[key]?.length) orderedTypes.push(key);
   }
 
   return (
@@ -87,9 +74,11 @@ export default function PromptsListPage() {
       ) : (
         <div className={styles.grid}>
           {orderedTypes.map((photoType) => {
-            const versions = configs[photoType];
-            const active = versions.find((v) => v.is_active) ?? versions[0];
+            const versions = configs[photoType] ?? [];
+            const active = versions.find((v) => v.isActive) ?? versions[0];
             const totalVersions = versions.length;
+
+            if (!active) return null;
 
             return (
               <Link
@@ -114,15 +103,15 @@ export default function PromptsListPage() {
                 <h2 className={styles.cardTitle}>{active.label}</h2>
 
                 <p className={styles.cardDesc}>
-                  {active.pose_description.slice(0, 120)}
-                  {active.pose_description.length > 120 ? "…" : ""}
+                  {active.poseDescription.slice(0, 120)}
+                  {active.poseDescription.length > 120 ? "…" : ""}
                 </p>
 
                 <div className={styles.cardMeta}>
                   <div className={styles.metaItem}>
                     <span className={styles.metaLabel}>Checks</span>
                     <span className={styles.metaValue}>
-                      {active.content_checks.length} content + 4 quality
+                      {active.contentChecks.length} content + 4 quality
                     </span>
                   </div>
                   <div className={styles.metaItem}>
@@ -132,7 +121,7 @@ export default function PromptsListPage() {
                   <div className={styles.metaItem}>
                     <span className={styles.metaLabel}>Last updated</span>
                     <span className={styles.metaValue}>
-                      {formatDate(active.created_at)}
+                      {formatDate(active.createdAt)}
                     </span>
                   </div>
                 </div>

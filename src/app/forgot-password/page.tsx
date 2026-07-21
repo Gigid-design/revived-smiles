@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import styles from "./page.module.css";
-import { getSupabase } from "@/lib/supabase";
+import { api, ApiError } from "@/lib/api";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -19,18 +19,13 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const supabase = getSupabase();
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+      await api.auth.requestPasswordReset(
         email.trim(),
-        {
-          redirectTo: `${window.location.origin}/reset-password`,
-        }
+        `${window.location.origin}/reset-password`
       );
-      if (resetError) throw resetError;
       setSent(true);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Something went wrong";
-      setError(msg);
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }

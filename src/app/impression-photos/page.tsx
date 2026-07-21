@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
-import { PRODUCTS } from "../context/productConfig";
-import { supabase } from "../../lib/supabase";
+import { api, ApiError } from "@/lib/api";
+import type { ImpressionPhoto } from "@/lib/api";
 
 const SLOTS = [
   { id: 1, label: "Upper Impression 1", sub: "Angle 1", tray: "imp-tray-upper-1.svg", flip: false },
@@ -14,11 +14,6 @@ const SLOTS = [
   { id: 3, label: "Lower Impression 1", sub: "Angle 1", tray: "imp-tray-lower.svg",   flip: false },
   { id: 4, label: "Lower Impression 2", sub: "Angle 2", tray: "imp-tray-upper.svg",   flip: true  },
 ];
-
-/* Design mode (local design sessions): simulate uploads + skip backend saves so
-   the flow is clickable without a live backend. Auto-off in real environments. */
-const DESIGN_MODE = process.env.NEXT_PUBLIC_DESIGN_MODE === "1";
-const DEMO_PHOTO = "/assets/images/impression-example-good.svg";
 
 interface PhotoEntry {
   preview: string;
@@ -59,37 +54,18 @@ export default function ImpressionPhotos() {
     setUploading(id);
     try {
       const preview = URL.createObjectURL(file);
-      const ext = file.name.split(".").pop();
-      const path = `impressions/${Date.now()}-slot${id}.${ext}`;
-      const { error } = await supabase.storage
-        .from("impression-photos")
-        .upload(path, file, { upsert: true });
+      const { url, path } = await api.photos.upload(file, "impression");
 
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage
-        .from("impression-photos")
-        .getPublicUrl(path);
-
-      setPhotos(prev => ({ ...prev, [id]: { preview, url: urlData.publicUrl, path } }));
+      setPhotos(prev => ({ ...prev, [id]: { preview, url, path } }));
     } catch (err) {
       console.error("Upload failed:", err);
-      alert("Upload failed. Please try again.");
+      alert(err instanceof ApiError ? err.message : "Upload failed. Please try again.");
     } finally {
       setUploading(null);
     }
   }
 
   function handleCardClick(id: number) {
-    // Design mode: simulate the upload so the slot fills on click — no file
-    // picker, no storage call. Click again (via the X) to clear it.
-    if (DESIGN_MODE) {
-      setPhotos(prev => ({
-        ...prev,
-        [id]: { preview: DEMO_PHOTO, url: DEMO_PHOTO, path: `demo/slot-${id}` },
-      }));
-      return;
-    }
     const input = inputRefs.current[id];
     if (input) {
       input.value = "";  // reset so re-selecting the same file fires onChange
@@ -107,73 +83,35 @@ export default function ImpressionPhotos() {
   async function handleSubmit() {
     if (uploadedCount < 4 || !biteAck || submitting) return;
 
-    // Design mode: no backend to save to — just advance to the next screen.
-    if (DESIGN_MODE) {
-      update({
-        impressionPhotos: SLOTS.map(s => photos[s.id]).filter(Boolean).map((p, i) => ({ slot: i + 1, url: p.url, path: p.path })),
-      });
-      navigate("/complete", "forward");
-      return;
-    }
-
     setSubmitting(true);
 
-    const photoUrls = SLOTS.map(s => photos[s.id]?.url).filter(Boolean);
+    const impressionPhotos: ImpressionPhoto[] = SLOTS.flatMap(s => {
+      const entry = photos[s.id];
+      return entry ? [{ slot: s.id as ImpressionPhoto["slot"], url: entry.url, path: entry.path }] : [];
+    });
 
     try {
       const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
-      if (!id) throw new Error("No submission ID found");
+      if (!id) throw new ApiError("not_found", "We couldn't find your order. Please start again.");
 
-      // A submission is only "done" once ALL sections are complete: intake info,
-      // teeth (bite) photos, and these impression photos. Check what's still
-      // missing so we can guide the user there instead of finalizing early.
-      const { data: row, error: fetchErr } = await supabase
-        .from("submissions")
-        .select("name, state, products, white_shade, gum_shade, selected_teeth, teeth_not_sure, close_bite_photos, open_bite_photos")
-        .eq("id", id)
-        .single();
-      if (fetchErr) throw fetchErr;
+      // Saving the photos is also what submits the order: the backend moves it
+      // out of `draft` itself, but only once every other section is complete.
+      const saved = await api.submissions.finalize(id, impressionPhotos);
 
-      const config = PRODUCTS.find(p => p.id === row?.products?.[0]);
-      const intakeComplete =
-        !!row?.name?.trim() &&
-        !!row?.state &&
-        (row?.products?.length ?? 0) > 0 &&
-        (!config?.needsShade || !!(row?.white_shade || row?.gum_shade)) &&
-        (!config?.needsTeethChart || (row?.selected_teeth?.length ?? 0) > 0 || row?.teeth_not_sure === true);
-      const teethPhotosComplete =
-        (row?.close_bite_photos?.length ?? 0) > 0 &&
-        (row?.open_bite_photos?.length ?? 0) > 0;
-      const allComplete = intakeComplete && teethPhotosComplete;
-
-      // Save the impression photos. Only mark "pending" (submitted for review)
-      // once everything is complete — otherwise keep it a draft.
-      const { error } = await supabase
-        .from("submissions")
-        .update({
-          impression_photos: photoUrls,
-          ...(allComplete ? { status: "pending" } : {}),
-        })
-        .eq("id", id);
-
-      if (error) throw error;
-
-      update({
-        impressionPhotos: SLOTS.map(s => photos[s.id]).filter(Boolean).map((p, i) => ({ slot: i + 1, url: p.url, path: p.path })),
-      });
+      update({ impressionPhotos });
 
       // Smart resume: send the user to whatever's still missing; finalize only
       // when the whole submission is complete.
-      if (!intakeComplete) {
-        navigate("/intake", "forward");
-      } else if (!teethPhotosComplete) {
-        navigate("/photo-intro", "forward");
-      } else {
+      if (saved.status !== "draft") {
         navigate("/complete", "forward");
+      } else if (!saved.name?.trim() || !saved.state || saved.products.length === 0) {
+        navigate("/intake", "forward");
+      } else {
+        navigate("/photo-intro", "forward");
       }
     } catch (err) {
       console.error("Submission failed:", err);
-      alert("Submission failed. Please try again.");
+      alert(err instanceof ApiError ? err.message : "Something went wrong.");
       setSubmitting(false);
     }
   }

@@ -23,7 +23,7 @@ const GUM_SHADES = [
 ];
 
 export default function Step4() {
-  const { data, update, patchSubmission } = useSubmission();
+  const { data, saveDraft } = useSubmission();
   const [whiteShade, setWhiteShade] = useState<string | null>(data.whiteShade);
   const [gumShade,   setGumShade]   = useState<string | null>(data.gumShade);
   const { cardRef, navigate } = usePageTransition();
@@ -117,9 +117,8 @@ export default function Step4() {
       {/* CONTINUE — always active navy on this screen */}
       <div className={styles.buttonWrapper}>
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
-          onClick={() => {
-            update({ whiteShade, gumShade });
-            patchSubmission({ white_shade: whiteShade, gum_shade: gumShade });
+          onClick={async () => {
+            await saveDraft({ whiteShade, gumShade });
             const productId = data.products[0] || '';
             navigate(getNextAfterShade(productId), 'forward');
           }}>

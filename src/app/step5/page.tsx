@@ -183,7 +183,7 @@ function ToothButton({ tooth, jaw, selected, onToggle }: {
 }
 
 export default function Step5() {
-  const { data, update, patchSubmission } = useSubmission();
+  const { data, saveDraft } = useSubmission();
   const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set(data.selectedTeeth));
   const [notSure, setNotSure] = useState(data.teethNotSure);
   const { cardRef, navigate } = usePageTransition();
@@ -281,10 +281,8 @@ export default function Step5() {
 
       <div className={styles.buttonWrapper}>
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
-          onClick={() => {
-          const teeth = [...selectedTeeth];
-          update({ selectedTeeth: teeth, teethNotSure: notSure });
-          patchSubmission({ selected_teeth: teeth, teeth_not_sure: notSure });
+          onClick={async () => {
+          await saveDraft({ selectedTeeth: [...selectedTeeth], teethNotSure: notSure });
           navigate('/photo-intro', 'forward');
         }}
         >CONTINUE</button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { getSupabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 
 interface NewSubmissionEvent {
   name: string;
@@ -18,37 +18,24 @@ export function useRealtimeSubmissions() {
   }, []);
 
   useEffect(() => {
-    const supabase = getSupabase();
+    const unsubscribe = api.submissions.onChange((change) => {
+      setLastEvent(Date.now());
 
-    const channel = supabase
-      .channel("submissions-changes")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "submissions" },
-        (payload) => {
-          const row = payload.new as { name?: string; id?: string; status?: string };
-          // Ignore draft submissions — only toast on pending+ statuses
-          if (row.status === "draft") return;
-          setNewSubmission({ name: row.name || "New Patient", id: row.id || "" });
-          setLastEvent(Date.now());
+      if (change.type !== "created") return;
 
-          // Auto-clear toast after 8 seconds
-          if (timerRef.current) clearTimeout(timerRef.current);
-          timerRef.current = setTimeout(() => setNewSubmission(null), 8000);
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "submissions" },
-        () => {
-          setLastEvent(Date.now());
-        }
-      )
-      .subscribe();
+      setNewSubmission({
+        name: change.patientName || "New Patient",
+        id: change.submissionId,
+      });
+
+      // Auto-clear toast after 8 seconds
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setNewSubmission(null), 8000);
+    });
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, []);
 

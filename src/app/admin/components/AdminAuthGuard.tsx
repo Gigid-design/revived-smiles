@@ -2,28 +2,16 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { getSupabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
+import type { AdminUser } from "@/lib/api";
 
-export interface AdminUser {
-  name: string;
-  email: string;
-  role: string;
-  loggedInAt: string;
-}
+export type { AdminUser } from "@/lib/api";
 
 const AdminUserContext = createContext<AdminUser | null>(null);
 
 export function useAdminUser(): AdminUser | null {
   return useContext(AdminUserContext);
 }
-
-const SESSION_KEY = "rs_admin_session";
-
-/** Emails allowed to access the admin portal */
-const ADMIN_EMAILS = [
-  "admin@revivedsmiles.com",
-  "ivan.lomelin@unosquare.com",
-];
 
 /** Public pages that don't require auth */
 const PUBLIC_PATHS = ["/admin/login"];
@@ -43,30 +31,17 @@ export function AdminAuthGuard({ children }: { children: ReactNode }) {
 
     async function verifySession() {
       try {
-        /* 1. Quick check: do we have local session metadata? */
-        const raw = sessionStorage.getItem(SESSION_KEY);
-        if (!raw) {
+        /* The backend decides who counts as an admin — the browser only asks. */
+        const admin = await api.auth.getAdminUser();
+
+        if (!admin) {
           router.replace("/admin/login");
           return;
         }
 
-        const session = JSON.parse(raw) as AdminUser;
-
-        /* 2. Verify the Supabase auth session is still valid */
-        const supabase = getSupabase();
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-
-        if (!authUser || !ADMIN_EMAILS.includes(authUser.email?.toLowerCase() ?? "")) {
-          // Session expired or not an admin — clean up and redirect
-          sessionStorage.removeItem(SESSION_KEY);
-          router.replace("/admin/login");
-          return;
-        }
-
-        setUser(session);
+        setUser(admin);
         setChecked(true);
       } catch {
-        sessionStorage.removeItem(SESSION_KEY);
         router.replace("/admin/login");
       }
     }
@@ -92,14 +67,12 @@ export function AdminAuthGuard({ children }: { children: ReactNode }) {
   );
 }
 
-/** Sign out: clear Supabase session + local metadata, redirect to login */
+/** Sign out: end the admin session, redirect to login */
 export async function signOut() {
   try {
-    const supabase = getSupabase();
-    await supabase.auth.signOut();
+    await api.auth.signOutAdmin();
   } catch (err) {
     console.error("Sign out error:", err);
   }
-  sessionStorage.removeItem(SESSION_KEY);
   window.location.href = "/admin/login";
 }
