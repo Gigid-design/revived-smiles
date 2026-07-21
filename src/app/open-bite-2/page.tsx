@@ -182,7 +182,7 @@ export default function OpenBite2() {
           await supabase.from("submissions").update({ open_bite_photos: photos, photo_analyses: analyses }).eq("id", id);
         }
       }
-      navigate('/impression-photos', 'forward');
+      navigate('/dashboard', 'forward');
     } catch (err) {
       console.error("Photo upload failed:", err);
       setSubmitting(false);
