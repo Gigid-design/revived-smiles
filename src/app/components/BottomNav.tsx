@@ -16,6 +16,17 @@ const TABS = [
     ),
   },
   {
+    href: "/my-order",
+    label: "My Order",
+    match: (p: string) => p === "/my-order",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M21 8.4v7.2a1.6 1.6 0 0 1-.85 1.41l-7.2 3.9a1.6 1.6 0 0 1-1.5 0l-7.2-3.9A1.6 1.6 0 0 1 3 15.6V8.4a1.6 1.6 0 0 1 .85-1.41l7.2-3.9a1.6 1.6 0 0 1 1.5 0l7.2 3.9A1.6 1.6 0 0 1 21 8.4z" />
+        <path d="M3.4 7.6 12 12.2l8.6-4.6M12 21V12.2" />
+      </svg>
+    ),
+  },
+  {
     href: "/dashboard?chat=1",
     label: "Messages",
     match: (p: string, search: string) => p === "/dashboard" && search.includes("chat=1"),

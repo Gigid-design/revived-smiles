@@ -9,6 +9,7 @@ import { getSupabase } from "@/lib/supabase";
 import { BottomNav } from "@/app/components/BottomNav";
 import { ChatPanel } from "@/app/components/ChatPanel";
 import { ImpressionStepsModal } from "@/app/components/ImpressionStepsModal";
+import { RequestModal } from "@/app/components/RequestModal";
 import { useChat } from "@/app/hooks/useChat";
 
 /* ── Types ── */
@@ -87,6 +88,7 @@ function Landing() {
   const [error, setError] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [stepsOpen, setStepsOpen] = useState(false);
+  const [requestOpen, setRequestOpen] = useState(false);
 
   const patientName = submission?.name?.trim().split(" ")[0] || "there";
 
@@ -232,19 +234,25 @@ function Landing() {
                 </button>
               </div>
 
-              {/* Primary action */}
-              <Link href={ROUTE_UPLOAD} className={styles.primaryBtn}>
+              {/* Primary action — shows status based on upload progress */}
+              <Link href={ROUTE_UPLOAD} className={styles.primaryBtn} aria-label={submission?.impression_photos?.length ? "Impression photos complete, click to replace" : "Upload my impression photos"}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
-                  <path d="M12 3l5.5 5.5-1.42 1.42L13 6.83V16h-2V6.83L7.92 9.92 6.5 8.5 12 3zM5 19h14v2H5v-2z" />
+                  {submission?.impression_photos?.length ? (
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                  ) : (
+                    <path d="M12 3l5.5 5.5-1.42 1.42L13 6.83V16h-2V6.83L7.92 9.92 6.5 8.5 12 3zM5 19h14v2H5v-2z" />
+                  )}
                 </svg>
-                Upload my impression photos
+                {submission?.impression_photos?.length ? "Impression Photos Complete" : "Upload my impression photos"}
               </Link>
             </section>
 
-            {/* ══ Continue My Intake ══ */}
-            <Link href={ROUTE_INTAKE} className={styles.intakeCard} aria-label={`Continue your intake, ${done} of ${INTAKE_TOTAL_STEPS} steps done`}>
+            {/* ══ Continue My Intake / Intake Complete ══ */}
+            <Link href={ROUTE_INTAKE} className={styles.intakeCard} aria-label={done === INTAKE_TOTAL_STEPS ? "Intake complete, click to edit" : `Continue your intake, ${done} of ${INTAKE_TOTAL_STEPS} steps done`}>
               <div className={styles.intakeHead}>
-                <h2 className={styles.cardTitle}>Continue My Intake</h2>
+                <h2 className={styles.cardTitle}>
+                  {done === INTAKE_TOTAL_STEPS ? "Intake Complete" : "Continue My Intake"}
+                </h2>
                 <svg className={styles.chevron} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c0c4ce" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
@@ -303,13 +311,20 @@ function Landing() {
               </button>
             </div>
             <div className={styles.chatBody}>
-              <ChatPanel submissionId={submission?.id ?? null} currentRole="patient" currentName={submission?.name || "Patient"} />
+              <ChatPanel
+                submissionId={submission?.id ?? null}
+                currentRole="patient"
+                currentName={submission?.name || "Patient"}
+                onOpenRequest={() => setRequestOpen(true)}
+              />
             </div>
           </div>
         </div>
       )}
 
       <ImpressionStepsModal open={stepsOpen} onClose={() => setStepsOpen(false)} />
+
+      <RequestModal open={requestOpen} onClose={() => setRequestOpen(false)} />
 
       <BottomNav messagesBadge={chatUnread} />
     </main>
