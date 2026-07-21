@@ -71,9 +71,9 @@ const DEMO_SUBMISSION: SubmissionData = {
   reviewed_at: null,
   created_at: new Date().toISOString(),
   tracking_number: null,
-  close_bite_photos: [],
-  open_bite_photos: [],
-  impression_photos: [],
+  close_bite_photos: ["https://example.com/photo1.jpg"],
+  open_bite_photos: ["https://example.com/photo2.jpg"],
+  impression_photos: ["https://example.com/imp1.jpg", "https://example.com/imp2.jpg", "https://example.com/imp3.jpg", "https://example.com/imp4.jpg"],
 };
 
 /* ══════════════════════════════════════
@@ -236,13 +236,15 @@ function Landing() {
 
               {/* Primary action — shows status based on upload progress */}
               <Link href={ROUTE_UPLOAD} className={styles.primaryBtn} aria-label={submission?.impression_photos?.length ? "Impression photos complete, click to replace" : "Upload my impression photos"}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
-                  {submission?.impression_photos?.length ? (
+                {submission?.impression_photos?.length ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
                     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                  ) : (
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
                     <path d="M12 3l5.5 5.5-1.42 1.42L13 6.83V16h-2V6.83L7.92 9.92 6.5 8.5 12 3zM5 19h14v2H5v-2z" />
-                  )}
-                </svg>
+                  </svg>
+                )}
                 {submission?.impression_photos?.length ? "Impression Photos Complete" : "Upload my impression photos"}
               </Link>
             </section>
