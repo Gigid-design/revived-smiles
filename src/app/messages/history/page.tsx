@@ -30,7 +30,7 @@ function lastLine(thread: Thread): string {
 }
 
 export default function MessageHistory() {
-  const { threads, unreadCount } = useMessages();
+  const { threads, unreadCount, ready } = useMessages();
 
   const STATUS_CLASS: Record<RequestStatus, string> = {
     pending: styles.statusPending,
@@ -59,7 +59,10 @@ export default function MessageHistory() {
 
         <h1 className={styles.heading}>Past messages</h1>
 
-        {sorted.length === 0 ? (
+        {!ready ? (
+          /* Threads restore from storage on the client — hold the frame until then */
+          <div className={styles.emptyCard} aria-busy="true" />
+        ) : sorted.length === 0 ? (
           <div className={styles.emptyCard}>
             <div className={styles.emptyIcon}>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>

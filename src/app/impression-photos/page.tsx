@@ -109,6 +109,9 @@ export default function ImpressionPhotos() {
 
     // Design mode: no backend to save to — just advance to the next screen.
     if (DESIGN_MODE) {
+      update({
+        impressionPhotos: SLOTS.map(s => photos[s.id]).filter(Boolean).map((p, i) => ({ slot: i + 1, url: p.url, path: p.path })),
+      });
       navigate("/complete", "forward");
       return;
     }

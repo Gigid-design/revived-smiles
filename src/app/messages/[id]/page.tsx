@@ -32,7 +32,7 @@ function formatWhen(iso: string): string {
 export default function ThreadView() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : params.id?.[0] ?? "";
-  const { getThread, reply, markRead, setRequestStatus, unreadCount } = useMessages();
+  const { getThread, reply, markRead, setRequestStatus, unreadCount, ready } = useMessages();
   const [draft, setDraft] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -74,7 +74,10 @@ export default function ThreadView() {
           </Link>
         </div>
 
-        {!thread ? (
+        {!ready ? (
+          /* Threads restore from storage on the client — hold the frame until then */
+          <div className={styles.emptyCard} aria-busy="true" />
+        ) : !thread ? (
           <div className={styles.emptyCard}>
             <p className={styles.emptyTitle}>Conversation not found</p>
             <p className={styles.emptyBody}>This message may have been cleared.</p>

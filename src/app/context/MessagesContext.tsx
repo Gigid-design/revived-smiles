@@ -109,6 +109,8 @@ function seedThreads(): Thread[] {
 
 interface MessagesContextValue {
   threads: Thread[];
+  /** False until threads are restored from storage — stops "not found" flashing. */
+  ready: boolean;
   /** Threads with an unopened reply from the care team. */
   unreadCount: number;
   getThread: (id: string) => Thread | undefined;
@@ -247,7 +249,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
 
   return (
     <MessagesContext.Provider
-      value={{ threads, unreadCount, getThread, startQuestion, startRequest, reply, markRead, setRequestStatus }}
+      value={{ threads, ready: hydrated, unreadCount, getThread, startQuestion, startRequest, reply, markRead, setRequestStatus }}
     >
       {children}
     </MessagesContext.Provider>
