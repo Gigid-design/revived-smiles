@@ -35,7 +35,7 @@ const TABS = [
          nav's colour and any active state. It was hardcoded to #F1F3F8 —
          near-white on a white nav, which made it all but invisible. The dots
          are knocked out of the bubble and read as the nav behind them. */
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
         <path
           fillRule="evenodd"
           clipRule="evenodd"
@@ -61,7 +61,7 @@ export function BottomNav({ messagesBadge = 0 }: { messagesBadge?: number }) {
             className={`${styles.tab} ${isActive ? styles.active : ""}`}
             aria-label={tab.label}
           >
-            <span className={`${styles.icon} ${tab.label === "Messages" ? styles.iconMsg : ""}`}>
+            <span className={styles.icon}>
               {tab.icon}
               {tab.label === "Messages" && messagesBadge > 0 && (
                 <span className={styles.badge}>{messagesBadge > 9 ? "9+" : messagesBadge}</span>

@@ -43,17 +43,9 @@
   height: 22px;
 }
 
-/* Messages icon — chat bubble in the nav's own colour, dots knocked out.
-   Slightly larger than the other two so the knocked-out dots stay legible. */
-.iconMsg {
-  width: 28px;
-  height: 28px;
-}
-
-.iconMsg svg {
-  width: 28px;
-  height: 28px;
-}
+/* The Messages icon sits at the same size as the others — the bubble is a
+   filled shape rather than a stroked one, so inverting it was enough to make
+   it read without also making it bigger. */
 
 .badge {
   position: absolute;

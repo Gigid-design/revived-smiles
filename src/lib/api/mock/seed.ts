@@ -31,7 +31,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -63,6 +63,18 @@ export const DEMO_PHOTOS: Record<PhotoType, string> = {
 
 export const DEMO_IMPRESSION_PHOTO = "/assets/images/impression-example-good.svg";
 
+/**
+ * The Shopify order the demo patient placed.
+ *
+ * Intake reads the product from here rather than asking, so a fresh demo draft
+ * arrives pre-filled exactly as a real one would. A real adapter looks this up
+ * against the authenticated account.
+ */
+export const DEMO_SHOPIFY_ORDER = {
+  orderNumber: "#1042",
+  products: ["flexible-partial"],
+};
+
 /** Stand-in carrier reference. A real backend gets this from the carrier. */
 export const DEMO_TRACKING = "1Z999AA10123456784";
 
@@ -84,6 +96,7 @@ function submission(partial: Partial<Submission> & Pick<Submission, "id" | "emai
     userId: null,
     name: null,
     state: null,
+    orderNumber: null,
     products: [],
     whiteShade: null,
     gumShade: null,
@@ -366,8 +379,9 @@ export function buildSeed(): MockDb {
     userId: DEMO_PATIENT.id,
     email: DEMO_PATIENT.email,
     name: DEMO_PATIENT.name,
-    state: "California",
-    products: ["flexible-partial"],
+    state: DEMO_PATIENT.state,
+    orderNumber: DEMO_SHOPIFY_ORDER.orderNumber,
+    products: DEMO_SHOPIFY_ORDER.products,
     whiteShade: "A2",
     gumShade: "G2",
     selectedTeeth: [12, 13, 14],

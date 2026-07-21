@@ -74,16 +74,31 @@ export default function Messages() {
   const [kind, setKind] = useState<RequestKind | null>(null);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const hasScrolled = useRef(false);
 
   /* Opening the conversation clears the care team's unread replies. */
   useEffect(() => {
     if (unreadCount > 0) void markRead();
   }, [unreadCount, markRead]);
 
+  /* The page itself scrolls — nothing here is its own scroll container — so
+     bringing the last bubble into view still left the prompts and composer
+     below the fold. Go to the bottom of the document instead: opening the
+     conversation lands on the newest message with the prompts already in
+     reach. Instant on open, smooth for messages that arrive after. */
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages.length]);
+    if (!ready) return;
+
+    const frame = requestAnimationFrame(() => {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: hasScrolled.current ? "smooth" : "auto",
+      });
+      hasScrolled.current = true;
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [ready, messages.length]);
 
   async function submitDraft(text: string) {
     const body = text.trim();
@@ -224,7 +239,6 @@ export default function Messages() {
         ) : (
           <div className={styles.messageList}>
             {messages.map(renderMessage)}
-            <div ref={bottomRef} />
           </div>
         )}
 

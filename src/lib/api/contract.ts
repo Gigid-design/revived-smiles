@@ -96,11 +96,21 @@ export interface SubmissionsApi {
   /**
    * Starts an order in `draft`. Returns the new submission's id.
    *
-   * The server must stamp `name` and `state` onto the new draft from the
-   * account identified by `userId`. Intake does not ask for either, and
-   * `SubmissionDraft` deliberately excludes them, so this is the only point at
-   * which they reach a submission. An order started without an account
-   * therefore has neither, and cannot leave `draft` — see `finalize`.
+   * The server must stamp onto the new draft, from sources the patient does
+   * not control:
+   *
+   * - `name` and `state`, from the account identified by `userId`;
+   * - `products` and `orderNumber`, from the patient's Shopify order.
+   *
+   * Intake asks for none of these, and `SubmissionDraft` excludes all of them,
+   * so this is the only point at which they reach a submission. An order
+   * started without an account or without a matched Shopify order is missing
+   * them and cannot leave `draft` — see `finalize`.
+   *
+   * Matching the Shopify order is the server's job and must be done against
+   * the authenticated account, never against an order number or email supplied
+   * by the caller: those are guessable, and the match decides what the lab
+   * fabricates.
    */
   createDraft(email: string, userId: string | null): Promise<string>;
 
@@ -125,7 +135,13 @@ export interface SubmissionsApi {
 
   /**
    * Applies intake answers to a draft. Only `SubmissionDraft` keys are
-   * writable — notably not `name` or `state`, which are the account's.
+   * writable — notably not `name` or `state`, which are the account's, and not
+   * `products` or `orderNumber`, which are the Shopify order's.
+   *
+   * The server must reject a patch carrying any of those four rather than
+   * silently dropping them: a request trying to write `products` here is
+   * either a stale client or someone trying to be fabricated a product they
+   * did not buy, and both are worth failing loudly.
    */
   updateDraft(id: string, patch: Partial<SubmissionDraft>): Promise<Submission>;
 
@@ -235,10 +251,17 @@ export interface MessagesApi {
   subscribe(submissionId: string, handler: (message: ChatMessage) => void): Unsubscribe;
 
   /**
-   * Sends a supplies request as a message in the conversation.
+   * Sends a request as a message in the conversation.
    *
    * `note` is folded into the message body; `kind` and `detail` are kept
    * structured on `message.request` so the UI can render its state.
+   *
+   * A `kind` of `"order"` reports that the product carried over from Shopify
+   * is wrong, and `detail` carries what the patient believes she ordered. It
+   * is a report, not an instruction: raising one must not alter
+   * `submission.products`. Only staff resolve it, and doing so is an admin
+   * operation — accepting the request is the moment the order changes, and
+   * that write does not belong on the patient client.
    */
   sendRequest(
     submissionId: string,

@@ -159,7 +159,18 @@ export interface Submission {
   name: string | null;
   /** Full US state name, e.g. "California" — not the abbreviation. */
   state: string | null;
-  /** `ProductConfig["id"]` slugs. Render via `productLabel()`, never raw. */
+  /**
+   * The Shopify order this submission was raised against, e.g. "#1042".
+   *
+   * Shown to the patient so the pre-filled product is traceable to something
+   * she recognises from her receipt. Null only if no order could be matched.
+   */
+  orderNumber: string | null;
+  /**
+   * `ProductConfig["id"]` slugs. Render via `productLabel()`, never raw.
+   *
+   * Comes from the Shopify order, not from intake — see `SubmissionDraft`.
+   */
   products: string[];
   /** "A1" | "A2" | "A3" */
   whiteShade: string | null;
@@ -194,11 +205,17 @@ export interface Submission {
  * `name` and `state` are deliberately absent: the intake wizard no longer asks
  * for them, they come from the account, and so the patient must not be able to
  * write them through this path. Changing either is an account operation.
+ *
+ * `products` is absent for a stronger reason. It comes from the Shopify order
+ * the patient paid against, and the lab builds what that order says. If intake
+ * could rewrite it, an order could be fabricated as something nobody was
+ * charged for. A patient who believes the product is wrong raises a `"order"`
+ * request instead (see `RequestKind`), which the care team resolves — the
+ * submission itself is only ever corrected by staff.
  */
 export type SubmissionDraft = Pick<
   Submission,
   | "email"
-  | "products"
   | "whiteShade"
   | "gumShade"
   | "selectedTeeth"
@@ -279,18 +296,26 @@ export interface ChatMessage {
 /* Supplies requests (a kind of message)                               */
 /* ------------------------------------------------------------------ */
 
-export type RequestKind = "material" | "trays";
+/**
+ * `material` and `trays` ask for something to be sent. `order` is different:
+ * it reports that the product carried over from Shopify looks wrong. The
+ * patient cannot correct that herself — `products` is not writable from intake
+ * — so raising one of these is how the discrepancy reaches a human.
+ */
+export type RequestKind = "material" | "trays" | "order";
 
 export type RequestStatus = "pending" | "accepted" | "rejected";
 
 export const REQUEST_LABELS: Record<RequestKind, string> = {
   material: "More impression material",
   trays: "Different tray size",
+  order: "Wrong product on my order",
 };
 
 export const REQUEST_OUTCOMES: Record<RequestKind, string> = {
   material: "New impression material sent",
   trays: "New trays sent",
+  order: "Order corrected",
 };
 
 /** Reasons offered for a tray request. Material requests need no reason. */

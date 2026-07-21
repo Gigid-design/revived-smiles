@@ -18,6 +18,7 @@ import type {
   SubmissionStats,
 } from "../types";
 import { ApiError, requiresReviewNotes } from "../types";
+import { DEMO_SHOPIFY_ORDER } from "./seed";
 import {
   clone,
   delay,
@@ -56,8 +57,10 @@ export const mockSubmissions: SubmissionsApi = {
   async createDraft(email, userId) {
     await delay();
 
-    /* Intake no longer asks for either, so the account is where they come
-       from. A real backend reads the account record rather than a session. */
+    /* Intake asks for none of these. Name and state come from the account;
+       the product and order number come from the Shopify order she paid
+       against. A real backend reads both server-side, from the authenticated
+       identity — see `SubmissionsApi.createDraft`. */
     const account = getDb().authUser;
 
     const draft: Submission = {
@@ -66,7 +69,8 @@ export const mockSubmissions: SubmissionsApi = {
       email: email.trim().toLowerCase(),
       name: account?.name ?? null,
       state: account?.state ?? null,
-      products: [],
+      orderNumber: DEMO_SHOPIFY_ORDER.orderNumber,
+      products: [...DEMO_SHOPIFY_ORDER.products],
       whiteShade: null,
       gumShade: null,
       selectedTeeth: [],
@@ -128,10 +132,10 @@ export const mockSubmissions: SubmissionsApi = {
       if (!row) throw new ApiError("not_found", "That order could not be found.");
 
       // Only intake fields are writable, so a stray key can't reach `status`
-      // — nor `name` or `state`, which belong to the account.
+      // — nor `name`/`state`, which belong to the account, nor `products`,
+      // which belongs to the Shopify order.
       const writable: Array<keyof SubmissionDraft> = [
         "email",
-        "products",
         "whiteShade",
         "gumShade",
         "selectedTeeth",

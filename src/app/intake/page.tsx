@@ -1,45 +1,75 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
-import { PRODUCTS, CATEGORY_LABELS, getNextAfterProduct, getTotalSteps } from "../context/productConfig";
+import { useMessages } from "../context/MessagesContext";
+import { PRODUCTS, CATEGORY_LABELS, getNextAfterProduct, getTotalSteps, productLabel } from "../context/productConfig";
 import { IntakeHeader } from "../components/IntakeHeader";
+import { WrongOrderSheet } from "../components/WrongOrderSheet";
+import { api } from "@/lib/api";
 
-function CheckIcon({ checked }: { checked: boolean }) {
-  if (checked) {
-    // Active — same icon shape, navy fill with white checkmark path
-    return (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M17 0H3C1.34961 0 0 1.3501 0 3V17C0 18.6499 1.34961 20 3 20H17C18.6504 20 20 18.6499 20 17V3C20 1.3501 18.6504 0 17 0ZM14.46 8.20996L9.45996 13.21C9.25977 13.3999 9.00977 13.5 8.75 13.5C8.49023 13.5 8.24023 13.3999 8.04004 13.21L5.54004 10.71C5.15039 10.3198 5.15039 9.68018 5.54004 9.29004C5.92969 8.8999 6.57031 8.8999 6.95996 9.29004L8.75 11.0898L13.04 6.79004C13.4297 6.3999 14.0703 6.3999 14.46 6.79004C14.8496 7.18018 14.8496 7.81982 14.46 8.20996Z" fill="#121723"/>
-      </svg>
-    );
-  }
-  // Inactive — filled gray checkbox (provided asset)
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M17 0H3C1.34961 0 0 1.3501 0 3V17C0 18.6499 1.34961 20 3 20H17C18.6504 20 20 18.6499 20 17V3C20 1.3501 18.6504 0 17 0ZM14.46 8.20996L9.45996 13.21C9.25977 13.3999 9.00977 13.5 8.75 13.5C8.49023 13.5 8.24023 13.3999 8.04004 13.21L5.54004 10.71C5.15039 10.3198 5.15039 9.68018 5.54004 9.29004C5.92969 8.8999 6.57031 8.8999 6.95996 9.29004L8.75 11.0898L13.04 6.79004C13.4297 6.3999 14.0703 6.3999 14.46 6.79004C14.8496 7.18018 14.8496 7.81982 14.46 8.20996Z" fill="#E8E8E4"/>
-    </svg>
-  );
-}
-
-/* The wizard's first screen. Name and state used to come before it; they now
-   come from the patient's account, so choosing the product is step 1. */
+/**
+ * Step 1 — the product, carried over from the Shopify order.
+ *
+ * It is shown, not chosen. The order is what the patient paid for and what the
+ * lab builds, so letting intake rewrite it would let someone be fabricated a
+ * product nobody was charged for. If it looks wrong she flags it and the care
+ * team resolves it; the submission is only ever corrected by staff.
+ */
 export default function ProductStep() {
-  const { data, saveDraft } = useSubmission();
-  const [selected, setSelected] = useState<string | null>(data.products[0] || null);
+  const { data, update, ensureSubmissionId } = useSubmission();
+  const { requests, sendRequest } = useMessages();
   const { cardRef, navigate } = usePageTransition();
 
-  function select(product: string) {
-    setSelected(product);
+  const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  const [product, setProduct] = useState<string | null>(data.products[0] ?? null);
+  const [loading, setLoading] = useState(true);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  /* The product lives on the order, not in intake's local state, so read it
+     back rather than trusting whatever the context happens to be carrying. */
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const id = await ensureSubmissionId();
+        const submission = await api.submissions.getById(id);
+        if (cancelled) return;
+        setProduct(submission.products[0] ?? null);
+        setOrderNumber(submission.orderNumber);
+
+        /* Mirror the product into the shared intake state. The shade and
+           tooth-chart screens read it from there to work out how many steps
+           they are of how many, and this is now the only screen that learns
+           it — nothing writes `products` any more, because nothing may. */
+        update({ products: submission.products });
+      } catch (err) {
+        console.error("Could not load your order:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, []);
+
+  /* An unresolved flag changes what this screen offers: there's no point
+     asking her to report the same problem twice. */
+  const openFlag = requests.find((m) => m.request?.kind === "order" && m.request.status === "pending");
+
+  const config = product ? PRODUCTS.find((p) => p.id === product) : undefined;
+  const total = product ? getTotalSteps(product) : 1;
+
+  async function flagOrder(detail: string, note: string) {
+    await sendRequest("order", detail, note);
   }
-
-  const hasSelection = selected !== null;
-
-  /* How many steps follow depends on the product, which isn't known until one
-     is picked — so the total appears with the choice rather than guessing. */
-  const total = selected ? getTotalSteps(selected) : null;
 
   return (
     <main className={styles.screen}>
@@ -47,63 +77,109 @@ export default function ProductStep() {
 
       <IntakeHeader
         label="Your Details"
-        pct={total ? Math.round((1 / total) * 100) : 33}
-        counter={total ? `Step 1 of ${total}` : "Step 1"}
+        pct={Math.round((1 / total) * 100)}
+        counter={`Step 1 of ${total}`}
         onBack={() => navigate('/dashboard', 'backward')}
         onClose={() => navigate('/dashboard', 'backward')}
       />
 
-      {/* White card */}
       <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Your ordered product</h1>
 
-        {/* Scrollable list */}
-        <ul className={styles.list} role="listbox" aria-multiselectable="false" aria-label="Select your ordered product">
-          {PRODUCTS.map((product) => {
-            const isChecked = selected === product.id;
-            return (
-              <li key={product.id}>
+        <div className={styles.orderBody}>
+          {loading && <div className={styles.orderSkeleton} aria-busy="true" />}
+
+          {/* No matched order — she can't proceed, so send her to a human. */}
+          {!loading && !product && (
+            <div className={styles.orderEmpty}>
+              <p className={styles.orderEmptyTitle}>We couldn&apos;t find your order</p>
+              <p className={styles.orderEmptyBody}>
+                We weren&apos;t able to match this account to a purchase, so we don&apos;t know what
+                to make for you yet. Your care team can sort this out.
+              </p>
+              <Link href="/messages" className={styles.orderEmptyBtn}>
+                MESSAGE SUPPORT
+              </Link>
+            </div>
+          )}
+
+          {!loading && product && (
+            <>
+              {/* Read-only: this is a statement of what was ordered. */}
+              <div className={styles.orderCard}>
+                <div className={styles.orderCardHead}>
+                  <span className={styles.orderProduct}>{productLabel(product)}</span>
+                  <span className={styles.orderLock} aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="4" y="10.5" width="16" height="10" rx="2.5" />
+                      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+                    </svg>
+                  </span>
+                </div>
+
+                {config && <p className={styles.orderDescription}>{config.description}</p>}
+
+                <div className={styles.orderMeta}>
+                  {config && <span className={styles.orderBadge}>{CATEGORY_LABELS[config.category]}</span>}
+                  {orderNumber && (
+                    <span className={styles.orderRef}>From your order {orderNumber}</span>
+                  )}
+                </div>
+
+                {openFlag && (
+                  <span className={styles.orderFlagChip}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7.5v5l3 1.8" />
+                    </svg>
+                    We&apos;re checking this for you
+                  </span>
+                )}
+              </div>
+
+              <p className={styles.orderNote}>
+                This comes from the order you placed, so it can&apos;t be changed here.
+              </p>
+
+              {openFlag ? (
+                <Link href="/messages" className={styles.wrongOrderLink}>
+                  You&apos;ve told us this looks wrong — see the conversation{" "}
+                  <span aria-hidden="true">›</span>
+                </Link>
+              ) : (
                 <button
                   type="button"
-                  role="option"
-                  aria-selected={isChecked}
-                  className={`${styles.item} ${isChecked ? styles.itemActive : ""}`}
-                  onClick={() => select(product.id)}
+                  className={styles.wrongOrderBtn}
+                  onClick={() => setSheetOpen(true)}
                 >
-                  <div className={styles.itemContent}>
-                    <span className={styles.itemLabel}>{product.label}</span>
-                    <span className={styles.itemDescription}>{product.description}</span>
-                    <span className={styles.itemBadge}>{CATEGORY_LABELS[product.category]}</span>
-                  </div>
-                  <span className={styles.itemCheck}>
-                    <CheckIcon checked={isChecked} />
-                  </span>
+                  Wrong order?{" "}
+                  <span aria-hidden="true">›</span>
                 </button>
-              </li>
-            );
-          })}
-        </ul>
-
-        {/* Gradient fade — masks list bottom edge */}
-        <div className={styles.fadeGradient} aria-hidden="true" />
-
+              )}
+            </>
+          )}
+        </div>
       </div>
 
-      {/* CONTINUE button */}
       <div className={styles.buttonWrapper}>
         <button
           type="button"
-          className={`${styles.btn} ${hasSelection ? styles.btnActive : ""}`}
-          onClick={async () => {
-            if (hasSelection && selected) {
-              await saveDraft({ products: [selected] });
-              navigate(getNextAfterProduct(selected), 'forward');
-            }
+          className={`${styles.btn} ${product ? styles.btnActive : ""}`}
+          disabled={!product}
+          onClick={() => {
+            if (product) navigate(getNextAfterProduct(product), 'forward');
           }}
         >
           CONTINUE
         </button>
       </div>
+
+      <WrongOrderSheet
+        open={sheetOpen}
+        currentProduct={product ?? ""}
+        onClose={() => setSheetOpen(false)}
+        onFlag={flagOrder}
+      />
     </main>
   );
 }
