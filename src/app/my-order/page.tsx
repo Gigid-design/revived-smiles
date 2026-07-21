@@ -73,7 +73,7 @@ function orderReference(id: string): string {
 }
 
 export default function MyOrder() {
-  const { threads, unreadCount } = useMessages();
+  const { requests, unreadCount } = useMessages();
 
   const [order, setOrder] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
@@ -99,8 +99,8 @@ export default function MyOrder() {
     };
   }, []);
 
-  /* Only threads opened by a supplies request are tracked here. */
-  const requestThreads = threads.filter((t) => t.request);
+  /* Supplies requests are messages in the conversation; the context already
+     narrows them for us, newest first. */
 
   const stagesComplete = order ? STAGES_COMPLETE[order.status] : 0;
 
@@ -194,7 +194,7 @@ export default function MyOrder() {
             </Link>
           </div>
 
-          {requestThreads.length === 0 ? (
+          {requests.length === 0 ? (
             <div className={styles.emptyCard}>
               <p className={styles.emptyTitle}>No requests yet</p>
               <p className={styles.emptyBody}>
@@ -204,10 +204,10 @@ export default function MyOrder() {
             </div>
           ) : (
             <ul className={styles.requestList}>
-              {requestThreads.map((thread) => {
-                const req = thread.request!;
+              {requests.map((message) => {
+                const req = message.request!;
                 return (
-                <li key={thread.id} className={styles.requestCard}>
+                <li key={message.id} className={styles.requestCard}>
                   <div className={styles.requestHead}>
                     <span className={styles.requestKind}>{REQUEST_LABELS[req.kind]}</span>
                     <span className={`${styles.statusBadge} ${STATUS_CLASS[req.status]}`}>
@@ -216,7 +216,7 @@ export default function MyOrder() {
                   </div>
 
                   {req.detail && <p className={styles.requestDetail}>{req.detail}</p>}
-                  <p className={styles.requestDate}>Requested {formatDate(thread.createdAt)}</p>
+                  <p className={styles.requestDate}>Requested {formatDate(message.createdAt)}</p>
 
                   {req.status === "accepted" && (
                     <div className={styles.outcomeBox}>
@@ -240,7 +240,7 @@ export default function MyOrder() {
                     </p>
                   )}
 
-                  <Link href={`/messages/${thread.id}`} className={styles.threadLink}>
+                  <Link href="/messages" className={styles.threadLink}>
                     View conversation →
                   </Link>
                 </li>

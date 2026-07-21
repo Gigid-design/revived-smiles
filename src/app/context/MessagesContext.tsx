@@ -3,132 +3,140 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 
 import { api, CARE_TEAM_NAME } from "@/lib/api";
-import type { RequestKind, RequestStatus, Thread } from "@/lib/api";
+import type { ChatMessage, RequestKind, RequestStatus } from "@/lib/api";
 
 /**
- * Patient ↔ care team messaging, organised as separate threads.
+ * The patient's conversation with the care team.
  *
- * Every question the patient asks and every supplies request they raise opens
- * its OWN thread, so a materials request doesn't get buried inside a general
- * conversation. A request thread carries its status (pending / accepted /
- * rejected) alongside the messages.
+ * One conversation per order, shared with the back office — an admin reply
+ * lands here. It replaces the old thread model, where the patient wrote into
+ * one store and the admin read another, so neither side could hear the other.
  *
- * This context is now a thin cache over `api.threads` — it holds no data of
- * its own and invents nothing.
+ * Supplies requests are messages in this conversation, carrying a `request`
+ * payload, so an outcome shows up attached to the thing she asked for.
  */
 
-/* Re-exported so screens keep importing their types from one place. */
-export type { RequestKind, RequestStatus, Thread, ThreadMessage, ThreadRequest } from "@/lib/api";
-export { REQUEST_LABELS } from "@/lib/api";
+export type { ChatMessage, MessageRequest, RequestKind, RequestStatus } from "@/lib/api";
+export { REQUEST_LABELS, REQUEST_OUTCOMES, TRAY_REASONS } from "@/lib/api";
 export const CARE_NAME = CARE_TEAM_NAME;
 
 interface MessagesContextValue {
-  threads: Thread[];
-  /** False until the first load finishes — stops "not found" flashing. */
+  messages: ChatMessage[];
+  /** False until the first load finishes — stops an empty state flashing. */
   ready: boolean;
-  /** Threads with an unopened reply from the care team. */
+  /** Unread replies from the care team, for the nav badge. */
   unreadCount: number;
-  getThread: (id: string) => Thread | undefined;
-  /** Ask a new question — opens its own thread. Resolves with the new id. */
-  startQuestion: (text: string) => Promise<string>;
-  /** Raise a supplies request — opens its own thread. Resolves with the new id. */
-  startRequest: (kind: RequestKind, detail: string, note: string) => Promise<string>;
-  reply: (threadId: string, body: string) => Promise<void>;
-  markRead: (threadId: string) => Promise<void>;
-  /** Support's decision on a request thread. Admin-only once a backend lands. */
-  setRequestStatus: (threadId: string, status: RequestStatus) => Promise<void>;
+  /** Every supplies request she's raised, newest first. Drives /my-order. */
+  requests: ChatMessage[];
+  send: (body: string) => Promise<void>;
+  sendRequest: (kind: RequestKind, detail: string, note: string) => Promise<void>;
+  markRead: () => Promise<void>;
+  /** Simulates the care team's decision. Admin-only once a backend lands. */
+  setRequestStatus: (messageId: string, status: RequestStatus) => Promise<void>;
 }
 
 const MessagesContext = createContext<MessagesContextValue | null>(null);
 
 export function MessagesProvider({ children }: { children: ReactNode }) {
-  const [threads, setThreads] = useState<Thread[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [ready, setReady] = useState(false);
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [patientName, setPatientName] = useState("You");
 
-  const refresh = useCallback(async () => {
-    try {
-      setThreads(await api.threads.list());
-    } catch (err) {
-      console.error("Could not load conversations:", err);
-    }
-  }, []);
-
+  /* Resolve the order this conversation belongs to, then load and subscribe. */
   useEffect(() => {
     let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
 
-    api.threads
-      .list()
-      .then((list) => {
-        if (!cancelled) setThreads(list);
-      })
-      .catch((err) => {
-        console.error("Could not load conversations:", err);
-      })
-      .finally(() => {
+    async function open() {
+      try {
+        const [mine, user] = await Promise.all([
+          api.submissions.getMine(),
+          api.auth.getUser(),
+        ]);
+        if (cancelled) return;
+
+        if (user?.name) setPatientName(user.name);
+        if (!mine) return;
+
+        setSubmissionId(mine.id);
+        const loaded = await api.messages.list(mine.id);
+        if (cancelled) return;
+
+        setMessages(loaded);
+        unsubscribe = api.messages.subscribe(mine.id, (incoming) => {
+          setMessages((prev) =>
+            prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming],
+          );
+        });
+      } catch (err) {
+        console.error("Could not open the conversation:", err);
+      } finally {
         if (!cancelled) setReady(true);
-      });
+      }
+    }
+
+    open();
 
     return () => {
       cancelled = true;
+      unsubscribe?.();
     };
   }, []);
 
-  const getThread = useCallback((id: string) => threads.find((t) => t.id === id), [threads]);
+  /** Replaces a message in place, keeping the conversation's order. */
+  const applyMessage = useCallback((updated: ChatMessage) => {
+    setMessages((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+  }, []);
 
-  const startQuestion = useCallback(
-    async (text: string) => {
-      const id = await api.threads.startQuestion(text);
-      await refresh();
-      return id;
+  const send = useCallback(
+    async (body: string) => {
+      if (!submissionId || !body.trim()) return;
+      const sent = await api.messages.send(submissionId, body, "patient", patientName);
+      setMessages((prev) => (prev.some((m) => m.id === sent.id) ? prev : [...prev, sent]));
     },
-    [refresh],
+    [submissionId, patientName],
   );
 
-  const startRequest = useCallback(
+  const sendRequest = useCallback(
     async (kind: RequestKind, detail: string, note: string) => {
-      const id = await api.threads.startRequest(kind, detail, note);
-      await refresh();
-      return id;
+      if (!submissionId) return;
+      const sent = await api.messages.sendRequest(submissionId, kind, detail, note, patientName);
+      setMessages((prev) => (prev.some((m) => m.id === sent.id) ? prev : [...prev, sent]));
     },
-    [refresh],
+    [submissionId, patientName],
   );
 
-  const applyThread = useCallback((updated: Thread) => {
-    setThreads((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-  }, []);
+  const markRead = useCallback(async () => {
+    if (!submissionId) return;
+    if (!messages.some((m) => m.senderRole === "admin" && !m.readAt)) return;
 
-  const reply = useCallback(
-    async (threadId: string, body: string) => {
-      if (!body.trim()) return;
-      applyThread(await api.threads.reply(threadId, body));
-    },
-    [applyThread],
-  );
-
-  const markRead = useCallback(async (threadId: string) => {
-    await api.threads.markRead(threadId);
-    setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, unread: false } : t)));
-  }, []);
+    await api.messages.markRead(submissionId, "admin");
+    const at = new Date().toISOString();
+    setMessages((prev) =>
+      prev.map((m) => (m.senderRole === "admin" && !m.readAt ? { ...m, readAt: at } : m)),
+    );
+  }, [submissionId, messages]);
 
   const setRequestStatus = useCallback(
-    async (threadId: string, status: RequestStatus) => {
-      applyThread(await api.threads.setRequestStatus(threadId, status));
+    async (messageId: string, status: RequestStatus) => {
+      applyMessage(await api.messages.setRequestStatus(messageId, status));
     },
-    [applyThread],
+    [applyMessage],
   );
 
-  const unreadCount = threads.filter((t) => t.unread).length;
+  const unreadCount = messages.filter((m) => m.senderRole === "admin" && !m.readAt).length;
+  const requests = messages.filter((m) => m.request).reverse();
 
   return (
     <MessagesContext.Provider
       value={{
-        threads,
+        messages,
         ready,
         unreadCount,
-        getThread,
-        startQuestion,
-        startRequest,
-        reply,
+        requests,
+        send,
+        sendRequest,
         markRead,
         setRequestStatus,
       }}

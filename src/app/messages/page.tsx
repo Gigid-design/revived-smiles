@@ -1,52 +1,39 @@
 "use client";
 
-import { ReactNode, useState } from "react";
-import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import styles from "./messages.module.css";
 import { BottomNav } from "@/app/components/BottomNav";
-import { useMessages, RequestKind, REQUEST_LABELS } from "@/app/context/MessagesContext";
+import {
+  useMessages,
+  CARE_NAME,
+  REQUEST_LABELS,
+  TRAY_REASONS,
+  type ChatMessage,
+  type RequestKind,
+  type RequestStatus,
+} from "@/app/context/MessagesContext";
 
-/** New message — the Messages tab opens here. Template questions and the
- *  request form are the fast paths; free text is always available. Past
- *  conversations live one tap away under "Past messages". */
+/**
+ * Messages — one conversation with the care team.
+ *
+ * Replaces the old thread list. Patients think in conversations, not folders,
+ * and the care team writes into this same conversation, so a reply reaches
+ * her here. Supplies requests are messages with a status attached rather than
+ * a separate place to check.
+ */
 
-/* Each prompt gets its own tinted icon so the list reads as a set of choices
-   rather than three grey rows. */
-const QUICK_PROMPTS: { text: string; tint: string; icon: ReactNode }[] = [
-  {
-    text: "What's the latest?",
-    tint: "promptIconAmber",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7.5v5l3 1.8" />
-      </svg>
-    ),
-  },
-  {
-    text: "Where is my order?",
-    tint: "promptIconBlue",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" />
-        <circle cx="7" cy="18" r="1.8" />
-        <circle cx="17" cy="18" r="1.8" />
-      </svg>
-    ),
-  },
-  {
-    text: "How do I take my impressions?",
-    tint: "promptIconMint",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.4" />
-        <path d="M12 17h.01" />
-      </svg>
-    ),
-  },
+const STATUS_COPY: Record<RequestStatus, string> = {
+  pending: "Awaiting review",
+  accepted: "Accepted",
+  rejected: "Declined",
+};
+
+/* Fast paths, kept from the old "New message" screen. */
+const QUICK_PROMPTS = [
+  "What's the latest?",
+  "Where is my order?",
+  "How do I take my impressions?",
 ];
 
 const KINDS: { kind: RequestKind; blurb: string }[] = [
@@ -54,30 +41,61 @@ const KINDS: { kind: RequestKind; blurb: string }[] = [
   { kind: "trays", blurb: "The trays you received don't fit comfortably." },
 ];
 
-const TRAY_REASONS = ["Trays too big", "Trays too small"];
+function formatWhen(iso: string): string {
+  const date = new Date(iso);
+  const diffMin = Math.floor((Date.now() - date.getTime()) / 60000);
+  if (diffMin < 1) return "Just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 1440) return `${Math.floor(diffMin / 60)}h ago`;
+  if (diffMin < 2880) return "Yesterday";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
-export default function NewMessage() {
-  const router = useRouter();
-  const { threads, unreadCount, startQuestion, startRequest } = useMessages();
+/** The note the patient typed, which follows the headline in the body. */
+function noteFrom(body: string): string {
+  const [, ...rest] = body.split("\n\n");
+  return rest.join("\n\n").trim();
+}
+
+export default function Messages() {
+  const {
+    messages,
+    ready,
+    unreadCount,
+    send,
+    sendRequest,
+    markRead,
+    setRequestStatus,
+  } = useMessages();
 
   const [draft, setDraft] = useState("");
-  /* Guards against a second tap while the first thread is still being opened. */
   const [sending, setSending] = useState(false);
-  /* The request form expands inline on this screen — no modal over a modal. */
   const [formOpen, setFormOpen] = useState(false);
   const [kind, setKind] = useState<RequestKind | null>(null);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  /* Opening a thread has to finish before we can navigate to it. */
-  async function ask(text: string) {
-    if (sending) return;
+  /* Opening the conversation clears the care team's unread replies. */
+  useEffect(() => {
+    if (unreadCount > 0) void markRead();
+  }, [unreadCount, markRead]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages.length]);
+
+  async function submitDraft(text: string) {
+    const body = text.trim();
+    if (!body || sending) return;
     setSending(true);
+    setDraft("");
     try {
-      const id = await startQuestion(text);
-      router.push(`/messages/${id}`);
+      await send(body);
     } catch (err) {
-      console.error("Could not start the conversation:", err);
+      console.error("Could not send your message:", err);
+      setDraft(body);
+    } finally {
       setSending(false);
     }
   }
@@ -96,12 +114,93 @@ export default function NewMessage() {
     if (!kind || !formValid || sending) return;
     setSending(true);
     try {
-      const id = await startRequest(kind, kind === "trays" ? reason : "", note.trim());
-      router.push(`/messages/${id}`);
+      await sendRequest(kind, kind === "trays" ? reason : "", note.trim());
+      setFormOpen(false);
     } catch (err) {
       console.error("Could not send the request:", err);
+    } finally {
       setSending(false);
     }
+  }
+
+  function renderMessage(msg: ChatMessage) {
+    const isOwn = msg.senderRole === "patient";
+
+    /* A supplies request renders as a status card rather than a plain bubble,
+       so its outcome sits on the thing she actually asked for. */
+    if (msg.request) {
+      const { kind: reqKind, detail, status, outcome, trackingNumber } = msg.request;
+      const typed = noteFrom(msg.body);
+
+      return (
+        <div key={msg.id} className={`${styles.bubbleWrap} ${styles.bubbleOwnWrap}`}>
+          <div className={styles.requestCard}>
+            <div className={styles.requestHead}>
+              <span className={styles.requestKind}>{REQUEST_LABELS[reqKind]}</span>
+              <span className={`${styles.statusBadge} ${styles[`status${status[0].toUpperCase()}${status.slice(1)}`]}`}>
+                {STATUS_COPY[status]}
+              </span>
+            </div>
+
+            {detail && <p className={styles.requestDetail}>{detail}</p>}
+            {typed && <p className={styles.note}>{typed}</p>}
+
+            {status === "accepted" && (
+              <>
+                <div className={styles.outcomeRow}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M4 12.5L9.5 18L20 6.5" />
+                  </svg>
+                  <span>{outcome}</span>
+                </div>
+                {trackingNumber && (
+                  <Link href="/my-order" className={styles.trackLink}>
+                    Track in My Order →
+                  </Link>
+                )}
+              </>
+            )}
+
+            {status === "rejected" && (
+              <p className={styles.rejectedNote}>Your care team has explained why below.</p>
+            )}
+
+            {/* Stands in for the support console until an admin decides these
+                — see MessagesApi.setRequestStatus. */}
+            {status === "pending" && (
+              <div className={styles.simulateRow}>
+                <span className={styles.simulateLabel}>Preview:</span>
+                <button type="button" className={styles.simulateBtn} onClick={() => void setRequestStatus(msg.id, "accepted")}>
+                  Accept
+                </button>
+                <button type="button" className={styles.simulateBtn} onClick={() => void setRequestStatus(msg.id, "rejected")}>
+                  Decline
+                </button>
+              </div>
+            )}
+          </div>
+          <div className={styles.timestamp}>{formatWhen(msg.createdAt)}</div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={msg.id}
+        className={`${styles.bubbleWrap} ${isOwn ? styles.bubbleOwnWrap : styles.bubbleOtherWrap}`}
+      >
+        {!isOwn && (
+          <div className={styles.senderRow}>
+            <div className={styles.avatar}>RS</div>
+            <div className={styles.senderName}>{CARE_NAME}</div>
+          </div>
+        )}
+        <div className={`${styles.bubble} ${isOwn ? styles.bubbleOwn : styles.bubbleOther}`}>
+          {msg.body}
+        </div>
+        <div className={styles.timestamp}>{formatWhen(msg.createdAt)}</div>
+      </div>
+    );
   }
 
   return (
@@ -109,87 +208,46 @@ export default function NewMessage() {
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
       <div className={styles.content} id="main-content">
-        {/* ── Top bar ── */}
         <div className={styles.topBar}>
-          <h1 className={styles.heading}>New message</h1>
-          {threads.length > 0 && (
-            <Link href="/messages/history" className={styles.pastLink}>
-              Past messages
-              {unreadCount > 0 && <span className={styles.pastLinkBadge}>{unreadCount}</span>}
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </Link>
-          )}
+          <h1 className={styles.heading}>Messages</h1>
         </div>
 
-        {/* ── Who you're talking to ── */}
-        <div className={styles.careCard}>
-          <div className={styles.careAvatar}>
-            <Image src="/assets/images/concierge-avatar.png" alt="" fill sizes="48px" />
-          </div>
-          <div className={styles.careText}>
-            <p className={styles.careName}>Your Care Team</p>
-            <p className={styles.careStatus}>
-              <span className={styles.careDot} aria-hidden="true" />
-              <span>Typically replies within a few hours</span>
+        {!ready ? (
+          <div className={styles.emptyCard} aria-busy="true" />
+        ) : messages.length === 0 ? (
+          <div className={styles.emptyCard}>
+            <p className={styles.emptyTitle}>No messages yet</p>
+            <p className={styles.emptyBody}>
+              Ask us anything about your impressions or your order — we usually reply the same day.
             </p>
           </div>
-        </div>
-
-        {/* ── Template questions ── */}
-        <p className={styles.sectionLabel}>What can we help with?</p>
-        <div className={styles.promptList}>
-          {QUICK_PROMPTS.map((prompt) => (
-            <button
-              key={prompt.text}
-              type="button"
-              className={styles.promptBtn}
-              onClick={() => void ask(prompt.text)}
-            >
-              <span className={`${styles.promptIcon} ${styles[prompt.tint]}`} aria-hidden="true">
-                {prompt.icon}
-              </span>
-              <span className={styles.promptLabel}>{prompt.text}</span>
-              <svg className={styles.promptArrow} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
-          ))}
-        </div>
-
-        {/* ── Request materials — inline form ── */}
-        <p className={styles.sectionLabel}>Need something sent to you?</p>
-
-        {!formOpen ? (
-          <button type="button" className={styles.requestBtn} onClick={openForm}>
-            <span className={styles.requestBtnIcon} aria-hidden="true">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden>
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </span>
-            <span>Request materials</span>
-          </button>
         ) : (
+          <div className={styles.messageList}>
+            {messages.map(renderMessage)}
+            <div ref={bottomRef} />
+          </div>
+        )}
+
+        {/* ── Supplies request form, expanded inline ── */}
+        {formOpen ? (
           <div className={styles.requestForm}>
             <div className={styles.requestFormHead}>
-              <h2 className={styles.requestFormTitle}>Request materials</h2>
+              <span className={styles.requestFormTitle}>What do you need?</span>
               <button type="button" className={styles.cancelBtn} onClick={() => setFormOpen(false)}>
                 Cancel
               </button>
             </div>
 
-            <p className={styles.fieldLabel}>What do you need?</p>
             <div className={styles.optionList}>
               {KINDS.map((opt) => (
                 <button
                   key={opt.kind}
                   type="button"
                   className={`${styles.option} ${kind === opt.kind ? styles.optionSelected : ""}`}
-                  onClick={() => { setKind(opt.kind); setReason(""); }}
                   aria-pressed={kind === opt.kind}
+                  onClick={() => { setKind(opt.kind); setReason(""); }}
                 >
-                  <span className={styles.optionRadio} aria-hidden="true" />
+                  <span className={styles.optionRadio} aria-hidden />
                   <span className={styles.optionText}>
                     <span className={styles.optionTitle}>{REQUEST_LABELS[opt.kind]}</span>
                     <span className={styles.optionBlurb}>{opt.blurb}</span>
@@ -200,15 +258,15 @@ export default function NewMessage() {
 
             {kind === "trays" && (
               <>
-                <p className={styles.fieldLabel}>What&apos;s wrong with the fit?</p>
+                <span className={styles.fieldLabel}>What&apos;s wrong with them?</span>
                 <div className={styles.chipRow}>
                   {TRAY_REASONS.map((r) => (
                     <button
                       key={r}
                       type="button"
                       className={`${styles.chip} ${reason === r ? styles.chipSelected : ""}`}
-                      onClick={() => setReason(r)}
                       aria-pressed={reason === r}
+                      onClick={() => setReason(r)}
                     >
                       {r}
                     </button>
@@ -217,60 +275,75 @@ export default function NewMessage() {
               </>
             )}
 
-            <label className={styles.fieldLabel} htmlFor="request-note">
-              Anything else? <span className={styles.optional}>(optional)</span>
-            </label>
-            <textarea
-              id="request-note"
-              className={styles.note}
-              rows={3}
-              placeholder="Add any detail that would help us…"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
+            {kind && (
+              <>
+                <span className={styles.fieldLabel}>
+                  Anything else? <span className={styles.optional}>optional</span>
+                </span>
+                <textarea
+                  className={styles.note}
+                  rows={2}
+                  placeholder="Tell us a bit more…"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+              </>
+            )}
 
             <button
               type="button"
-              className={`${styles.submitBtn} ${formValid ? "" : styles.submitBtnDisabled}`}
+              className={`${styles.submitBtn} ${!formValid || sending ? styles.submitBtnDisabled : ""}`}
               disabled={!formValid || sending}
               onClick={() => void submitRequest()}
             >
-              SEND REQUEST
+              {sending ? "Sending…" : "Send request"}
+            </button>
+          </div>
+        ) : (
+          /* ── Fast paths, always within reach above the composer ── */
+          <div className={styles.chipRow}>
+            {QUICK_PROMPTS.map((text) => (
+              <button
+                key={text}
+                type="button"
+                className={styles.chip}
+                disabled={sending}
+                onClick={() => void submitDraft(text)}
+              >
+                {text}
+              </button>
+            ))}
+            <button type="button" className={styles.chip} onClick={openForm}>
+              + Request supplies
             </button>
           </div>
         )}
 
-        {/* ── Free text ── */}
-        <p className={styles.sectionLabel}>Or write your own</p>
+        {/* ── Composer ── */}
         <div className={styles.composer}>
           <textarea
             className={styles.composerInput}
-            placeholder="Type your message…"
+            placeholder="Message your care team…"
             rows={1}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                if (draft.trim()) void ask(draft);
+                void submitDraft(draft);
               }
             }}
           />
           <button
             type="button"
             className={styles.sendBtn}
-            disabled={!draft.trim() || sending}
-            onClick={() => draft.trim() && void ask(draft)}
             aria-label="Send message"
+            disabled={!draft.trim() || sending}
+            onClick={() => void submitDraft(draft)}
           >
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
-              <path
-                d="M18.5 1.5L9 11M18.5 1.5L12.5 18.5L9 11M18.5 1.5L1.5 7.5L9 11"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M22 2L11 13" />
+              <path d="M22 2l-7 20-4-9-9-4 20-7z" />
             </svg>
           </button>
         </div>

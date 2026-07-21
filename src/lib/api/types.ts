@@ -250,6 +250,13 @@ export interface SubmissionChange {
 
 export type MessageRole = "admin" | "patient";
 
+/**
+ * One message in a submission's conversation.
+ *
+ * There is exactly one conversation per order, shared by the patient and the
+ * care team. It replaces the old split where the patient wrote into `threads`
+ * and the admin read a different store, so neither side could hear the other.
+ */
 export interface ChatMessage {
   id: string;
   submissionId: string;
@@ -258,17 +265,20 @@ export interface ChatMessage {
   body: string;
   createdAt: Timestamp;
   readAt: Timestamp | null;
+  /**
+   * Present when this message is a supplies request rather than plain text.
+   *
+   * The request lives on the message the patient actually sent, so its
+   * outcome appears attached to the thing she asked for rather than in a
+   * separate place she has to go and find.
+   */
+  request?: MessageRequest;
 }
 
 /* ------------------------------------------------------------------ */
-/* Threads (patient supplies requests, shown on /my-order)             */
+/* Supplies requests (a kind of message)                               */
 /* ------------------------------------------------------------------ */
 
-/**
- * Deliberately separate from `ChatMessage`. Threads are the patient asking for
- * something and support deciding; chat is a running conversation. They share
- * two status names but are different domains and must not be merged.
- */
 export type RequestKind = "material" | "trays";
 
 export type RequestStatus = "pending" | "accepted" | "rejected";
@@ -283,34 +293,17 @@ export const REQUEST_OUTCOMES: Record<RequestKind, string> = {
   trays: "New trays sent",
 };
 
-export interface ThreadMessage {
-  id: string;
-  role: "patient" | "care";
-  body: string;
-  createdAt: Timestamp;
-}
+/** Reasons offered for a tray request. Material requests need no reason. */
+export const TRAY_REASONS = ["Trays too big", "Trays too small"] as const;
 
-export interface ThreadRequest {
+export interface MessageRequest {
   kind: RequestKind;
   /** Reason picked in the form, e.g. "Trays too big". Empty for material. */
   detail: string;
-  note: string;
   status: RequestStatus;
   /** What the patient sees once accepted, e.g. "New trays sent". */
   outcome: string | null;
   trackingNumber: string | null;
-}
-
-export interface Thread {
-  id: string;
-  subject: string;
-  messages: ThreadMessage[];
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-  /** Care team has replied and the patient hasn't opened it. */
-  unread: boolean;
-  /** Present when the thread was opened by a supplies request. */
-  request?: ThreadRequest;
 }
 
 /* ------------------------------------------------------------------ */

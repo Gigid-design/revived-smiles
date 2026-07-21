@@ -136,16 +136,49 @@ async function main() {
   }
   check("rejecting without notes is refused", rejectedWithoutNotes !== null, rejectedWithoutNotes ?? "it was allowed!");
 
-  console.log("\n6. Messages, threads and notifications");
+  console.log("\n6. One shared conversation, requests included");
   const sent = await api.messages.send(id, "Is the lower one okay now?", "patient", "Angela Carter");
-  check("a message sends", sent.body.length > 0);
-  const thread = await api.messages.list(id);
-  check("it appears in the thread", thread.some((m) => m.id === sent.id), `${thread.length} messages`);
+  check("a patient message sends", sent.body.length > 0);
 
-  const threadId = await api.threads.startRequest("trays", "Trays too big", "They lift at the back.");
-  const accepted = await api.threads.setRequestStatus(threadId, "accepted");
-  check("a supplies request can be accepted", accepted.request?.status === "accepted");
+  const conversation = await api.messages.list(id);
+  check(
+    "it lands in the conversation",
+    conversation.some((m) => m.id === sent.id),
+    `${conversation.length} messages`,
+  );
+
+  /* The whole point of the redesign: the care team writes into the SAME
+     conversation, so a reply actually reaches the patient. */
+  const careReply = await api.messages.send(id, "Looks good from here.", "admin", "Revived Smiles Care");
+  const afterReply = await api.messages.list(id);
+  check(
+    "a care-team reply reaches the patient's conversation",
+    afterReply.some((m) => m.id === careReply.id),
+    "patient and admin share one thread",
+  );
+  check(
+    "and counts as unread for her",
+    afterReply.some((m) => m.id === careReply.id && m.senderRole === "admin" && !m.readAt),
+  );
+
+  const request = await api.messages.sendRequest(id, "trays", "Trays too big", "They lift at the back.", "Angela Carter");
+  check("a supplies request is a message in the conversation", request.request?.status === "pending");
+  check("carrying the note she typed", request.body.includes("They lift at the back."));
+
+  const accepted = await api.messages.setRequestStatus(request.id, "accepted");
+  check("it can be accepted", accepted.request?.status === "accepted");
   check("and returns a tracking number", Boolean(accepted.request?.trackingNumber));
+
+  const withDecision = await api.messages.list(id);
+  check(
+    "acceptance also posts the care team's reply into the conversation",
+    withDecision.some((m) => m.senderRole === "admin" && m.body.includes(accepted.request!.trackingNumber!)),
+  );
+  check(
+    "and /my-order can find the request without a separate store",
+    withDecision.filter((m) => m.request).length > 0,
+    `${withDecision.filter((m) => m.request).length} request(s) in the conversation`,
+  );
 
   const notes = await api.notifications.list();
   check("notifications load", notes.length > 0, `${notes.length}`);

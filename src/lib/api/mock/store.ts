@@ -16,7 +16,6 @@ import type {
   PromptConfig,
   Submission,
   SubmissionChange,
-  Thread,
 } from "../types";
 import { SEED_VERSION, buildSeed } from "./seed";
 
@@ -30,7 +29,6 @@ export interface MockDb {
   version: number;
   submissions: Submission[];
   messages: ChatMessage[];
-  threads: Thread[];
   notifications: AppNotification[];
   promptConfigs: PromptConfig[];
   authUser: AuthUser | null;

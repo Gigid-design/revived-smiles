@@ -14,14 +14,12 @@ import { mockPhotos } from "./photos";
 import { mockPrompts } from "./prompts";
 import { mockShipping } from "./shipping";
 import { mockSubmissions } from "./submissions";
-import { mockThreads } from "./threads";
 
 export const mockApi: ApiClient = {
   auth: mockAuth,
   submissions: mockSubmissions,
   photos: mockPhotos,
   messages: mockMessages,
-  threads: mockThreads,
   notifications: mockNotifications,
   prompts: mockPrompts,
   shipping: mockShipping,

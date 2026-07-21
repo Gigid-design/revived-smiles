@@ -36,7 +36,6 @@ import type {
   SubmissionDraft,
   SubmissionQuery,
   SubmissionStats,
-  Thread,
   Unsubscribe,
 } from "./types";
 
@@ -234,35 +233,30 @@ export interface MessagesApi {
 
   /** Live inbound messages for one submission. */
   subscribe(submissionId: string, handler: (message: ChatMessage) => void): Unsubscribe;
-}
-
-/* ------------------------------------------------------------------ */
-
-export interface ThreadsApi {
-  /** The patient's threads, newest activity first. */
-  list(): Promise<Thread[]>;
-
-  get(threadId: string): Promise<Thread>;
-
-  /** Opens a plain question thread. Returns the new thread id. */
-  startQuestion(text: string): Promise<string>;
-
-  /** Opens a supplies-request thread. Returns the new thread id. */
-  startRequest(kind: RequestKind, detail: string, note: string): Promise<string>;
-
-  reply(threadId: string, body: string): Promise<Thread>;
-
-  markRead(threadId: string): Promise<void>;
 
   /**
-   * Support's decision on a request.
+   * Sends a supplies request as a message in the conversation.
    *
-   * ADMIN-ONLY in a real backend. It exists on the patient client today only
-   * because the prototype simulated the decision — including inventing the
-   * tracking number in the browser. The demo keeps that simulation; the real
-   * implementation must reject this call from a patient session.
+   * `note` is folded into the message body; `kind` and `detail` are kept
+   * structured on `message.request` so the UI can render its state.
    */
-  setRequestStatus(threadId: string, status: RequestStatus): Promise<Thread>;
+  sendRequest(
+    submissionId: string,
+    kind: RequestKind,
+    detail: string,
+    note: string,
+    senderName: string,
+  ): Promise<ChatMessage>;
+
+  /**
+   * Support's decision on a supplies request.
+   *
+   * ADMIN-ONLY in a real backend, which must reject this from a patient
+   * session. On acceptance it must set `outcome` and a genuine carrier
+   * tracking number, and post the care team's reply into the same
+   * conversation. The demo simulates all three.
+   */
+  setRequestStatus(messageId: string, status: RequestStatus): Promise<ChatMessage>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -330,7 +324,6 @@ export interface ApiClient {
   submissions: SubmissionsApi;
   photos: PhotosApi;
   messages: MessagesApi;
-  threads: ThreadsApi;
   notifications: NotificationsApi;
   prompts: PromptsApi;
   shipping: ShippingApi;

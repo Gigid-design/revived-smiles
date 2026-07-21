@@ -43,7 +43,8 @@
   height: 22px;
 }
 
-/* Messages icon — self-contained chat bubble (light bubble, dark dots) */
+/* Messages icon — chat bubble in the nav's own colour, dots knocked out.
+   Slightly larger than the other two so the knocked-out dots stay legible. */
 .iconMsg {
   width: 28px;
   height: 28px;
@@ -62,7 +63,9 @@
   height: 16px;
   padding: 0 4px;
   border-radius: 999px;
-  background: #ef4444;
+  /* #ef4444 gave white text ~3.6:1 — under the 4.5:1 floor at this size.
+     #dc2626 is ~4.8:1 and still unmistakably an alert red. */
+  background: #dc2626;
   color: #fff;
   font-family: var(--font-heading);
   font-size: 10px;

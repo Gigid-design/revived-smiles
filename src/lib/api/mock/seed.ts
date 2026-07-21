@@ -14,8 +14,8 @@ import type {
   PromptConfig,
   Submission,
   SubmissionStatus,
-  Thread,
 } from "../types";
+import { REQUEST_LABELS, REQUEST_OUTCOMES } from "../types";
 import type { MockDb } from "./store";
 
 /* ------------------------------------------------------------------ */
@@ -31,7 +31,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 2;
+export const SEED_VERSION = 3;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -62,6 +62,9 @@ export const DEMO_PHOTOS: Record<PhotoType, string> = {
 };
 
 export const DEMO_IMPRESSION_PHOTO = "/assets/images/impression-example-good.svg";
+
+/** Stand-in carrier reference. A real backend gets this from the carrier. */
+export const DEMO_TRACKING = "1Z999AA10123456784";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -251,58 +254,75 @@ function buildPromptConfigs(): PromptConfig[] {
 /* The demo patient's own thread, chat and notifications               */
 /* ------------------------------------------------------------------ */
 
-function buildThreads(): Thread[] {
-  return [
+/**
+ * One conversation, running oldest to newest, including a resolved supplies
+ * request and an unread reply — so the demo shows a request card in both of
+ * its interesting states without anyone having to create one first.
+ */
+function buildMessages(): ChatMessage[] {
+  const patientName = DEMO_PATIENT.name ?? "Angela Carter";
+
+  const script: Array<{
+    role: ChatMessage["senderRole"];
+    body: string;
+    mins: number;
+    unread?: boolean;
+    request?: ChatMessage["request"];
+  }> = [
     {
-      id: "demo-thread-1",
-      subject: "Different tray size",
-      createdAt: daysAgo(4),
-      updatedAt: daysAgo(3),
-      unread: false,
+      role: "admin",
+      body: "Hi Angela — welcome to Revived Smiles. I'm here if anything in the photo steps is unclear.",
+      mins: 5760,
+    },
+    {
+      role: "patient",
+      body: "Thanks! Quick question — do I need to take the impression photos on the same day?",
+      mins: 5750,
+    },
+    {
+      role: "admin",
+      body: "No need. Take your time. The trays keep, and the photos only need to be from the same impression.",
+      mins: 5740,
+    },
+    {
+      role: "patient",
+      body: `${REQUEST_LABELS.trays} — Trays too big\n\nThe upper tray doesn't sit flush at the back — it lifts when I bite down.`,
+      mins: 4320,
       request: {
         kind: "trays",
         detail: "Trays too big",
-        note: "The upper tray doesn't sit flush at the back — it lifts when I bite down.",
         status: "accepted",
-        outcome: "New trays sent",
-        trackingNumber: "1Z999AA10123456784",
+        outcome: REQUEST_OUTCOMES.trays,
+        trackingNumber: DEMO_TRACKING,
       },
-      messages: [
-        { id: "demo-thread-1-m1", role: "patient", body: "The upper tray doesn't sit flush at the back — it lifts when I bite down.", createdAt: daysAgo(4) },
-        { id: "demo-thread-1-m2", role: "care", body: "Thanks for flagging that, Angela. We've sent a smaller tray set out to you — tracking is 1Z999AA10123456784. Hold off on taking the impression until it arrives.", createdAt: daysAgo(3) },
-      ],
     },
     {
-      id: "demo-thread-2",
-      subject: "Where is my order?",
-      createdAt: daysAgo(1),
-      updatedAt: minutesAgo(45),
+      role: "admin",
+      body: `${REQUEST_OUTCOMES.trays}. Your tracking number is ${DEMO_TRACKING}. Hold off on taking the impression until it arrives.`,
+      mins: 4260,
+    },
+    {
+      role: "patient",
+      body: "Perfect, thank you — they arrived this morning.",
+      mins: 180,
+    },
+    {
+      role: "admin",
+      body: "Wonderful. Send the photos over whenever you're ready and we'll take a look the same day.",
+      mins: 45,
       unread: true,
-      messages: [
-        { id: "demo-thread-2-m1", role: "patient", body: "Where is my order?", createdAt: daysAgo(1) },
-        { id: "demo-thread-2-m2", role: "care", body: "You're in the review queue now — one of our technicians is checking your photos today. We'll message you the moment that's done.", createdAt: minutesAgo(45) },
-      ],
     },
   ];
-}
 
-function buildMessages(): ChatMessage[] {
-  const thread: Array<[ChatMessage["senderRole"], string, number]> = [
-    ["admin", "Hi Angela — welcome to Revived Smiles. I'm here if anything in the photo steps is unclear.", 180],
-    ["patient", "Thanks! Quick question — do I need to take the impression photos on the same day?", 174],
-    ["admin", "No need. Take your time. The trays keep, and the photos only need to be from the same impression.", 170],
-    ["patient", "That's helpful, thank you.", 166],
-    ["admin", "Any time. I'll check back once your impressions are in.", 162],
-  ];
-
-  return thread.map(([senderRole, body, mins], i) => ({
+  return script.map((m, i) => ({
     id: `demo-msg-${i + 1}`,
     submissionId: DEMO_SUBMISSION_ID,
-    senderRole,
-    senderName: senderRole === "admin" ? CARE_TEAM_NAME : (DEMO_PATIENT.name ?? "Angela Carter"),
-    body,
-    createdAt: minutesAgo(mins),
-    readAt: minutesAgo(mins - 2),
+    senderRole: m.role,
+    senderName: m.role === "admin" ? CARE_TEAM_NAME : patientName,
+    body: m.body,
+    createdAt: minutesAgo(m.mins),
+    readAt: m.unread ? null : minutesAgo(Math.max(m.mins - 2, 0)),
+    ...(m.request ? { request: m.request } : {}),
   }));
 }
 
@@ -360,7 +380,6 @@ export function buildSeed(): MockDb {
     version: SEED_VERSION,
     submissions: [demo, ...buildQueue()],
     messages: buildMessages(),
-    threads: buildThreads(),
     notifications: buildNotifications(),
     promptConfigs: buildPromptConfigs(),
     /* The demo starts signed in as the patient, so opening any URL directly
