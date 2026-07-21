@@ -366,7 +366,8 @@
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 .chip:hover { border-color: #c6dcfe; }
-.chipSelected { background: #1990c6; border-color: #1990c6; color: #ffffff; }
+/* Deeper teal than the decorative #1990c6 so white text clears AA */
+.chipSelected { background: #0e6c9c; border-color: #0e6c9c; color: #ffffff; }
 
 .note {
   width: 100%;
@@ -643,7 +644,7 @@
   font-family: var(--font-heading);
   font-size: 0.75rem;
   font-weight: 700;
-  color: #1990c6;
+  color: #0e6c9c; /* AA-safe teal for text */
   text-decoration: none;
 }
 .trackLink:hover { text-decoration: underline; }

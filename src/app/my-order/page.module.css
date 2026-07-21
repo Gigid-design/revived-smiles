@@ -224,8 +224,9 @@
   padding: 0.1875rem 0.5rem;
   border-radius: 0.25rem;
 }
-.statusPending  { color: #8a6100; background: #fff6e0; }
-.statusAccepted { color: #2d7a2d; background: #e6f5e6; }
+/* Matches the badge language in Messages */
+.statusPending  { color: #8a6100; background: #fff5da; }
+.statusAccepted { color: #1f6b46; background: #e2f6ec; }
 .statusRejected { color: #a03030; background: #fde8e8; }
 
 .requestDetail {
@@ -243,7 +244,7 @@
 .outcomeBox {
   margin-top: 0.75rem;
   padding: 0.625rem 0.75rem;
-  background: #f2faf2;
+  background: #e2f6ec;
   border-radius: 0.625rem;
 }
 
@@ -251,7 +252,7 @@
   display: flex;
   align-items: center;
   gap: 0.4375rem;
-  color: #2d7a2d;
+  color: #1f6b46;
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 0.8125rem;

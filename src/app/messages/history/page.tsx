@@ -81,20 +81,39 @@ export default function MessageHistory() {
             {sorted.map((thread) => (
               <li key={thread.id} className={styles.threadItem}>
                 <Link href={`/messages/${thread.id}`} className={styles.threadLink}>
-                  <div className={styles.threadHead}>
-                    <h2 className={styles.threadSubject}>{thread.subject}</h2>
-                    {thread.request && (
-                      <span className={`${styles.statusBadge} ${STATUS_CLASS[thread.request.status]}`}>
-                        {STATUS_COPY[thread.request.status]}
-                      </span>
+                  {/* Amber tag for supply requests, blue bubble for questions */}
+                  <span
+                    className={`${styles.threadIcon} ${thread.request ? styles.threadIconRequest : styles.threadIconQuestion}`}
+                    aria-hidden="true"
+                  >
+                    {thread.request ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12.6 2.6A2 2 0 0 0 11.2 2H4.6A2.6 2.6 0 0 0 2 4.6v6.6a2 2 0 0 0 .59 1.41l8.2 8.2a2.4 2.4 0 0 0 3.4 0l6.42-6.42a2.4 2.4 0 0 0 0-3.4z" />
+                        <circle cx="7.4" cy="7.4" r="1.4" fill="currentColor" stroke="none" />
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                      </svg>
                     )}
-                  </div>
+                  </span>
 
-                  <p className={styles.threadPreview}>{lastLine(thread)}</p>
+                  <div className={styles.threadBody}>
+                    <div className={styles.threadHead}>
+                      <h2 className={styles.threadSubject}>{thread.subject}</h2>
+                      {thread.request && (
+                        <span className={`${styles.statusBadge} ${STATUS_CLASS[thread.request.status]}`}>
+                          {STATUS_COPY[thread.request.status]}
+                        </span>
+                      )}
+                    </div>
 
-                  <div className={styles.threadFoot}>
-                    {thread.unread && <span className={styles.unreadDot} aria-label="Unread reply" />}
-                    <span className={styles.threadTime}>{formatWhen(thread.updatedAt)}</span>
+                    <p className={styles.threadPreview}>{lastLine(thread)}</p>
+
+                    <div className={styles.threadFoot}>
+                      {thread.unread && <span className={styles.unreadDot} aria-label="Unread reply" />}
+                      <span className={styles.threadTime}>{formatWhen(thread.updatedAt)}</span>
+                    </div>
                   </div>
                 </Link>
               </li>

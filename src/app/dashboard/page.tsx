@@ -41,7 +41,6 @@ function intakeDone(sub: SubmissionData): number {
   if (sub.white_shade || sub.gum_shade) done++;
   if (sub.close_bite_photos?.length) done++;
   if (sub.open_bite_photos?.length) done++;
-  if (sub.impression_photos?.length) done += 2;
   return Math.min(done, INTAKE_TOTAL_STEPS);
 }
 

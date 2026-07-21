@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { ReactNode, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./messages.module.css";
@@ -11,10 +12,41 @@ import { useMessages, RequestKind, REQUEST_LABELS } from "@/app/context/Messages
  *  request form are the fast paths; free text is always available. Past
  *  conversations live one tap away under "Past messages". */
 
-const QUICK_PROMPTS = [
-  "What's the latest?",
-  "Where is my order?",
-  "How do I take my impressions?",
+/* Each prompt gets its own tinted icon so the list reads as a set of choices
+   rather than three grey rows. */
+const QUICK_PROMPTS: { text: string; tint: string; icon: ReactNode }[] = [
+  {
+    text: "What's the latest?",
+    tint: "promptIconAmber",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7.5v5l3 1.8" />
+      </svg>
+    ),
+  },
+  {
+    text: "Where is my order?",
+    tint: "promptIconBlue",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" />
+        <circle cx="7" cy="18" r="1.8" />
+        <circle cx="17" cy="18" r="1.8" />
+      </svg>
+    ),
+  },
+  {
+    text: "How do I take my impressions?",
+    tint: "promptIconMint",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.4" />
+        <path d="M12 17h.01" />
+      </svg>
+    ),
+  },
 ];
 
 const KINDS: { kind: RequestKind; blurb: string }[] = [
@@ -75,21 +107,34 @@ export default function NewMessage() {
           )}
         </div>
 
-        <p className={styles.subheading}>
-          Your care team typically replies within a few hours.
-        </p>
+        {/* ── Who you're talking to ── */}
+        <div className={styles.careCard}>
+          <div className={styles.careAvatar}>
+            <Image src="/assets/images/concierge-avatar.png" alt="" fill sizes="48px" />
+          </div>
+          <div className={styles.careText}>
+            <p className={styles.careName}>Your Care Team</p>
+            <p className={styles.careStatus}>
+              <span className={styles.careDot} aria-hidden="true" />
+              <span>Typically replies within a few hours</span>
+            </p>
+          </div>
+        </div>
 
         {/* ── Template questions ── */}
         <p className={styles.sectionLabel}>What can we help with?</p>
         <div className={styles.promptList}>
           {QUICK_PROMPTS.map((prompt) => (
             <button
-              key={prompt}
+              key={prompt.text}
               type="button"
               className={styles.promptBtn}
-              onClick={() => ask(prompt)}
+              onClick={() => ask(prompt.text)}
             >
-              {prompt}
+              <span className={`${styles.promptIcon} ${styles[prompt.tint]}`} aria-hidden="true">
+                {prompt.icon}
+              </span>
+              <span className={styles.promptLabel}>{prompt.text}</span>
               <svg className={styles.promptArrow} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <polyline points="9 18 15 12 9 6" />
               </svg>
@@ -102,10 +147,12 @@ export default function NewMessage() {
 
         {!formOpen ? (
           <button type="button" className={styles.requestBtn} onClick={openForm}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Request materials
+            <span className={styles.requestBtnIcon} aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden>
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+            <span>Request materials</span>
           </button>
         ) : (
           <div className={styles.requestForm}>
