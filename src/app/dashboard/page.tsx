@@ -60,17 +60,17 @@ const DEMO_SUBMISSION: SubmissionData = {
   id: "demo-1",
   name: "Angela Carter",
   email: "angela@example.com",
-  state: "California",
-  products: ["acrylic-partial"],
-  white_shade: "A2",
+  state: "",
+  products: [],
+  white_shade: null,
   gum_shade: null,
   status: "draft",
   review_notes: null,
   reviewed_at: null,
   created_at: new Date().toISOString(),
   tracking_number: null,
-  close_bite_photos: ["https://example.com/photo1.jpg"],
-  open_bite_photos: ["https://example.com/photo2.jpg"],
+  close_bite_photos: [],
+  open_bite_photos: [],
   impression_photos: [],
 };
 
@@ -220,7 +220,7 @@ function Landing() {
               </div>
 
               {/* Primary action — shows status based on upload progress */}
-              <Link href={ROUTE_UPLOAD} className={styles.primaryBtn} aria-label={submission?.impression_photos?.length ? "Impression photos complete, click to replace" : "Upload my impression photos"}>
+              <Link href={ROUTE_UPLOAD} className={`${styles.primaryBtn} ${submission?.impression_photos?.length ? styles.primaryBtnComplete : ""}`} aria-label={submission?.impression_photos?.length ? "Impression photos complete, click to replace" : "Upload my impression photos"}>
                 {submission?.impression_photos?.length ? (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
                     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />

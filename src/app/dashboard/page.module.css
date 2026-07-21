@@ -194,6 +194,12 @@
   transition: background 0.15s;
 }
 .primaryBtn:hover { background: #26304a; }
+.primaryBtnComplete {
+  background: #10b981;
+}
+.primaryBtnComplete:hover {
+  background: #059669;
+}
 
 /* ══ Continue My Intake ══ */
 .intakeHead {

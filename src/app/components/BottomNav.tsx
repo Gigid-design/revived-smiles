@@ -21,8 +21,8 @@ const TABS = [
     match: (p: string) => p === "/my-order",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M21 8.4v7.2a1.6 1.6 0 0 1-.85 1.41l-7.2 3.9a1.6 1.6 0 0 1-1.5 0l-7.2-3.9A1.6 1.6 0 0 1 3 15.6V8.4a1.6 1.6 0 0 1 .85-1.41l7.2-3.9a1.6 1.6 0 0 1 1.5 0l7.2 3.9A1.6 1.6 0 0 1 21 8.4z" />
-        <path d="M3.4 7.6 12 12.2l8.6-4.6M12 21V12.2" />
+        <path d="M12.6 2.6A2 2 0 0 0 11.2 2H4.6A2.6 2.6 0 0 0 2 4.6v6.6a2 2 0 0 0 .59 1.41l8.2 8.2a2.4 2.4 0 0 0 3.4 0l6.42-6.42a2.4 2.4 0 0 0 0-3.4z" />
+        <circle cx="7.4" cy="7.4" r="1.4" fill="currentColor" stroke="none" />
       </svg>
     ),
   },
