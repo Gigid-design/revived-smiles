@@ -138,14 +138,12 @@ const ARCH_POWER = 2.6;
 const ARCH_DEPTH_RATIO = 1.15;
 /** Teeth touch in a real mouth; this is just enough to read them apart. */
 const TOOTH_GAP = 3;
-/** How far past a tooth its number sits, measured outward from the arch. */
-const NUMBER_OFFSET = 24;
-/** Keeps the arch and its numbers inside the 430px screen. */
-const MAX_HALF_WIDTH = 104;
+/** How far past a tooth its number sits, before scaling. */
+const NUMBER_OFFSET = 21;
+/** Half-width of the arch. As wide as the 430px screen allows. */
+const ARCH_HALF_WIDTH = 108;
 /** Gap between the two arches, where the molars face each other. */
-const ARCH_SEPARATION = 42;
-/** Room above and below for the outermost teeth and their numbers. */
-const ARCH_MARGIN = 44;
+const ARCH_SEPARATION = 30;
 
 /** A point on the arch, with the direction that points out of the mouth. */
 interface ArchPoint { x: number; y: number; nx: number; ny: number; }
@@ -214,22 +212,24 @@ interface PlacedTooth extends ToothDef {
   labelY: number;
 }
 
-/** Total run the teeth need along the curve. */
-const ARCH_RUN = UPPER.reduce((sum, t) => sum + t.w + TOOTH_GAP, 0);
+const ARCH_DEPTH = ARCH_HALF_WIDTH * ARCH_DEPTH_RATIO;
+
+/** The run the teeth need at their drawn size. */
+const BASE_RUN = UPPER.reduce((sum, t) => sum + t.w + TOOTH_GAP, 0);
 
 /**
- * The arch is sized by its teeth, not chosen: sixteen teeth of a known total
- * width have to sit on it, so the only free choice is how that length is split
- * between width and depth. Solve for the scale that makes the curve exactly
- * long enough, at the depth ratio above.
+ * How much to scale the teeth so sixteen of them exactly fill the arch.
+ *
+ * The arch and the teeth can't be sized independently — sixteen teeth have to
+ * sit on the curve, so fixing one fixes the other. Taking the widest arch the
+ * screen allows and sizing the teeth to it, rather than the reverse, means the
+ * chart fills its panel and the teeth come out bigger (and easier to hit) than
+ * the drawn artwork.
  */
-function solveArchSize(): { halfWidth: number; depth: number } {
-  const unit = sampleArch(1, ARCH_DEPTH_RATIO, -1).total;
-  const halfWidth = Math.min(ARCH_RUN / unit, MAX_HALF_WIDTH);
-  return { halfWidth, depth: halfWidth * ARCH_DEPTH_RATIO };
-}
+const TOOTH_SCALE = sampleArch(ARCH_HALF_WIDTH, ARCH_DEPTH, -1).total / BASE_RUN;
 
-const { halfWidth: ARCH_HALF_WIDTH, depth: ARCH_DEPTH } = solveArchSize();
+/** Room above and below for the outermost teeth, turned on their side, plus their numbers. */
+const ARCH_MARGIN = Math.round((17 + NUMBER_OFFSET) * TOOTH_SCALE + 10);
 
 const UPPER_CENTRE_Y = ARCH_MARGIN + ARCH_DEPTH;
 const LOWER_CENTRE_Y = UPPER_CENTRE_Y + ARCH_SEPARATION;
@@ -240,7 +240,7 @@ function layOutArch(defs: ToothDef[], jaw: "upper" | "lower"): PlacedTooth[] {
   const centreY = jaw === "upper" ? UPPER_CENTRE_Y : LOWER_CENTRE_Y;
   const curve = sampleArch(ARCH_HALF_WIDTH, ARCH_DEPTH, sign);
 
-  const spans = defs.map((d) => d.w + TOOTH_GAP);
+  const spans = defs.map((d) => (d.w + TOOTH_GAP) * TOOTH_SCALE);
   /* Centre the run on the curve if it doesn't quite fill it. */
   let along = (curve.total - spans.reduce((a, b) => a + b, 0)) / 2;
 
@@ -260,8 +260,8 @@ function layOutArch(defs: ToothDef[], jaw: "upper" | "lower"): PlacedTooth[] {
       x: point.x,
       y: centreY + point.y,
       rot: (rot * 180) / Math.PI,
-      labelX: point.x + point.nx * NUMBER_OFFSET,
-      labelY: centreY + point.y + point.ny * NUMBER_OFFSET,
+      labelX: point.x + point.nx * NUMBER_OFFSET * TOOTH_SCALE,
+      labelY: centreY + point.y + point.ny * NUMBER_OFFSET * TOOTH_SCALE,
     };
   });
 }
@@ -298,7 +298,7 @@ function ToothButton({ tooth, jaw, selected, onToggle }: {
         style={{
           left: `calc(50% + ${tooth.x}px)`,
           top: `${tooth.y}px`,
-          transform: `translate(-50%, -50%) rotate(${tooth.rot}deg)`,
+          transform: `translate(-50%, -50%) rotate(${tooth.rot}deg) scale(${TOOTH_SCALE})`,
         }}
         onClick={() => onToggle(tooth.num)}
       >

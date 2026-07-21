@@ -141,11 +141,13 @@
   background: linear-gradient(90deg, rgba(220,228,240,0) 0%, rgb(220,228,240) 20%, rgb(220,228,240) 80%, rgba(220,228,240,0) 100%);
 }
 
-/* Lower jaw label */
+/* Lower jaw label — sits in the empty middle of the lower arch, which both
+   labels the arch it's inside and keeps it clear of the CONTINUE button. */
 .lowerLabel {
   position: absolute;
-  bottom: 0.5em;
-  left: 0.75em;
+  top: 64%;
+  left: 50%;
+  transform: translateX(-50%);
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 0.6875em;
