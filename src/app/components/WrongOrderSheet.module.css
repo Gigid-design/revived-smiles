@@ -21,13 +21,16 @@
 }
 
 /* ── Sheet — rises from the bottom, thumb-reachable ── */
+/* A column: only the option list scrolls, so the note field and the primary
+   action stay on screen. With nine products in the catalogue, letting the whole
+   sheet scroll pushed "Tell the team" below the fold. */
 .sheet {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 26.875em;       /* 430px */
   max-height: 88vh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
   background: #ffffff;
   border-radius: 1.375em 1.375em 0 0;
   box-shadow: 0 -8px 28px 3px rgba(0, 0, 0, 0.1);
@@ -62,6 +65,17 @@
 }
 .closeBtn:hover { background: #e6eaf3; }
 
+/* Everything except the option list holds its size, so the list is what gives. */
+.title,
+.blurb,
+.fieldLabel,
+.note,
+.error,
+.submitBtn,
+.supportLink {
+  flex-shrink: 0;
+}
+
 .title {
   font-family: var(--font-heading);
   font-weight: 500;
@@ -83,10 +97,16 @@
 
 /* ── Options ── */
 .optionList {
+  flex: 1 1 auto;
+  min-height: 4.5em;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   gap: 0.5em;
   margin-bottom: 1.5em;
+  /* Room for the focus ring and selected border, which a tight scroll clips. */
+  padding: 0.15em;
 }
 
 .option {
@@ -195,7 +215,7 @@
 
 .submitBtnDisabled {
   background: #e0e7f3;
-  color: #9aa2b1;
+  color: #545e6e;   /* 4.5:1 on the disabled fill */
   cursor: not-allowed;
 }
 .submitBtnDisabled:hover { opacity: 1; }

@@ -124,7 +124,7 @@
   font-size: 0.6875em;     /* 11px */
   font-family: var(--font-heading);
   font-weight: 500;
-  color: #5a7ca8;
+  color: #45658f;          /* 4.5:1 on the badge fill at 11px */
   background: #f0f5ff;
   padding: 0.18em 0.55em;
   border-radius: 0.36em;
@@ -133,7 +133,7 @@
 .orderRef {
   font-family: var(--font-dm-sans);
   font-size: 0.75em;       /* 12px */
-  color: #9aa2b1;
+  color: #6b7280;
 }
 
 /* Shown once she's flagged it — the card stays put, but says it's in hand. */
@@ -156,7 +156,7 @@
   font-family: var(--font-dm-sans);
   font-size: 0.8125em;
   line-height: 1.5;
-  color: #9aa2b1;
+  color: #6b7280;
   margin: 1em 0 0;
 }
 
@@ -183,6 +183,14 @@
 .wrongOrderBtn:hover { color: #1d417a; }
 .wrongOrderLink { color: #6b7280; }
 .wrongOrderLink:hover { color: #121723; }
+
+/* The chevron needs its own breathing room — a JSX space collapses here. */
+.wrongOrderBtn span,
+.wrongOrderLink span {
+  margin-left: 0.35em;
+  font-size: 1.15em;
+  line-height: 1;
+}
 
 /* ── No Shopify order matched ── */
 .orderEmpty {

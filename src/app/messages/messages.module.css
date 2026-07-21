@@ -7,17 +7,35 @@
    #FDD33B, cream #F5F0E8 — on #eef3fc → #fdfdfd washes.
    ========================================================================== */
 
+/* A chat screen, not a document: the conversation scrolls inside a fixed
+   viewport while the prompts and composer stay put above the nav pill. The
+   page itself never scrolls, which is why the composer is always reachable. */
 .screen {
   position: relative;
   width: 100%;
-  min-height: 100svh;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: linear-gradient(180deg, #eaf1fb 0%, #f6f8fc 26%, #fdfdfd 52%);
 }
 
 .content {
+  flex: 1;
+  min-height: 0; /* lets the message list scroll instead of stretching */
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   max-width: 26.875rem; /* 430px */
   margin: 0 auto;
-  padding: 2.5rem 1rem 9rem; /* bottom clears the floating BottomNav pill */
+  padding: 2.5rem 1rem 0;
+}
+
+/* Prompts and composer, resting just above the floating nav pill.
+   The pill is 60px tall and sits 1.75em from the bottom. */
+.dock {
+  flex: none;
+  padding-bottom: calc(1.75em + 60px + 0.75rem);
 }
 
 /* ── Top bar ── */
@@ -689,11 +707,17 @@
 .simulateBtn:hover { background: #eef3fc; color: #121723; }
 
 /* ── Message bubbles ── */
+/* The only scrolling region on the screen. */
 .messageList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
   margin-top: 1.25rem;
+  padding-bottom: 0.5rem;
 }
 
 .bubbleWrap { display: flex; flex-direction: column; max-width: 82%; }

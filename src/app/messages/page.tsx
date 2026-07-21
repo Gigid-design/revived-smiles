@@ -74,6 +74,7 @@ export default function Messages() {
   const [kind, setKind] = useState<RequestKind | null>(null);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
+  const listRef = useRef<HTMLDivElement>(null);
   const hasScrolled = useRef(false);
 
   /* Opening the conversation clears the care team's unread replies. */
@@ -81,17 +82,18 @@ export default function Messages() {
     if (unreadCount > 0) void markRead();
   }, [unreadCount, markRead]);
 
-  /* The page itself scrolls — nothing here is its own scroll container — so
-     bringing the last bubble into view still left the prompts and composer
-     below the fold. Go to the bottom of the document instead: opening the
-     conversation lands on the newest message with the prompts already in
-     reach. Instant on open, smooth for messages that arrive after. */
+  /* The conversation is its own scroll container now, so "go to the bottom"
+     is a property of that element rather than of the document — which is why
+     scrolling the page never reached the newest message. Instant on open,
+     smooth for messages that arrive afterwards. */
   useEffect(() => {
     if (!ready) return;
+    const list = listRef.current;
+    if (!list) return;
 
     const frame = requestAnimationFrame(() => {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
+      list.scrollTo({
+        top: list.scrollHeight,
         behavior: hasScrolled.current ? "smooth" : "auto",
       });
       hasScrolled.current = true;
@@ -227,22 +229,25 @@ export default function Messages() {
           <h1 className={styles.heading}>Messages</h1>
         </div>
 
-        {!ready ? (
-          <div className={styles.emptyCard} aria-busy="true" />
-        ) : messages.length === 0 ? (
-          <div className={styles.emptyCard}>
-            <p className={styles.emptyTitle}>No messages yet</p>
-            <p className={styles.emptyBody}>
-              Ask us anything about your impressions or your order — we usually reply the same day.
-            </p>
-          </div>
-        ) : (
-          <div className={styles.messageList}>
-            {messages.map(renderMessage)}
-          </div>
-        )}
+        {/* The one scrolling region — loading, empty and full states all live
+            inside it so the composer below never moves. */}
+        <div className={styles.messageList} ref={listRef}>
+          {!ready ? (
+            <div className={styles.emptyCard} aria-busy="true" />
+          ) : messages.length === 0 ? (
+            <div className={styles.emptyCard}>
+              <p className={styles.emptyTitle}>No messages yet</p>
+              <p className={styles.emptyBody}>
+                Ask us anything about your impressions or your order — we usually reply the same day.
+              </p>
+            </div>
+          ) : (
+            messages.map(renderMessage)
+          )}
+        </div>
 
-        {/* ── Supplies request form, expanded inline ── */}
+        {/* ── Docked: prompts and composer rest just above the nav pill ── */}
+        <div className={styles.dock}>
         {formOpen ? (
           <div className={styles.requestForm}>
             <div className={styles.requestFormHead}>
@@ -360,6 +365,7 @@ export default function Messages() {
               <path d="M22 2l-7 20-4-9-9-4 20-7z" />
             </svg>
           </button>
+        </div>
         </div>
       </div>
 
