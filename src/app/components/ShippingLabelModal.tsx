@@ -51,11 +51,15 @@ export function ShippingLabelModal({ open, onClose, submissionId, patientName }:
   useEffect(() => {
     if (!open || !submissionId) return;
 
+    /* Clearing the old label and showing the spinner IS the intended effect of
+       opening, so the synchronous reset inside loadLabel is deliberate here. */
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- see above
     void loadLabel();
 
+    const seq = requestRef;
     return () => {
       /* Supersede the in-flight request so its result is dropped. */
-      requestRef.current++;
+      seq.current++;
     };
   }, [open, submissionId, loadLabel]);
 

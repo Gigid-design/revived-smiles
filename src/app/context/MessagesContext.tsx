@@ -54,8 +54,24 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refresh().finally(() => setReady(true));
-  }, [refresh]);
+    let cancelled = false;
+
+    api.threads
+      .list()
+      .then((list) => {
+        if (!cancelled) setThreads(list);
+      })
+      .catch((err) => {
+        console.error("Could not load conversations:", err);
+      })
+      .finally(() => {
+        if (!cancelled) setReady(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const getThread = useCallback((id: string) => threads.find((t) => t.id === id), [threads]);
 

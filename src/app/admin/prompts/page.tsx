@@ -68,7 +68,8 @@ export default function PromptsListPage() {
         <div className={styles.emptyState}>
           <p>No prompt configurations found.</p>
           <p className={styles.emptyHint}>
-            Run the <code>supabase-schema-prompt-configs.sql</code> migration to seed the default prompts.
+            Default prompts load with the demo data. If you&apos;re seeing this, connect a
+            backend or reload to restore them.
           </p>
         </div>
       ) : (
