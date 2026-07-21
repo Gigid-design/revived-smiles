@@ -15,6 +15,11 @@ const SLOTS = [
   { id: 4, label: "Lower Impression 2", sub: "Angle 2", tray: "imp-tray-upper.svg",   flip: true  },
 ];
 
+/* Design mode (local design sessions): simulate uploads + skip backend saves so
+   the flow is clickable without a live backend. Auto-off in real environments. */
+const DESIGN_MODE = process.env.NEXT_PUBLIC_DESIGN_MODE === "1";
+const DEMO_PHOTO = "/assets/images/impression-example-good.svg";
+
 interface PhotoEntry {
   preview: string;
   url: string;
@@ -27,6 +32,9 @@ export default function ImpressionPhotos() {
   const [photos, setPhotos] = useState<Record<number, PhotoEntry>>({});
   const [uploading, setUploading] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  /* Bite registration is acknowledged, not photographed — a bite is hard to
+     verify from a photo, so Gitai only needs the customer to confirm they did it. */
+  const [biteAck, setBiteAck] = useState(false);
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   /* Restore previously-uploaded impression photos (e.g. the user uploaded here,
@@ -73,6 +81,15 @@ export default function ImpressionPhotos() {
   }
 
   function handleCardClick(id: number) {
+    // Design mode: simulate the upload so the slot fills on click — no file
+    // picker, no storage call. Click again (via the X) to clear it.
+    if (DESIGN_MODE) {
+      setPhotos(prev => ({
+        ...prev,
+        [id]: { preview: DEMO_PHOTO, url: DEMO_PHOTO, path: `demo/slot-${id}` },
+      }));
+      return;
+    }
     const input = inputRefs.current[id];
     if (input) {
       input.value = "";  // reset so re-selecting the same file fires onChange
@@ -88,7 +105,14 @@ export default function ImpressionPhotos() {
   }
 
   async function handleSubmit() {
-    if (uploadedCount < 4 || submitting) return;
+    if (uploadedCount < 4 || !biteAck || submitting) return;
+
+    // Design mode: no backend to save to — just advance to the next screen.
+    if (DESIGN_MODE) {
+      navigate("/complete", "forward");
+      return;
+    }
+
     setSubmitting(true);
 
     const photoUrls = SLOTS.map(s => photos[s.id]?.url).filter(Boolean);
@@ -324,14 +348,36 @@ export default function ImpressionPhotos() {
           ))}
         </div>
 
+        {/* Bite Registration — acknowledgment only (no photo). Gitai needs the
+            customer to confirm they completed the bite with the purple putty;
+            a bite is hard to verify from a photo, so this is a checkbox, not an upload. */}
+        <p className={styles.sectionLabel}>Bite Registration</p>
+        <label className={`${styles.biteAck} ${biteAck ? styles.biteAckChecked : ""}`}>
+          <input
+            type="checkbox"
+            className={styles.biteCheckbox}
+            checked={biteAck}
+            onChange={e => setBiteAck(e.target.checked)}
+          />
+          <span className={styles.biteCheckboxBox} aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M2.5 6.2L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+          <span className={styles.biteAckText}>
+            I completed my <strong>bite registration</strong> using the{" "}
+            <span className={styles.putty}>purple putty</span> included in my kit.
+          </span>
+        </label>
+
       </div>
 
       {/* Continue button */}
       <div className={styles.btnWrapper}>
         <button
           type="button"
-          className={`${styles.btn} ${uploadedCount === 4 && !submitting ? styles.btnActive : ""}`}
-          disabled={uploadedCount < 4 || submitting}
+          className={`${styles.btn} ${uploadedCount === 4 && biteAck && !submitting ? styles.btnActive : ""}`}
+          disabled={uploadedCount < 4 || !biteAck || submitting}
           onClick={handleSubmit}
         >
           {submitting ? "SUBMITTING…" : "CONTINUE"}

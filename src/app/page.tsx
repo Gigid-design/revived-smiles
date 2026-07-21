@@ -251,6 +251,17 @@ export default function Home() {
             {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
           </button>
         </div>
+
+        {/* TEMP dev-only login bypass — remove before shipping. Lets UI work
+            proceed without a live backend. */}
+        <button
+          type="button"
+          className={styles.footerLink}
+          style={{ marginTop: 12, opacity: 0.6, fontSize: 12 }}
+          onClick={() => router.push("/dashboard?demo=1")}
+        >
+          ⚡ Skip login (dev)
+        </button>
       </div>
     </main>
   );

@@ -11,6 +11,11 @@ import { getSupabase } from "@/lib/supabase";
 
 type State = "idle" | "analyzing" | "pass" | "warning";
 
+/* Design mode (local design sessions): simulate capture + skip backend saves so
+   the flow is clickable without a camera or backend. Auto-off in real environments. */
+const DESIGN_MODE = process.env.NEXT_PUBLIC_DESIGN_MODE === "1";
+const DEMO_PHOTO = "/assets/images/open-bite-front.png";
+
 interface Check {
   id: string;
   label: string;
@@ -112,6 +117,14 @@ export default function OpenBite() {
   }, []);
 
   const captureAndAnalyze = async () => {
+    // Design mode: skip live camera + AI analysis — show a passing result with a
+    // sample photo so the screen is clickable without a camera or backend.
+    if (DESIGN_MODE) {
+      setCapturedImage(DEMO_PHOTO);
+      setChecks([]);
+      setState("pass");
+      return;
+    }
     if (!videoRef.current || !canvasRef.current) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -148,6 +161,8 @@ export default function OpenBite() {
 
   const handleSubmitPhoto = async () => {
     if (submitting) return;
+    // Design mode: no backend to upload to — just advance to the next screen.
+    if (DESIGN_MODE) { navigate('/open-bite-2', 'forward'); return; }
     setSubmitting(true);
     try {
       if (capturedImage) {

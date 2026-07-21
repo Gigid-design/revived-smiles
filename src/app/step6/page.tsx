@@ -15,6 +15,11 @@ const SLOT_DEFS = [
   { id: 4, label: "Lower Impression 2", sub: "Angle 2", tray: "imp-dental-tray-1.svg", section: "lower" },
 ];
 
+/* Design mode (local design sessions): simulate uploads + skip backend saves so
+   the flow is clickable without a live backend. Auto-off in real environments. */
+const DESIGN_MODE = process.env.NEXT_PUBLIC_DESIGN_MODE === "1";
+const DEMO_PHOTO = "/assets/images/impression-example-good.svg";
+
 export default function Step6() {
   const { cardRef, navigate } = usePageTransition();
   const { data, update } = useSubmission();
@@ -54,8 +59,22 @@ export default function Step6() {
     }
   }
 
+  function handleCardClick(slot: number) {
+    // Design mode: simulate the upload so the slot fills on click — no file picker.
+    if (DESIGN_MODE) {
+      setPhotos((prev) => {
+        const next = prev.filter((p) => p.slot !== slot);
+        return [...next, { slot, url: DEMO_PHOTO, path: `demo/slot-${slot}` }];
+      });
+      return;
+    }
+    inputRefs.current[slot - 1]?.click();
+  }
+
   async function handleSubmit() {
     if (!allDone || submitting) return;
+    // Design mode: no backend to save to — just advance to the next screen.
+    if (DESIGN_MODE) { navigate("/complete", "forward"); return; }
     setSubmitting(true);
 
     update({ impressionPhotos: photos });
@@ -154,7 +173,7 @@ export default function Step6() {
                   <div
                     key={slot.id}
                     className={`${styles.photoCard} ${done ? styles.photoCardDone : ""}`}
-                    onClick={() => inputRefs.current[slot.id - 1]?.click()}
+                    onClick={() => handleCardClick(slot.id)}
                     style={{ cursor: "pointer" }}
                   >
                     <div className={styles.photoCardInner}>

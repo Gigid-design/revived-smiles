@@ -52,6 +52,10 @@ const ROUTE_UPLOAD = "/impression-photos";  // impression photo upload page
 const ROUTE_INTAKE = "/intake";            // resume intake form
 const REORDER_URL = "https://revivedsmiles.com";
 
+/* Design mode (local design sessions): always render with mock data so the whole
+   dashboard — including the Messages tab — is populated without a live backend. */
+const DESIGN_MODE = process.env.NEXT_PUBLIC_DESIGN_MODE === "1";
+
 /* Mock data for `?demo=1` design-preview mode. */
 const DEMO_SUBMISSION: SubmissionData = {
   id: "demo-1",
@@ -106,8 +110,8 @@ function Landing() {
   /* ── Fetch submission (latest of any status, incl. draft) ── */
   useEffect(() => {
     async function fetchSubmission() {
-      // Design-preview mode: `?demo=1` renders with mock data (no backend needed).
-      if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "1") {
+      // Design-preview mode: `?demo=1` (or design mode) renders with mock data.
+      if (DESIGN_MODE || (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "1")) {
         setSubmission(DEMO_SUBMISSION);
         setLoading(false);
         return;
