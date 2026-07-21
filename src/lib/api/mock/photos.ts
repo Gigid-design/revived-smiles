@@ -15,6 +15,7 @@ import { nanoid } from "nanoid";
 import type { PhotosApi } from "../contract";
 import type { AnalysisCheck, PhotoAnalysis, PhotoType } from "../types";
 import { ApiError, PHOTO_TYPE_SLOTS } from "../types";
+import { DEMO_IMPRESSION_PHOTO, DEMO_PHOTOS } from "./seed";
 import { clone, delay, getDb, mutate } from "./store";
 
 /** Long enough that the "analysing" state is legible, short enough to feel snappy. */
@@ -56,6 +57,16 @@ function checksFor(photoType: PhotoType): AnalysisCheck[] {
 }
 
 export const mockPhotos: PhotosApi = {
+  /* The demo has no camera and no filesystem worth opening: a tap fills the slot. */
+  usesStandInPhotos: true,
+
+  async standInPhoto(kind) {
+    await delay(220);
+
+    const url = kind === "impression" ? DEMO_IMPRESSION_PHOTO : DEMO_PHOTOS[kind];
+    return { url, path: `stand-in/${kind}` };
+  },
+
   async analyze(image, photoType) {
     if (!image) throw new ApiError("validation", "No photo was captured.");
     await delay(ANALYSIS_MS);

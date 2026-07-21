@@ -65,7 +65,20 @@ export default function ImpressionPhotos() {
     }
   }
 
-  function handleCardClick(id: number) {
+  async function handleCardClick(id: number) {
+    /* Demo builds fill the slot on tap rather than opening a file picker —
+       nobody wants Finder in front of an audience. */
+    if (api.photos.usesStandInPhotos) {
+      setUploading(id);
+      try {
+        const { url, path } = await api.photos.standInPhoto("impression");
+        setPhotos(prev => ({ ...prev, [id]: { preview: url, url, path } }));
+      } finally {
+        setUploading(null);
+      }
+      return;
+    }
+
     const input = inputRefs.current[id];
     if (input) {
       input.value = "";  // reset so re-selecting the same file fires onChange
@@ -196,7 +209,7 @@ export default function ImpressionPhotos() {
             <button
               key={slot.id}
               className={`${styles.photoCard} ${photos[slot.id] ? styles.photoCardFilled : ""}`}
-              onClick={() => handleCardClick(slot.id)}
+              onClick={() => { void handleCardClick(slot.id); }}
               aria-label={`Upload ${slot.label}`}
             >
               {photos[slot.id] ? (
@@ -246,7 +259,7 @@ export default function ImpressionPhotos() {
             <button
               key={slot.id}
               className={`${styles.photoCard} ${photos[slot.id] ? styles.photoCardFilled : ""}`}
-              onClick={() => handleCardClick(slot.id)}
+              onClick={() => { void handleCardClick(slot.id); }}
               aria-label={`Upload ${slot.label}`}
             >
               {photos[slot.id] ? (

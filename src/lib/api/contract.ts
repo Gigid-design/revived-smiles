@@ -152,6 +152,25 @@ export interface SubmissionsApi {
 
 export interface PhotosApi {
   /**
+   * True when this adapter stands in for the device camera and the file
+   * picker, so the UI should fill a slot on tap rather than prompting.
+   *
+   * This is NOT the old DESIGN_MODE flag returning by another name. That flag
+   * forked the data path — real writes versus no writes — in nine screens.
+   * This declares one capability of the environment, and the data path either
+   * side of it is identical: both still call `attachToSubmission`. A real
+   * backend sets it false and the tap-to-fill branches become dead code
+   * without anything else changing.
+   */
+  readonly usesStandInPhotos: boolean;
+
+  /**
+   * A stand-in image, for demo builds with no camera or filesystem.
+   * Only meaningful when `usesStandInPhotos` is true.
+   */
+  standInPhoto(kind: PhotoType | "impression"): Promise<StoredPhoto>;
+
+  /**
    * Grades a captured photo against the active prompt for that pose.
    *
    * `image` is a data URL from the camera or file picker. A real

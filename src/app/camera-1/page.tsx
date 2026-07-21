@@ -131,6 +131,14 @@ export default function Camera() {
   }, [runChecks]);
 
   const captureAndAnalyze = async () => {
+    /* Demo builds show the sample photo rather than the live frame, so the
+       shutter works on a machine with no camera and never needs permission. */
+    if (api.photos.usesStandInPhotos) {
+      const { url } = await api.photos.standInPhoto(PHOTO_TYPE);
+      await analyzePhoto(url);
+      return;
+    }
+
     if (!videoRef.current || !canvasRef.current) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -139,6 +147,16 @@ export default function Camera() {
     canvas.getContext("2d")!.drawImage(video, 0, 0);
 
     await analyzePhoto(canvas.toDataURL("image/jpeg", 0.85));
+  };
+
+  const chooseFromGallery = async () => {
+    /* Same reasoning as the shutter: no file picker in front of an audience. */
+    if (api.photos.usesStandInPhotos) {
+      const { url } = await api.photos.standInPhoto(PHOTO_TYPE);
+      await analyzePhoto(url);
+      return;
+    }
+    fileInputRef.current?.click();
   };
 
   const retake = () => {
@@ -318,7 +336,7 @@ export default function Camera() {
       <div className={styles.controls}>
         {state === "idle" && (
           <>
-            <button className={`${styles.controlBtn} ${styles.controlBtnTimer}`} aria-label="Choose from gallery" onClick={() => fileInputRef.current?.click()}>
+            <button className={`${styles.controlBtn} ${styles.controlBtnTimer}`} aria-label="Choose from gallery" onClick={() => { void chooseFromGallery(); }}>
               <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#121723" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                 <circle cx="8.5" cy="8.5" r="1.5"/>
