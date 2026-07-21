@@ -8,7 +8,7 @@
  */
 
 import type { AuthApi } from "../contract";
-import type { AdminUser, AuthEvent, AuthUser, OAuthProvider, Unsubscribe } from "../types";
+import type { AdminUser, AuthEvent, AuthUser, Unsubscribe } from "../types";
 import { ApiError } from "../types";
 import { DEMO_ADMIN_EMAILS, DEMO_PATIENT } from "./seed";
 import { clone, delay, getDb, mutate, nowIso } from "./store";
@@ -27,16 +27,18 @@ function emit(event: AuthEvent, user: AuthUser | null): void {
   });
 }
 
-/** Reuses the seeded patient when the demo address is used, so their order is found. */
-function userFor(email: string): AuthUser {
-  const normalised = email.trim().toLowerCase();
-  if (normalised === DEMO_PATIENT.email) return { ...DEMO_PATIENT };
-
-  return {
-    id: `user-${normalised.replace(/[^a-z0-9]/g, "-")}`,
-    email: normalised,
-    name: null,
-  };
+/**
+ * Every sign-in and sign-up resolves to the demo patient.
+ *
+ * The demo has one persona with one populated order, so any address and any
+ * password land in exactly the same place as the skip-login shortcut. That
+ * predictability is the point: nobody demoing this should have to remember
+ * which email address has the data behind it.
+ *
+ * A real adapter returns the account that actually authenticated.
+ */
+function signedInPatient(): AuthUser {
+  return { ...DEMO_PATIENT };
 }
 
 function displayNameFor(email: string): string {
@@ -55,7 +57,7 @@ export const mockAuth: AuthApi = {
       throw new ApiError("validation", "Enter an email address and a password.");
     }
 
-    const user = userFor(email);
+    const user = signedInPatient();
     mutate((db) => {
       db.authUser = user;
     });
@@ -69,7 +71,7 @@ export const mockAuth: AuthApi = {
       throw new ApiError("invalid_credentials", "Enter your email address and password.");
     }
 
-    const user = userFor(email);
+    const user = signedInPatient();
     mutate((db) => {
       db.authUser = user;
     });
@@ -77,10 +79,11 @@ export const mockAuth: AuthApi = {
     return clone(user);
   },
 
-  async signInWithProvider(provider: OAuthProvider) {
+  async signInWithProvider() {
     await delay();
-    // No redirect in the demo — the provider button signs the demo patient in.
-    const user = { ...DEMO_PATIENT, name: DEMO_PATIENT.name ?? provider };
+    /* No redirect in the demo: whichever provider you pick, you land on the
+       same demo patient as every other way in. */
+    const user = signedInPatient();
     mutate((db) => {
       db.authUser = user;
     });

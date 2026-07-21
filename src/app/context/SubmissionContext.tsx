@@ -36,6 +36,16 @@ interface SubmissionContextValue {
   createDraft: (email: string, userId: string | null) => Promise<string>;
   /** Updates local state and persists the intake fields in one go. */
   saveDraft: (patch: Partial<SubmissionDraft>) => Promise<void>;
+  /**
+   * The id of the order being worked on, creating one if there isn't one yet.
+   *
+   * Resolves in order: the id already in memory, the id kept for this session,
+   * the signed-in patient's most recent order, and finally a fresh draft.
+   * Screens must call this rather than reaching for the id themselves — five
+   * of them used to, and every one of them broke if you entered the flow
+   * anywhere other than the sign-in screen.
+   */
+  ensureSubmissionId: () => Promise<string>;
   reset: () => void;
 }
 
@@ -66,6 +76,15 @@ function readStoredId(): string | null {
   }
 }
 
+function writeStoredId(id: string | null): void {
+  try {
+    if (id) sessionStorage.setItem(SESSION_KEY, id);
+    else sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    /* private mode — the id still lives in memory for this session */
+  }
+}
+
 export function SubmissionProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<SubmissionState>(defaults);
 
@@ -85,11 +104,7 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
   const createDraft = useCallback(async (email: string, userId: string | null): Promise<string> => {
     const id = await api.submissions.createDraft(email, userId);
     setData((prev) => ({ ...prev, submissionId: id, email }));
-    try {
-      sessionStorage.setItem(SESSION_KEY, id);
-    } catch {
-      /* private mode — the id still lives in memory for this session */
-    }
+    writeStoredId(id);
     return id;
   }, []);
 
@@ -112,17 +127,49 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
     [data.submissionId],
   );
 
+  const ensureSubmissionId = useCallback(async (): Promise<string> => {
+    const known = data.submissionId ?? readStoredId();
+
+    /* Never trust a remembered id without confirming the order still exists.
+       It outlives the data it points at — a reseeded demo, a cleared backend,
+       a deleted order — and a stale one used to wedge the flow permanently
+       with "that order could not be found" until storage was cleared by hand. */
+    if (known) {
+      try {
+        await api.submissions.getById(known);
+        return known;
+      } catch {
+        writeStoredId(null);
+        setData((prev) => ({ ...prev, submissionId: null }));
+      }
+    }
+
+    /* Entered the flow without signing in — adopt the order already on file
+       before starting a new one, so progress isn't split across two drafts. */
+    const mine = await api.submissions.getMine();
+    if (mine) {
+      setData((prev) => ({
+        ...prev,
+        submissionId: mine.id,
+        email: prev.email || mine.email,
+      }));
+      writeStoredId(mine.id);
+      return mine.id;
+    }
+
+    const user = await api.auth.getUser();
+    return createDraft(user?.email ?? data.email, user?.id ?? null);
+  }, [data.submissionId, data.email, createDraft]);
+
   const reset = useCallback(() => {
     setData(defaults);
-    try {
-      sessionStorage.removeItem(SESSION_KEY);
-    } catch {
-      /* nothing to clear */
-    }
+    writeStoredId(null);
   }, []);
 
   return (
-    <SubmissionContext.Provider value={{ data, update, createDraft, saveDraft, reset }}>
+    <SubmissionContext.Provider
+      value={{ data, update, createDraft, saveDraft, ensureSubmissionId, reset }}
+    >
       {children}
     </SubmissionContext.Provider>
   );

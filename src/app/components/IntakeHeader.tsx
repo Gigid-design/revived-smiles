@@ -5,7 +5,7 @@ import styles from "./IntakeHeader.module.css";
 interface IntakeHeaderProps {
   /** Progress fill, 0–100 */
   pct: number;
-  /** Right-side step counter, e.g. "Step 2 of 5" or "1 of 4 photos" */
+  /** Right-side step counter, e.g. "Step 2 of 3" or "1 of 4 photos" */
   counter: string;
   /** Called when the Back button is tapped */
   onBack: () => void;

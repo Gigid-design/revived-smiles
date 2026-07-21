@@ -94,7 +94,15 @@ export interface AuthApi {
 /* ------------------------------------------------------------------ */
 
 export interface SubmissionsApi {
-  /** Starts an order in `draft`. Returns the new submission's id. */
+  /**
+   * Starts an order in `draft`. Returns the new submission's id.
+   *
+   * The server must stamp `name` and `state` onto the new draft from the
+   * account identified by `userId`. Intake does not ask for either, and
+   * `SubmissionDraft` deliberately excludes them, so this is the only point at
+   * which they reach a submission. An order started without an account
+   * therefore has neither, and cannot leave `draft` — see `finalize`.
+   */
   createDraft(email: string, userId: string | null): Promise<string>;
 
   /** Throws `not_found` for an unknown id. */
@@ -116,7 +124,10 @@ export interface SubmissionsApi {
    */
   findByEmail(email: string): Promise<Submission | null>;
 
-  /** Applies intake answers to a draft. Only `SubmissionDraft` keys are writable. */
+  /**
+   * Applies intake answers to a draft. Only `SubmissionDraft` keys are
+   * writable — notably not `name` or `state`, which are the account's.
+   */
   updateDraft(id: string, patch: Partial<SubmissionDraft>): Promise<Submission>;
 
   /**

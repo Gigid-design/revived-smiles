@@ -43,7 +43,7 @@ function AlertIcon({ className }: { className?: string }) {
 
 export default function OpenBite() {
   const { navigate } = usePageTransition();
-  const { data, update } = useSubmission();
+  const { data, update, ensureSubmissionId } = useSubmission();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -168,8 +168,8 @@ export default function OpenBite() {
         const blob = await fetch(capturedImage).then(r => r.blob());
         const { url } = await api.photos.upload(blob, "open-bite");
 
-        const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
-        if (id) await api.photos.attachToSubmission(id, PHOTO_TYPE, url, analysis);
+        const id = await ensureSubmissionId();
+        await api.photos.attachToSubmission(id, PHOTO_TYPE, url, analysis);
 
         // Keep the dashboard's progress in step with what was just saved.
         const nextPhotos = [...data.openBitePhotos];

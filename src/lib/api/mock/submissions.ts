@@ -56,12 +56,16 @@ export const mockSubmissions: SubmissionsApi = {
   async createDraft(email, userId) {
     await delay();
 
+    /* Intake no longer asks for either, so the account is where they come
+       from. A real backend reads the account record rather than a session. */
+    const account = getDb().authUser;
+
     const draft: Submission = {
       id: `sub-${nanoid(8)}`,
       userId,
       email: email.trim().toLowerCase(),
-      name: null,
-      state: null,
+      name: account?.name ?? null,
+      state: account?.state ?? null,
       products: [],
       whiteShade: null,
       gumShade: null,
@@ -123,11 +127,10 @@ export const mockSubmissions: SubmissionsApi = {
       const row = db.submissions.find((s) => s.id === id);
       if (!row) throw new ApiError("not_found", "That order could not be found.");
 
-      // Only intake fields are writable, so a stray key can't reach `status`.
+      // Only intake fields are writable, so a stray key can't reach `status`
+      // — nor `name` or `state`, which belong to the account.
       const writable: Array<keyof SubmissionDraft> = [
-        "name",
         "email",
-        "state",
         "products",
         "whiteShade",
         "gumShade",

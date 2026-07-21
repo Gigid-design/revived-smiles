@@ -111,7 +111,7 @@ export function productLabels(slugs: string[]): string {
   return slugs.map(productLabel).join(", ");
 }
 
-/** Given a product ID, return the route after the product selection screen (/step3). */
+/** Given a product ID, return the route after the product selection screen (/intake). */
 export function getNextAfterProduct(productId: string): string {
   const config = PRODUCTS.find((p) => p.id === productId);
   if (config?.needsShade) return "/step4";
@@ -130,16 +130,17 @@ export function getNextAfterShade(productId: string): string {
 export function getBackForTeethChart(productId: string): string {
   const config = PRODUCTS.find((p) => p.id === productId);
   if (config?.needsShade) return "/step4";
-  return "/step3";
+  return "/intake";
 }
 
 /**
  * Compute the total number of intake steps visible for this product.
- * Base steps: intake (1), state (2), product (3). Then optionally shade (4) and teeth chart (5).
+ * Product (1) is always shown; shade and teeth chart depend on the product.
+ * So a nightguard is a single step, and a flexible partial is three.
  */
 export function getTotalSteps(productId: string): number {
   const config = PRODUCTS.find((p) => p.id === productId);
-  let total = 3; // intake, state, product are always shown
+  let total = 1; // product is always shown
   if (config?.needsShade) total++;
   if (config?.needsTeethChart) total++;
   return total;
@@ -147,25 +148,21 @@ export function getTotalSteps(productId: string): number {
 
 /**
  * Get the current step number for a given screen and product.
- * Intake=1, State=2, Product=3, Shade=4 (if shown), TeethChart=last.
+ * Product=1, Shade=2 (if shown), TeethChart=last.
  */
 export function getStepNumber(
-  screen: "intake" | "state" | "product" | "shade" | "teeth-chart",
+  screen: "product" | "shade" | "teeth-chart",
   productId: string
 ): number {
   const config = PRODUCTS.find((p) => p.id === productId);
   switch (screen) {
-    case "intake":
-      return 1;
-    case "state":
-      return 2;
     case "product":
-      return 3;
+      return 1;
     case "shade":
-      return 4;
+      return 2;
     case "teeth-chart":
-      // If shade is shown, teeth chart is step 5; otherwise step 4
-      return config?.needsShade ? 5 : 4;
+      // If shade is shown, teeth chart is step 3; otherwise step 2
+      return config?.needsShade ? 3 : 2;
   }
 }
 

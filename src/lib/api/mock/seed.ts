@@ -22,13 +22,26 @@ import type { MockDb } from "./store";
 /* Constants the rest of the demo refers to                            */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Bump this whenever the seed below changes shape or content.
+ *
+ * Persisted demo state carrying an older version is discarded on load, so an
+ * already-open tab picks up the new seed instead of quietly running on the old
+ * one. Without it, changing the seed appeared to do nothing for anyone who had
+ * the app open — the stale copy won, and the dashboard rendered as though the
+ * patient had no order at all.
+ */
+export const SEED_VERSION = 2;
+
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
 
+/** Name and state come from the account, not from intake. */
 export const DEMO_PATIENT: AuthUser = {
   id: "demo-user-1",
   email: "angela@example.com",
   name: "Angela Carter",
+  state: "California",
 };
 
 /** Credentials shown on the admin login screen. Any password works in the demo. */
@@ -344,12 +357,16 @@ export function buildSeed(): MockDb {
   });
 
   return {
+    version: SEED_VERSION,
     submissions: [demo, ...buildQueue()],
     messages: buildMessages(),
     threads: buildThreads(),
     notifications: buildNotifications(),
     promptConfigs: buildPromptConfigs(),
-    authUser: null,
+    /* The demo starts signed in as the patient, so opening any URL directly
+       lands on a working screen. The login screens still work and still
+       overwrite this; signing out clears it. */
+    authUser: { ...DEMO_PATIENT },
     adminUser: null,
     recoverySession: false,
   };

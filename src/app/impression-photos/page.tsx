@@ -23,7 +23,7 @@ interface PhotoEntry {
 
 export default function ImpressionPhotos() {
   const { navigate, back } = usePageTransition();
-  const { data, update } = useSubmission();
+  const { data, update, ensureSubmissionId } = useSubmission();
   const [photos, setPhotos] = useState<Record<number, PhotoEntry>>({});
   const [uploading, setUploading] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -104,24 +104,20 @@ export default function ImpressionPhotos() {
     });
 
     try {
-      const id = data.submissionId || sessionStorage.getItem("rs_submission_id");
-      if (!id) throw new ApiError("not_found", "We couldn't find your order. Please start again.");
+      const id = await ensureSubmissionId();
 
       // Saving the photos is also what submits the order: the backend moves it
       // out of `draft` itself, but only once every other section is complete.
-      const saved = await api.submissions.finalize(id, impressionPhotos);
+      await api.submissions.finalize(id, impressionPhotos);
 
       update({ impressionPhotos });
 
-      // Smart resume: send the user to whatever's still missing; finalize only
-      // when the whole submission is complete.
-      if (saved.status !== "draft") {
-        navigate("/complete", "forward");
-      } else if (!saved.name?.trim() || !saved.state || saved.products.length === 0) {
-        navigate("/intake", "forward");
-      } else {
-        navigate("/photo-intro", "forward");
-      }
+      /* Finish on the confirmation screen, whose OKAY! returns to the
+         dashboard — the same shape as the teeth-photo flow. The dashboard is
+         the hub and already shows what's done and what's left, so a finished
+         task hands control back rather than marching the patient into the
+         next one. */
+      navigate("/complete", "forward");
     } catch (err) {
       console.error("Submission failed:", err);
       alert(err instanceof ApiError ? err.message : "Something went wrong.");

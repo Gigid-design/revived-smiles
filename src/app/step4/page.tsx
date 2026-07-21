@@ -4,7 +4,7 @@ import { useState } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
-import { getNextAfterShade } from "../context/productConfig";
+import { getNextAfterShade, getStepNumber, getTotalSteps } from "../context/productConfig";
 import { IntakeHeader } from "../components/IntakeHeader";
 
 /* ── Tooth shade swatches ── */
@@ -31,15 +31,19 @@ export default function Step4() {
   const selectedWhite = WHITE_SHADES.find(s => s.id === whiteShade);
   const selectedGum   = GUM_SHADES.find(s => s.id === gumShade);
 
+  const productId = data.products[0] || '';
+  const total = getTotalSteps(productId);
+  const current = Math.min(getStepNumber('shade', productId), total);
+
   return (
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
       <IntakeHeader
         label="Your Details"
-        pct={80}
-        counter="Step 4 of 5"
-        onBack={() => navigate('/step3', 'backward')}
+        pct={Math.min(100, Math.round((current / total) * 100))}
+        counter={`Step ${current} of ${total}`}
+        onBack={() => navigate('/intake', 'backward')}
         onClose={() => navigate('/dashboard', 'backward')}
       />
 
@@ -119,7 +123,6 @@ export default function Step4() {
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
           onClick={async () => {
             await saveDraft({ whiteShade, gumShade });
-            const productId = data.products[0] || '';
             navigate(getNextAfterShade(productId), 'forward');
           }}>
           CONTINUE

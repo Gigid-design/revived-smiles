@@ -15,7 +15,7 @@ gsap.registerPlugin(useGSAP);
 
 export default function Home() {
   const router = useRouter();
-  const { update, createDraft } = useSubmission();
+  const { update, ensureSubmissionId } = useSubmission();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -68,42 +68,32 @@ export default function Home() {
 
     try {
       if (mode === "signup") {
-        const user = await api.auth.signUp(emailValue, passwordValue);
-
-        update({ email: emailValue });
-        await createDraft(emailValue, user.id);
-        animateOut("/dashboard");
+        await api.auth.signUp(emailValue, passwordValue);
       } else {
         await api.auth.signIn(emailValue, passwordValue);
-        update({ email: emailValue });
-
-        // Check if user has an existing submission
-        const existing = await api.submissions.findByEmail(emailValue);
-
-        if (existing) {
-          if (existing.status === 'draft') {
-            // Resume draft — restore context so the dashboard reflects saved progress
-            update({
-              submissionId: existing.id,
-              email: emailValue,
-              name: existing.name || '',
-              state: existing.state || '',
-              products: existing.products,
-              whiteShade: existing.whiteShade,
-              gumShade: existing.gumShade,
-              selectedTeeth: existing.selectedTeeth,
-              teethNotSure: existing.teethNotSure,
-            });
-            try { sessionStorage.setItem('rs_submission_id', existing.id); } catch {}
-          }
-          animateOut("/dashboard");
-        } else {
-          // No submission found — create a new draft
-          const user = await api.auth.getUser();
-          if (user) await createDraft(emailValue, user.id);
-          animateOut("/dashboard");
-        }
       }
+      update({ email: emailValue });
+
+      /* Adopt the order already on file before starting a new one. Signing in
+         used to create a second draft, which then shadowed the real order and
+         landed the patient on an empty dashboard. */
+      const existing = await api.submissions.getById(await ensureSubmissionId());
+
+      if (existing.status === "draft") {
+        // Resume the draft, so intake picks up where it left off.
+        update({
+          submissionId: existing.id,
+          name: existing.name ?? "",
+          state: existing.state ?? "",
+          products: existing.products,
+          whiteShade: existing.whiteShade,
+          gumShade: existing.gumShade,
+          selectedTeeth: existing.selectedTeeth,
+          teethNotSure: existing.teethNotSure,
+        });
+      }
+
+      animateOut("/dashboard");
     } catch (err: unknown) {
       setError(err instanceof ApiError ? err.message : "Something went wrong.");
       setLoading(false);
@@ -236,7 +226,7 @@ export default function Home() {
           type="button"
           className={styles.footerLink}
           style={{ marginTop: 12, opacity: 0.6, fontSize: 12 }}
-          onClick={() => router.push("/dashboard?demo=1")}
+          onClick={() => router.push("/dashboard")}
         >
           ⚡ Skip login (dev)
         </button>

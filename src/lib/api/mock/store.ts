@@ -18,7 +18,7 @@ import type {
   SubmissionChange,
   Thread,
 } from "../types";
-import { buildSeed } from "./seed";
+import { SEED_VERSION, buildSeed } from "./seed";
 
 const STORAGE_KEY = "rs_mock_db";
 
@@ -26,6 +26,8 @@ const STORAGE_KEY = "rs_mock_db";
 export const LATENCY_MS = 140;
 
 export interface MockDb {
+  /** Which seed produced this state. See `SEED_VERSION`. */
+  version: number;
   submissions: Submission[];
   messages: ChatMessage[];
   threads: Thread[];
@@ -50,8 +52,12 @@ function load(): MockDb {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
       if (raw) {
-        db = JSON.parse(raw) as MockDb;
-        return db;
+        const stored = JSON.parse(raw) as Partial<MockDb>;
+        // Ignore state left by an older seed — it would silently win.
+        if (stored.version === SEED_VERSION) {
+          db = stored as MockDb;
+          return db;
+        }
       }
     } catch {
       /* corrupt or unavailable storage — fall through to a fresh seed */

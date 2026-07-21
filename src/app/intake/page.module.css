@@ -1,4 +1,4 @@
-/* Full screen */
+/* Shared structure */
 .screen {
   position: relative;
   width: 100%;
@@ -9,117 +9,135 @@
   flex-direction: column;
 }
 
-/* =============================================
-   WHITE CARD — floats on #fdfdfd, rounded top, soft shadow
-   ============================================= */
+/* White card */
 .card {
   position: absolute;
-  left: 1em;         /* 16px */
-  right: 1em;        /* 16px */
+  left: 1em;
+  right: 1em;
   top: 8.5em;
-  height: 51.25em;   /* 820px */
+  bottom: 0;
   background: #ffffff;
   border-radius: 20px 20px 0 0;
   box-shadow: 0 10px 24px 3px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
 }
 
-/* "Your name" — Figma: top:196px from screen → 196-114=82px inside card
-   left:46px from screen → 46-16=30px inside card
-   Inter Medium 28px, black
-   NOTE: top uses element's own font-size (28px) as 1em, so 82/28 = 2.929em */
+/* Title — "Your ordered product"
+   font-size 1.75em (28px) → top: 82/28 = 2.929em, left: 30/28 = 1.071em */
 .cardTitle {
-  position: absolute;
-  top: 2.9286em;     /* 82px ÷ 28px (own font-size) */
-  left: 1.0714em;    /* 30px ÷ 28px */
+  flex-shrink: 0;
   font-family: var(--font-heading);
   font-weight: 500;
-  font-size: 1.75em; /* 28px */
+  font-size: 1.75em;   /* 28px */
   line-height: 1;
   color: #121723;
-  white-space: nowrap;
+  padding-top: 2.929em; /* 82px from card top ÷ 28px */
+  padding-inline: 1.071em; /* 30px ÷ 28px */
+  padding-bottom: 0.714em; /* ~20px spacing before list */
 }
 
-/* Input — Figma: top:230px from screen → 116px inside card
-   left:37px from screen → 21px inside card. w:356, h:87
-   bg:rgba(255,255,255,0.5), border-2 #e8e8e4, rounded:20px */
-.inputWrapper {
-  position: absolute;
-  top: 8em;          /* 128px from card top — 18px gap below heading */
-  left: 1.3125em;    /* 21px from card left */
-  right: 1.3125em;   /* mirrors left so width is fluid */
-  width: auto;
-  /* relative so floating label can be positioned inside */
-  /* (absolute from card is maintained; label uses position:absolute within) */
+/* Scrollable list — Figma: items start at 230px from screen = 116px from card */
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding-inline: 1.3125em; /* 21px */
+  padding-bottom: 9em; /* room for gradient + button */
+  display: flex;
+  flex-direction: column;
+  gap: 1.25em;         /* 20px */
+  list-style: none;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.list::-webkit-scrollbar { display: none; }
 
-/* Input — default state */
-.input {
+/* Choice item */
+.item {
   width: 100%;
-  height: 5.4375em;     /* 87px */
-  background: #ffffff;
+  min-height: 5.4375em;    /* 87px */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75em;
+  padding: 1em 1.125em; /* 18px */
+  background: rgba(255, 255, 255, 0.5);
   border: 2px solid #e8e8e4;
   border-radius: 1.25em; /* 20px */
-  padding-top: 1.875em;  /* pushes typed text to lower half */
-  padding-bottom: 0.5em;
-  padding-inline: 1.125em;
-  font-family: var(--font-body);
-  font-size: 1.0625em;  /* 17px */
+  cursor: pointer;
+  text-align: left;
+}
+
+/* Active/selected state — blue border, white bg */
+.itemActive {
+  border-color: #c6dbfe;
+  background: #ffffff;
+}
+
+/* Item content — stacked label + description */
+.itemContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Item label — Inter Medium 17px, navy */
+.itemLabel {
+  font-family: var(--font-heading);
   font-weight: 500;
+  font-size: 1.0625em; /* 17px */
   color: #121723;
-  outline: none;
 }
 
-/* Floating label — centered by default (acts as placeholder) */
-.floatingLabel {
+.itemDescription {
+  font-size: 0.8125em; /* 13px */
+  line-height: 1.4;
+  color: #8a8a8a;
+  font-family: var(--font-dm-sans);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.itemBadge {
+  display: inline-flex;
+  align-self: flex-start;
+  font-size: 0.6875em; /* 11px */
+  font-family: var(--font-heading);
+  font-weight: 500;
+  color: #5a7ca8;
+  background: #f0f5ff;
+  padding: 0.18em 0.55em;
+  border-radius: 0.36em;
+  margin-top: 0.18em;
+}
+
+/* Checkbox on right */
+.itemCheck {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Gradient fade — masks list bottom, Figma: top:745px from screen = 631px from card top
+   h:189px, from transparent → white */
+.fadeGradient {
   position: absolute;
-  left: 1.125em;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--font-body);
-  font-size: 1.0625em;  /* 17px */
-  font-weight: 400;
-  color: var(--color-text-muted);
+  left: 0;
+  right: 0;
+  bottom: 4.5em;   /* sits just above button */
+  height: 7em;     /* ~112px fade */
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, #ffffff 100%);
   pointer-events: none;
-  transition: top 0.15s ease, font-size 0.15s ease;
+  z-index: 1;
 }
 
-/* Typing / filled state — label floats to top */
-.input:focus ~ .floatingLabel,
-.input:not(:placeholder-shown) ~ .floatingLabel {
-  top: 1em;
-  transform: translateY(0);
-  font-size: 0.8125em;  /* 13px */
-  font-weight: 400;
-  color: #8a8a8a;
-}
-
-/* Autofill state — browsers apply :-webkit-autofill without triggering
-   :focus or changing :placeholder-shown, so the label must float explicitly */
-.input:-webkit-autofill ~ .floatingLabel,
-.input:autofill ~ .floatingLabel {
-  top: 1em;
-  transform: translateY(0);
-  font-size: 0.8125em;  /* 13px */
-  font-weight: 400;
-  color: #8a8a8a;
-}
-
-/* Focus: blue border + white bg */
-.input:focus {
-  border-color: #c6dbfe;
-  background: #ffffff;
-}
-
-/* Has value but not focused: keep blue border */
-.input:not(:placeholder-shown):not(:focus) {
-  border-color: #c6dbfe;
-  background: #ffffff;
-}
-
-/* CONTINUE button — Figma: top:729px inside card, left:21px, w:355, h:56
-   bg:#e0e7f3 (light blue-gray), pill, Inter Bold 14px uppercase white */
+/* CONTINUE button — pinned to bottom of card */
 .buttonWrapper {
   position: fixed;
   bottom: 0;
@@ -129,7 +147,6 @@
   padding: 0 1.3125em 2.1875em;
   z-index: 20;
 }
-
 .btn {
   display: flex;
   align-items: center;
@@ -140,7 +157,7 @@
   color: #aab0be;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.875em; /* 14px */
+  font-size: 0.875em;
   line-height: 1.543;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -148,23 +165,6 @@
   border-radius: 100px;
   cursor: pointer;
 }
-
-.btn:hover {
-  background-color: #e6eaf3;
-}
-
-/* Active state — when input has a value */
-.btnActive {
-  background-color: #121723;
-  color: #ffffff;
-}
-
-.btnActive:hover {
-  background-color: #26304a;
-}
-
-@media (max-width: 479px) {
-  .cardTitle {
-    font-size: 1.5em;
-  }
-}
+.btn:hover { background-color: #e6eaf3; }
+.btnActive { background-color: #121723; color: #ffffff; }
+.btnActive:hover { background-color: #26304a; }

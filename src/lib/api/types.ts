@@ -190,12 +190,14 @@ export interface Submission {
  *
  * Replaces the old `patchSubmission(fields: Record<string, unknown>)`, which
  * accepted any key and wrote it straight to the database unvalidated.
+ *
+ * `name` and `state` are deliberately absent: the intake wizard no longer asks
+ * for them, they come from the account, and so the patient must not be able to
+ * write them through this path. Changing either is an account operation.
  */
 export type SubmissionDraft = Pick<
   Submission,
-  | "name"
   | "email"
-  | "state"
   | "products"
   | "whiteShade"
   | "gumShade"
@@ -379,10 +381,17 @@ export interface AdvisorContext {
 /* Auth                                                                */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The account. `name` and `state` live here rather than being asked for during
+ * intake, and a new draft is stamped with them at creation — see
+ * `SubmissionsApi.createDraft`.
+ */
 export interface AuthUser {
   id: string;
   email: string;
   name: string | null;
+  /** Full US state name, e.g. "California" — not the abbreviation. */
+  state: string | null;
 }
 
 export interface AdminUser {

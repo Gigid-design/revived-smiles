@@ -13,12 +13,11 @@ import { useMessages } from "@/app/context/MessagesContext";
 /* Intake ends once the teeth photos are taken — impression photos are a separate
    task from "Start Here", not an intake step. Total tracks the steps counted
    below; per-product step mapping is still to be wired (to-do #10). */
-const INTAKE_TOTAL_STEPS = 6;
+const INTAKE_TOTAL_STEPS = 5;
 
 /* Rough completed-step count for the "Continue My Intake" progress. */
 function intakeDone(sub: Submission): number {
   let done = 1; // intake started
-  if (sub.state) done++;
   if (sub.products?.length) done++;
   if (sub.whiteShade || sub.gumShade) done++;
   if (sub.closeBitePhotos?.length) done++;  // teeth photos — bite closed
@@ -70,7 +69,10 @@ function Landing() {
   /* Unread replies power the bottom-nav Messages badge. */
   const { unreadCount } = useMessages();
 
-  /* ── Fetch submission (latest of any status, incl. draft) ── */
+  /* ── Fetch submission (latest of any status, incl. draft) ──
+     Also refetches whenever the tab becomes visible again, so finishing a task
+     and coming back always shows it as done — and so a demo left open on
+     another tab isn't showing stale progress when you switch back to it. */
   useEffect(() => {
     let cancelled = false;
 
@@ -90,8 +92,15 @@ function Landing() {
 
     fetchSubmission();
 
+    function refetchIfVisible() {
+      if (document.visibilityState === "visible") void fetchSubmission();
+    }
+
+    document.addEventListener("visibilitychange", refetchIfVisible);
+
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", refetchIfVisible);
     };
   }, []);
 
