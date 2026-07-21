@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import styles from "./page.module.css";
 import { BottomNav } from "@/app/components/BottomNav";
-import { useRequests, REQUEST_LABELS, SupportRequest } from "@/app/context/RequestsContext";
+import { useMessages, REQUEST_LABELS, RequestStatus } from "@/app/context/MessagesContext";
 
 /* Placeholder order summary. Wiring this to the real submission/Shopify order
    is a separate scope — this pass covers the customer-facing surface. */
@@ -25,7 +25,7 @@ const STAGES: { label: string; done: boolean }[] = [
   { label: "On its way to you", done: false },
 ];
 
-const STATUS_COPY: Record<SupportRequest["status"], string> = {
+const STATUS_COPY: Record<RequestStatus, string> = {
   pending: "Awaiting review",
   accepted: "Accepted",
   rejected: "Declined",
@@ -36,9 +36,12 @@ function formatDate(iso: string): string {
 }
 
 export default function MyOrder() {
-  const { requests } = useRequests();
+  const { threads, unreadCount } = useMessages();
 
-  const STATUS_CLASS: Record<SupportRequest["status"], string> = {
+  /* Only threads opened by a supplies request are tracked here. */
+  const requestThreads = threads.filter((t) => t.request);
+
+  const STATUS_CLASS: Record<RequestStatus, string> = {
     pending: styles.statusPending,
     accepted: styles.statusAccepted,
     rejected: styles.statusRejected,
@@ -102,23 +105,25 @@ export default function MyOrder() {
         <section className={styles.requestsSection}>
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionTitle}>Requests</h2>
-            <Link href="/dashboard?chat=1" className={styles.newRequestLink}>
+            <Link href="/messages" className={styles.newRequestLink}>
               New request →
             </Link>
           </div>
 
-          {requests.length === 0 ? (
+          {requestThreads.length === 0 ? (
             <div className={styles.emptyCard}>
               <p className={styles.emptyTitle}>No requests yet</p>
               <p className={styles.emptyBody}>
                 Need more impression material or a different tray size? Ask your care
-                team in <Link href="/dashboard?chat=1" className={styles.inlineLink}>Messages</Link>.
+                team in <Link href="/messages" className={styles.inlineLink}>Messages</Link>.
               </p>
             </div>
           ) : (
             <ul className={styles.requestList}>
-              {requests.map((req) => (
-                <li key={req.id} className={styles.requestCard}>
+              {requestThreads.map((thread) => {
+                const req = thread.request!;
+                return (
+                <li key={thread.id} className={styles.requestCard}>
                   <div className={styles.requestHead}>
                     <span className={styles.requestKind}>{REQUEST_LABELS[req.kind]}</span>
                     <span className={`${styles.statusBadge} ${STATUS_CLASS[req.status]}`}>
@@ -127,7 +132,7 @@ export default function MyOrder() {
                   </div>
 
                   {req.detail && <p className={styles.requestDetail}>{req.detail}</p>}
-                  <p className={styles.requestDate}>Requested {formatDate(req.createdAt)}</p>
+                  <p className={styles.requestDate}>Requested {formatDate(thread.createdAt)}</p>
 
                   {req.status === "accepted" && (
                     <div className={styles.outcomeBox}>
@@ -147,18 +152,22 @@ export default function MyOrder() {
 
                   {req.status === "rejected" && (
                     <p className={styles.rejectedNote}>
-                      Your care team will follow up in{" "}
-                      <Link href="/dashboard?chat=1" className={styles.inlineLink}>Messages</Link>.
+                      Your care team has followed up in this conversation.
                     </p>
                   )}
+
+                  <Link href={`/messages/${thread.id}`} className={styles.threadLink}>
+                    View conversation →
+                  </Link>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </section>
       </div>
 
-      <BottomNav />
+      <BottomNav messagesBadge={unreadCount} />
     </main>
   );
 }

@@ -2,15 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense, useEffect, useState, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { getSupabase } from "@/lib/supabase";
+import { useSubmission } from "@/app/context/SubmissionContext";
 import { BottomNav } from "@/app/components/BottomNav";
-import { ChatPanel } from "@/app/components/ChatPanel";
 import { ImpressionStepsModal } from "@/app/components/ImpressionStepsModal";
-import { RequestModal } from "@/app/components/RequestModal";
-import { useChat } from "@/app/hooks/useChat";
+import { useMessages } from "@/app/context/MessagesContext";
 
 /* ── Types ── */
 interface SubmissionData {
@@ -73,48 +71,35 @@ const DEMO_SUBMISSION: SubmissionData = {
   tracking_number: null,
   close_bite_photos: ["https://example.com/photo1.jpg"],
   open_bite_photos: ["https://example.com/photo2.jpg"],
-  impression_photos: ["https://example.com/imp1.jpg", "https://example.com/imp2.jpg", "https://example.com/imp3.jpg", "https://example.com/imp4.jpg"],
+  impression_photos: [],
 };
 
 /* ══════════════════════════════════════
    Landing (dashboard) — "Start Here" design
    ══════════════════════════════════════ */
 function Landing() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { data: contextData } = useSubmission();
 
   const [submission, setSubmission] = useState<SubmissionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
   const [stepsOpen, setStepsOpen] = useState(false);
-  const [requestOpen, setRequestOpen] = useState(false);
 
   const patientName = submission?.name?.trim().split(" ")[0] || "there";
 
-  /* Chat hook (unread count powers the bottom-nav Messages badge). */
-  const { unreadCount: chatUnread } = useChat(
-    submission?.id ?? null,
-    "patient",
-    submission?.name || "Patient"
-  );
-
-  /* Open the chat drawer when arriving via the bottom-nav Messages item (?chat=1). */
-  useEffect(() => {
-    setChatOpen(searchParams.get("chat") === "1");
-  }, [searchParams]);
-
-  const closeChat = useCallback(() => {
-    setChatOpen(false);
-    if (searchParams.get("chat") === "1") router.replace("/dashboard");
-  }, [router, searchParams]);
+  /* Unread replies power the bottom-nav Messages badge. */
+  const { unreadCount } = useMessages();
 
   /* ── Fetch submission (latest of any status, incl. draft) ── */
   useEffect(() => {
     async function fetchSubmission() {
       // Design-preview mode: `?demo=1` (or design mode) renders with mock data.
       if (DESIGN_MODE || (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "1")) {
-        setSubmission(DEMO_SUBMISSION);
+        const withContextData = { ...DEMO_SUBMISSION };
+        if (contextData.impressionPhotos?.length) {
+          withContextData.impression_photos = contextData.impressionPhotos.map(p => p.url);
+        }
+        setSubmission(withContextData);
         setLoading(false);
         return;
       }
@@ -154,7 +139,7 @@ function Landing() {
       }
     }
     fetchSubmission();
-  }, []);
+  }, [contextData.impressionPhotos]);
 
   const done = submission ? intakeDone(submission) : 0;
 
@@ -292,43 +277,9 @@ function Landing() {
         )}
       </div>
 
-      {/* ── Chat drawer (Messages) ── */}
-      {chatOpen && (
-        <div className={styles.chatOverlay} onClick={closeChat}>
-          <div className={styles.chatDrawer} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.chatHeader}>
-              <div className={styles.chatHeaderLeft}>
-                <div className={styles.chatAvatar}>
-                  <Image src="/assets/images/concierge-avatar.png" alt="" width={36} height={36} style={{ objectFit: "cover" }} sizes="36px" />
-                </div>
-                <div>
-                  <p className={styles.chatTitle}>Your Care Team</p>
-                  <p className={styles.chatSubtitle}>We typically reply within a few hours</p>
-                </div>
-              </div>
-              <button className={styles.chatClose} onClick={closeChat} aria-label="Close messages">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-            <div className={styles.chatBody}>
-              <ChatPanel
-                submissionId={submission?.id ?? null}
-                currentRole="patient"
-                currentName={submission?.name || "Patient"}
-                onOpenRequest={() => setRequestOpen(true)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
       <ImpressionStepsModal open={stepsOpen} onClose={() => setStepsOpen(false)} />
 
-      <RequestModal open={requestOpen} onClose={() => setRequestOpen(false)} />
-
-      <BottomNav messagesBadge={chatUnread} />
+      <BottomNav messagesBadge={unreadCount} />
     </main>
   );
 }

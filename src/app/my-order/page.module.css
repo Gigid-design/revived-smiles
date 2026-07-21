@@ -282,6 +282,17 @@
   text-decoration: underline;
 }
 
+.threadLink {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #121723;
+  text-decoration: none;
+}
+.threadLink:hover { text-decoration: underline; }
+
 /* ── Empty state ── */
 .emptyCard {
   background: #ffffff;

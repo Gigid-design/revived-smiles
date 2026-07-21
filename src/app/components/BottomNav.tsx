@@ -8,7 +8,7 @@ const TABS = [
   {
     href: "/dashboard",
     label: "Home",
-    match: (p: string, search: string) => p === "/dashboard" && !search.includes("chat=1"),
+    match: (p: string) => p === "/dashboard",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="M11.3 2.53a1 1 0 0 1 1.4 0l8 7.7a1 1 0 0 1 .3.72V20a1.5 1.5 0 0 1-1.5 1.5H15a1 1 0 0 1-1-1v-5h-4v5a1 1 0 0 1-1 1H4.5A1.5 1.5 0 0 1 3 20v-9.05a1 1 0 0 1 .3-.72z" />
@@ -27,9 +27,9 @@ const TABS = [
     ),
   },
   {
-    href: "/dashboard?chat=1",
+    href: "/messages",
     label: "Messages",
-    match: (p: string, search: string) => p === "/dashboard" && search.includes("chat=1"),
+    match: (p: string) => p.startsWith("/messages"),
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
         <rect x="4" y="10" width="16" height="4" fill="#121723" />
@@ -46,12 +46,11 @@ const TABS = [
 
 export function BottomNav({ messagesBadge = 0 }: { messagesBadge?: number }) {
   const pathname = usePathname();
-  const search = typeof window !== "undefined" ? window.location.search : "";
 
   return (
     <nav className={styles.nav} aria-label="Main navigation">
       {TABS.map((tab) => {
-        const isActive = tab.match(pathname, search);
+        const isActive = tab.match(pathname);
         return (
           <Link
             key={tab.href}
