@@ -17,7 +17,7 @@ const TABS = [
   },
   {
     href: "/my-order",
-    label: "My Order",
+    label: "My Orders",
     match: (p: string) => p === "/my-order",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

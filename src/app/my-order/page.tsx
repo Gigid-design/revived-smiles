@@ -7,6 +7,7 @@ import styles from "./page.module.css";
 import { api } from "@/lib/api";
 import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
+import { SubscriptionCard } from "@/app/components/SubscriptionCard";
 import { productLabels } from "@/app/context/productConfig";
 import { useMessages, REQUEST_LABELS, RequestStatus } from "@/app/context/MessagesContext";
 
@@ -133,7 +134,7 @@ export default function MyOrder() {
           </Link>
         </div>
 
-        <h1 className={styles.heading}>My Order</h1>
+        <h1 className={styles.heading}>My Orders</h1>
 
         {/* ── Order summary ── */}
         {loading ? (
@@ -184,6 +185,12 @@ export default function MyOrder() {
             )}
           </section>
         )}
+
+        {/* ── Subscription ──
+             The recurring deliveries, alongside the one-off appliance order.
+             Same card as Home; no Manage link, because this is where Manage
+             was sending her. */}
+        <SubscriptionCard />
 
         {/* ── Requests ── */}
         <section className={styles.requestsSection}>
