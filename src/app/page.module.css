@@ -5,7 +5,7 @@
   position: relative;
   width: 100%;
   min-height: 100dvh;
-  background: #fdfdfd;
+  background: var(--surface);
   display: flex;
   justify-content: center;
   overflow: hidden;

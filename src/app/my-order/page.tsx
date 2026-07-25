@@ -136,6 +136,8 @@ export default function MyOrder() {
 
         <h1 className={styles.heading}>My Orders</h1>
 
+        <div className={styles.grid}>
+          <div className={styles.colMain}>
         {/* ── Order summary ── */}
         {loading ? (
           /* Hold the frame until the order loads */
@@ -185,7 +187,9 @@ export default function MyOrder() {
             )}
           </section>
         )}
+          </div>
 
+          <div className={styles.colSide}>
         {/* ── Subscription ──
              The recurring deliveries, alongside the one-off appliance order.
              Same card as Home; no Manage link, because this is where Manage
@@ -256,6 +260,8 @@ export default function MyOrder() {
             </ul>
           )}
         </section>
+          </div>
+        </div>
       </div>
 
       <BottomNav messagesBadge={unreadCount} />

@@ -7,7 +7,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 430px;
+  max-width: var(--app-max);
   z-index: 100;
   background: rgba(0, 0, 0, 0.7);
   display: flex;

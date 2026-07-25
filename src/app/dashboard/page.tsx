@@ -175,7 +175,8 @@ function Landing() {
         )}
 
         {!loading && !error && (
-          <>
+          <div className={styles.grid}>
+            <div className={styles.colMain}>
             {/* ══ Start Here — until impressions are in, then it becomes a
                    completed step on the timeline below ══ */}
             {!impressionsComplete && (
@@ -237,7 +238,9 @@ function Landing() {
               </div>
             </Link>
             )}
+            </div>
 
+            <div className={styles.colSide}>
             {/* ══ Your Progress — completed tasks convert into steps here, and
                    once everything's submitted it extends into the review and
                    production stages (same tracker as My Order) ══ */}
@@ -292,7 +295,8 @@ function Landing() {
 
             {/* ══ My Subscription ══ */}
             <SubscriptionCard manageHref="/my-order" />
-          </>
+            </div>
+          </div>
         )}
       </div>
 

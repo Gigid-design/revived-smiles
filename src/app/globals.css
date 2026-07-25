@@ -12,7 +12,37 @@
   --size-container: clamp(var(--size-container-min), 100vw, var(--size-container-max));
   --size-font: calc(var(--size-container) / (var(--size-container-ideal) / var(--size-unit)));
   --container-padding: 1.5em;
+
+  /* Width of the centered app column. Widens by tier (see media queries below)
+     so bottom-docked CTAs and content share one source of truth. */
+  --app-max: 430px;
+
+  /* App surface + floating-card shadow (Hims-style).
+     Cards float on a light-gray surface with a soft, diffuse ambient shadow —
+     the tonal gap between #f4f4f5 and #fff is what lets the shadow read. */
+  --surface: #f4f4f5;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.06);
+
+  /* Gradient header wash (Hims-style) — a tint at the top of a screen that
+     dissolves into the surface. Two layers: a dual-tone hue (brand blue
+     #C6DCFE → brand warm gold #FDD33B, side to side) under a vertical fade
+     that dissolves the colour smoothly into the surface toward the bottom.
+     Meant to sit on `body` full-bleed; pair with `background-size: 100% <h>`.
+
+     --surface-wash-strong — the vivid dual-tone, used on the dashboard (home).
+     --surface-wash        — the soft, restrained tint, used on the overview
+                             pages (My Orders, Profile, Notifications). */
+  --surface-wash-strong:
+    linear-gradient(180deg, rgba(244, 244, 245, 0) 38%, #f4f4f5 100%),
+    linear-gradient(108deg, #a7c4f4 0%, #ccd7ef 46%, #fbdf9f 100%);
+  --surface-wash:
+    linear-gradient(180deg, rgba(244, 244, 245, 0) 34%, #f4f4f5 100%),
+    linear-gradient(108deg, #d3e0f7 0%, #e4eaf3 46%, #fbeed0 100%);
 }
+
+/* Tablet + desktop widen the shared app-frame variable. */
+@media screen and (min-width: 641px)  { :root { --app-max: 480px; } }
+@media screen and (min-width: 1025px) { :root { --app-max: 520px; } }
 
 @media screen and (max-width: 479px) {
   :root {
@@ -79,24 +109,71 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Hide the scrollbar chrome app-wide but keep scrolling fully functional
+   (wheel, trackpad, keyboard, touch all still work). The patient pages scroll
+   on `body > main` — it gets overflow-x:hidden for the responsive frame, which
+   per spec forces overflow-y to auto, so that's where the scrollbar lives. */
+html,
+body,
+body > main {
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* legacy Edge/IE */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+body > main::-webkit-scrollbar {   /* Chrome, Safari, new Edge */
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 body {
   font-family: var(--font-body);
   font-size: var(--size-font);
   color: var(--color-text-white);
-  background-color: #e5e5e5; /* outer gutter on wide screens */
+  background-color: var(--surface); /* outer gutter on wide screens */
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   display: flex;
   justify-content: center;
+  min-height: 100dvh;
 }
 
-/* Lock the app to 430px — centers it on wide screens */
-body > * {
+/* ──────────────────────────────────────────────────────────────
+   Responsive app frame — "adaptive centered"
+   Mobile fills the screen; tablet and desktop present the app as a
+   centered column with a premium backdrop and soft framing, rather
+   than a narrow strip on a flat gutter. The column widens modestly
+   at each tier so it uses the space without stretching a phone-tuned
+   layout past what its fixed elements can handle.
+   Type scaling stays governed by --size-container (capped at 430) so
+   the em-based screens keep their phone proportions.
+
+   Scoped to `body > main` (every patient page's root element) so the
+   frame styling never lands on Next's injected <next-route-announcer>
+   or empty script/portal nodes, which would otherwise get a tinted,
+   full-height background painted over the page.
+   ────────────────────────────────────────────────────────────── */
+body > main {
   width: 100%;
-  max-width: 430px;
-  background-color: #b8cce4;
+  max-width: var(--app-max);
+  min-height: 100dvh;
+  background-color: var(--surface);
   overflow-x: hidden;
+}
+
+/* Tablet — a touch wider. Flat white, no framing shadow. */
+@media screen and (min-width: 641px) {
+  body {
+    background: var(--surface);
+  }
+}
+
+/* Desktop / web — centered app column with a bit more room. Flat white. */
+@media screen and (min-width: 1025px) {
+  /* The 2-column pages (dashboard, my-order) widen their own shell via
+     --app-max; nothing else needed here now that framing is flat. */
 }
 
 img, picture, video, canvas, svg {

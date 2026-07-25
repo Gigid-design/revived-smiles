@@ -87,7 +87,7 @@
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: min(calc(100% - 2em), 26.375em);
+  width: min(calc(100% - 2em), calc(var(--app-max) - 2em)); /* tracks the responsive app frame */
   padding: 0 1.3125em 2.1875em;
   z-index: 20;
 }

@@ -3,8 +3,18 @@
   position: relative;
   width: 100%;
   min-height: 100dvh;
-  background: #ffffff;
+  /* Transparent so the body's edge-to-edge soft wash shows through. */
+  background: transparent;
   overflow-x: hidden;
+}
+
+/* Soft header wash, full viewport width, scoped to this page via :has(). */
+:global(body):has(.screen) {
+  background-color: var(--surface);
+  background-image: var(--surface-wash);
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: 100% 30rem;
 }
 
 /* ── Header ── */

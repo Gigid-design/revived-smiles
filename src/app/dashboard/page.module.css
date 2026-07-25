@@ -7,8 +7,20 @@
   position: relative;
   width: 100%;
   min-height: 100dvh;
-  background: #fdfdfd;
+  /* Transparent so the body's edge-to-edge wash shows through the column. */
+  background-color: transparent;
   overflow-x: hidden;
+}
+
+/* Paint the header wash on the body so it spans the full viewport width
+   (edge to edge), not just the centered column. Scoped to the dashboard via
+   :has() so no other page picks it up. */
+:global(body):has(.screen) {
+  background-color: var(--surface);
+  background-image: var(--surface-wash-strong); /* vivid dual-tone — home only */
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: 100% 34rem; /* taller band → longer, softer fade into gray */
 }
 
 .content {
@@ -17,6 +29,30 @@
   padding: 0 1em 8.5em;
   display: flex;
   flex-direction: column;
+}
+
+/* ── Responsive 2-column layout ──
+   Mobile/tablet: the column holders are transparent (display:contents), so
+   cards flow in a single column exactly as before. Desktop widens this page's
+   framed shell (via --app-max) and splits tasks (left) from status (right). */
+.grid { display: flex; flex-direction: column; }
+.colMain,
+.colSide { display: contents; }
+
+@media screen and (min-width: 1025px) {
+  .screen { --app-max: 960px; }
+  .content { padding-left: 1.5em; padding-right: 1.5em; }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 1.5em;
+    align-items: start;
+  }
+  .colMain,
+  .colSide { display: flex; flex-direction: column; }
+  /* Align both column tops — drop the first card's top margin. */
+  .colMain > :first-child,
+  .colSide > :first-child { margin-top: 0; }
 }
 
 /* ── Top bar ── */
@@ -56,7 +92,7 @@
 .intakeCard {
   background: #ffffff;
   border-radius: 20px;
-  box-shadow: 0 10px 24px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--card-shadow);
   padding: 20px;
 }
 
@@ -238,7 +274,7 @@
 .progressCard {
   background: #ffffff;
   border-radius: 20px;
-  box-shadow: 0 10px 24px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--card-shadow);
   padding: 20px;
   margin-top: 16px;
 }
@@ -483,7 +519,7 @@
 .card {
   background: #ffffff;
   border-radius: 20px;
-  box-shadow: 0 10px 24px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--card-shadow);
   margin-top: 0.5em;
   overflow: hidden;
 }

@@ -6,13 +6,46 @@
   position: relative;
   width: 100%;
   min-height: 100svh;
-  background: #fdfdfd;
+  /* Transparent so the body's edge-to-edge soft wash shows through. */
+  background: transparent;
+}
+
+/* Soft header wash, full viewport width, scoped to this page via :has(). */
+:global(body):has(.screen) {
+  background-color: var(--surface);
+  background-image: var(--surface-wash);
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: 100% 30rem;
 }
 
 .content {
-  max-width: 26.875rem; /* 430px */
+  max-width: 100%; /* fill the responsive app frame (see globals.css) */
   margin: 0 auto;
   padding: 2.5rem 1rem 9rem; /* bottom clears the floating BottomNav pill */
+}
+
+/* ── Responsive 2-column layout ──
+   Mobile/tablet: column holders are transparent (display:contents) so the
+   order, subscription and requests stack in one column as before. Desktop
+   widens this page's framed shell and puts the order tracker beside the
+   subscription + requests. */
+.grid { display: flex; flex-direction: column; }
+.colMain,
+.colSide { display: contents; }
+
+@media screen and (min-width: 1025px) {
+  .screen { --app-max: 960px; }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .colMain,
+  .colSide { display: flex; flex-direction: column; }
+  .colMain > :first-child,
+  .colSide > :first-child { margin-top: 0; }
 }
 
 /* ── Top bar ── */
@@ -50,9 +83,9 @@
    ══════════════════════════════════════ */
 .orderCard {
   background: #ffffff;
-  border: 1px solid #eef0f5;
+  border: none;
   border-radius: 18px;
-  box-shadow: 0 4px 14px 1px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--card-shadow);
   padding: 1.125rem 1.25rem 1.25rem;
 }
 
@@ -194,9 +227,9 @@
 
 .requestCard {
   background: #ffffff;
-  border: 1px solid #eef0f5;
+  border: none;
   border-radius: 14px;
-  box-shadow: 0 4px 14px 1px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--card-shadow);
   padding: 0.875rem 1rem;
 }
 
@@ -297,8 +330,9 @@
 /* ── Empty state ── */
 .emptyCard {
   background: #ffffff;
-  border: 1px solid #eef0f5;
+  border: none;
   border-radius: 14px;
+  box-shadow: var(--card-shadow);
   padding: 1.5rem 1.25rem;
   text-align: center;
 }
