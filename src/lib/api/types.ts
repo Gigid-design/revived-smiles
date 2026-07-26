@@ -179,6 +179,12 @@ export interface Submission {
   /** Universal tooth numbering, 1–32. */
   selectedTeeth: number[];
   teethNotSure: boolean;
+  /**
+   * Optional free-text note from the patient (e.g. "only replace 2 of my 6
+   * missing teeth", an address change). Character-limited in the UI. Optional
+   * so existing records and literals don't need to carry it.
+   */
+  notes?: string | null;
   /** [front, side] */
   closeBitePhotos: string[];
   /** [front, side] */
@@ -220,6 +226,7 @@ export type SubmissionDraft = Pick<
   | "gumShade"
   | "selectedTeeth"
   | "teethNotSure"
+  | "notes"
 >;
 
 /** The admin's decision on a submission. */

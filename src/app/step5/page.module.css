@@ -246,6 +246,49 @@
 }
 .itemCheck { display: flex; align-items: center; flex-shrink: 0; }
 
+/* ── Optional notes ── */
+.notes {
+  position: relative;
+  margin-top: 1rem;
+}
+.notesLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.9375em;
+  color: #121723;
+}
+.notesOptional {
+  font-weight: 500;
+  color: #9299a5;
+}
+.notesInput {
+  width: 100%;
+  resize: none;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid #e2e6ef;
+  border-radius: 0.875rem;
+  background: #ffffff;
+  font-family: var(--font-body);
+  font-size: 0.9375em;
+  line-height: 1.45;
+  color: #121723;
+}
+.notesInput::placeholder { color: #aab1be; }
+.notesInput:focus {
+  outline: none;
+  border-color: #c6dbfe;
+  box-shadow: 0 0 0 3px rgba(198, 219, 254, 0.4);
+}
+.notesCount {
+  display: block;
+  margin-top: 0.375rem;
+  text-align: right;
+  font-size: 0.6875em;
+  color: #9299a5;
+}
+
 /* CONTINUE button */
 .buttonWrapper {
   position: fixed;
@@ -253,6 +296,9 @@
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100% - 2em), calc(var(--app-max) - 2em)); /* tracks the responsive app frame */
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
   padding: 0 1.3125em 2.1875em;
   z-index: 20;
 }
@@ -260,7 +306,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 43px;
   background-color: #eef0f5;
   color: #aab0be;

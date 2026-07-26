@@ -31,16 +31,19 @@
   height: 0.3125rem;
 }
 
-/* Card — left:16, right:16, top:437, sticks to bottom */
+/* Card — flows title + next-steps; raised so the content fits above the CTA */
 .card {
   position: absolute;
   left: 1rem;
   right: 1rem;
-  top: 27.3125rem;  /* 437px */
+  top: 21rem;
   bottom: 0;
   border-radius: 2rem 2rem 0 0;
   overflow: hidden;
   z-index: 3;
+  display: flex;
+  flex-direction: column;
+  padding: 2.25rem 1.375rem 5.5rem;
 }
 
 /* Card texture image fills the card */
@@ -52,33 +55,106 @@
 
 /* Title — -translate-y-1/2 at top:94px → center at 94px, left:21, 36px semibold */
 .title {
-  position: absolute;
-  top: 5.875rem;   /* 94px — this is the CENTER, so visually starts ~52px */
-  transform: translateY(-50%);
-  left: 1.3125rem; /* 21px */
-  right: -0.4375rem; /* -7px, extends slightly beyond */
+  position: relative;
   z-index: 1;
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 2.25rem; /* 36px */
+  font-size: 2rem; /* 32px */
   color: #ffffff;
   line-height: 1.15;
-  margin: 0;
+  margin: 0 0 1rem;
 }
 
-/* Description — -translate-y-1/2 at top:181.5px → center at 181.5px, left:21, right:40 */
-.desc {
-  position: absolute;
-  top: 11.34375rem; /* 181.5px — this is the CENTER */
-  transform: translateY(-50%);
-  left: 1.3125rem;  /* 21px */
-  right: 2.5rem;    /* 40px */
+/* Intro + next-steps block — flows below the title inside the card */
+.body {
+  position: relative;
   z-index: 1;
-  font-size: 0.75rem; /* 12px */
+}
+
+.desc {
+  font-size: 0.8125rem; /* 13px */
   font-weight: 500;
   color: #ffffff;
-  line-height: 1.517;
+  line-height: 1.5;
+  margin: 0 0 1.125rem;
+}
+
+/* Numbered next-steps — custom counters in brand-warm chips */
+.steps {
+  list-style: none;
   margin: 0;
+  padding: 0;
+  counter-reset: step;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.step {
+  counter-increment: step;
+  position: relative;
+  padding-left: 2.25rem;
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 500;
+  color: #ffffff;
+  line-height: 1.4;
+}
+
+.step::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: -0.0625rem;
+  width: 1.625rem;
+  height: 1.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: #ffffff;
+}
+
+/* ── Confetti ── */
+.confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 6;          /* above the hero + card */
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confettiPiece {
+  position: absolute;
+  top: -8%;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation-name: confettiFall;
+  animation-timing-function: ease-in;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+.confettiRound {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+@keyframes confettiFall {
+  0%   { transform: translateY(0) rotate(0deg);      opacity: 0; }
+  8%   { opacity: 1; }
+  100% { transform: translateY(112vh) rotate(720deg); opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confettiPiece { display: none; }
 }
 
 /* OKAY! button — fixed bottom, same as Tooth Chart continue */

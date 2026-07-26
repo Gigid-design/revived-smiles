@@ -266,17 +266,6 @@ export default function OpenBite() {
             )}
           </div>
 
-          {/* See Example toggle */}
-          {state === "idle" && (
-            <button
-              className={styles.exampleToggle}
-              onClick={() => setShowExample(!showExample)}
-              type="button"
-            >
-              {showExample ? "Hide Example" : "See Example"}
-            </button>
-          )}
-
           {/* Result badge on viewfinder */}
           {state === "pass" && <div className={styles.resultBadgePass}>✓ All checks passed</div>}
           {state === "warning" && <div className={styles.resultBadgeWarning}>⚠ Issues found</div>}
@@ -320,6 +309,17 @@ export default function OpenBite() {
 
       {/* Bottom fade */}
       <div className={styles.bottomFade} aria-hidden="true" />
+
+      {/* See Example toggle — floats above the controls, out of the card flow */}
+      {state === "idle" && (
+        <button
+          className={styles.exampleToggle}
+          onClick={() => setShowExample(!showExample)}
+          type="button"
+        >
+          {showExample ? "Hide Example" : "See Example"}
+        </button>
+      )}
 
       {/* Controls */}
       <div className={styles.controls}>

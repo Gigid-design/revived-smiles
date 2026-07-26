@@ -75,6 +75,7 @@ export const mockSubmissions: SubmissionsApi = {
       gumShade: null,
       selectedTeeth: [],
       teethNotSure: false,
+      notes: null,
       closeBitePhotos: [],
       openBitePhotos: [],
       impressionPhotos: [],
@@ -140,6 +141,7 @@ export const mockSubmissions: SubmissionsApi = {
         "gumShade",
         "selectedTeeth",
         "teethNotSure",
+        "notes",
       ];
 
       writable.forEach((key) => {

@@ -21,6 +21,8 @@ export interface SubmissionState {
   gumShade: string | null;
   selectedTeeth: number[];
   teethNotSure: boolean;
+  /* Optional free-text note the patient can add during intake. */
+  notes: string;
   /* Teeth photos — bite closed (front, side) and mouth open (front, side). */
   closeBitePhotos: string[];
   openBitePhotos: string[];
@@ -60,6 +62,7 @@ const defaults: SubmissionState = {
   gumShade: null,
   selectedTeeth: [],
   teethNotSure: false,
+  notes: "",
   closeBitePhotos: [],
   openBitePhotos: [],
   impressionPhotos: [],

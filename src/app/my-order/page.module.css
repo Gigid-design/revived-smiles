@@ -303,6 +303,43 @@
   letter-spacing: 0.02em;
 }
 
+/* Estimated arrival */
+.eta {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: #4a5163;
+}
+.eta svg { color: #6b7280; flex-shrink: 0; }
+.etaDate {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: #121723;
+}
+
+/* Return shipping label button */
+.labelBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.625rem 1rem;
+  border: 1px solid #d7dbe4;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #121723;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.labelBtn:hover { background: #f5f7fb; border-color: #c3c9d6; }
+.labelBtn:active { background: #eef1f7; }
+.labelBtn svg { color: #0e1b4d; flex-shrink: 0; }
+
 .rejectedNote {
   font-size: 0.75rem;
   color: #6b7280;

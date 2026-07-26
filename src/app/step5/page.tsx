@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import styles from "./page.module.css";
+import { FlowSupport } from "../components/FlowSupport";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
 import { getBackForTeethChart, getTotalSteps, getStepNumber } from "../context/productConfig";
@@ -322,7 +323,10 @@ export default function Step5() {
   const { data, saveDraft } = useSubmission();
   const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set(data.selectedTeeth));
   const [notSure, setNotSure] = useState(data.teethNotSure);
+  const [notes, setNotes] = useState(data.notes ?? "");
   const { cardRef, navigate } = usePageTransition();
+
+  const NOTES_MAX = 300;
 
   function toggleTooth(num: number) {
     setNotSure(false);
@@ -426,15 +430,34 @@ export default function Step5() {
           </span>
         </button>
 
+        {/* Optional free-text notes — captures the clarifications patients used
+            to scribble on paper order forms (e.g. "only replace 2 of my 6"). */}
+        <div className={styles.notes}>
+          <label htmlFor="intake-notes" className={styles.notesLabel}>
+            Anything else we should know? <span className={styles.notesOptional}>(optional)</span>
+          </label>
+          <textarea
+            id="intake-notes"
+            className={styles.notesInput}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value.slice(0, NOTES_MAX))}
+            maxLength={NOTES_MAX}
+            rows={3}
+            placeholder="e.g. I only want to replace 2 of my missing teeth, or a note about my order."
+          />
+          <span className={styles.notesCount}>{notes.length}/{NOTES_MAX}</span>
+        </div>
+
       </div>
 
       <div className={styles.buttonWrapper}>
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
           onClick={async () => {
-          await saveDraft({ selectedTeeth: [...selectedTeeth], teethNotSure: notSure });
+          await saveDraft({ selectedTeeth: [...selectedTeeth], teethNotSure: notSure, notes: notes.trim() || null });
           navigate('/photo-intro', 'forward');
         }}
         >CONTINUE</button>
+        <FlowSupport />
       </div>
     </main>
   );

@@ -4,10 +4,38 @@ import Image from "next/image";
 import Link from "next/link";
 import styles from "./page.module.css";
 
+/* Deterministic confetti pieces — values derived from the index (not
+   Math.random) so server and client render identically (no hydration
+   mismatch). Colours are the brand palette. */
+const CONFETTI_COLORS = ["#FDD33B", "#C6DCFE", "#0E184D", "#10b981", "#ffffff"];
+const CONFETTI = Array.from({ length: 32 }, (_, i) => ({
+  left: (i * 173) % 100,                 // spread across the width
+  delay: (i % 8) * 0.18,                 // staggered start
+  duration: 2.6 + (i % 5) * 0.35,        // varied fall speed
+  color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+  round: i % 3 === 0,                    // mix rounds and rectangles
+}));
+
 export default function Complete() {
   return (
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
+
+      {/* Celebratory confetti burst */}
+      <div className={styles.confetti} aria-hidden="true">
+        {CONFETTI.map((c, i) => (
+          <span
+            key={i}
+            className={`${styles.confettiPiece} ${c.round ? styles.confettiRound : ""}`}
+            style={{
+              left: `${c.left}%`,
+              backgroundColor: c.color,
+              animationDelay: `${c.delay}s`,
+              animationDuration: `${c.duration}s`,
+            }}
+          />
+        ))}
+      </div>
 
       {/* Background — light blue sky gradient */}
       <div className={styles.outerBg} aria-hidden="true">
@@ -50,14 +78,27 @@ export default function Complete() {
           className={styles.cardTexture}
         />
 
-        {/* Title — center at 94px from card top, 36px semibold */}
-        <h1 className={styles.title}>Impression process completed!</h1>
+        {/* Title */}
+        <h1 className={styles.title}>Impressions submitted!</h1>
 
-        {/* Description — center at 181.5px from card top, 12px medium */}
-        <p className={styles.desc}>
-          Thank you for completing the impression process! We&apos;ll carefully review the images you&apos;ve submitted and will be in touch soon with the next steps.
-        </p>
+        {/* Intro + concrete next steps */}
+        <div className={styles.body}>
+          <p className={styles.desc}>
+            Thank you for completing the impression process! Here&apos;s what happens next:
+          </p>
 
+          <ol className={styles.steps}>
+            <li className={styles.step}>
+              Our care team reviews your photos — usually within 24–48 hours.
+            </li>
+            <li className={styles.step}>
+              We&apos;ll let you know by email and right here in the app.
+            </li>
+            <li className={styles.step}>
+              Once approved, we start crafting your custom fit.
+            </li>
+          </ol>
+        </div>
       </div>
 
       {/* OKAY! button — fixed bottom, same as Tooth Chart */}

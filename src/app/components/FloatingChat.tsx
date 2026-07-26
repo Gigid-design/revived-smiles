@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { ChatPanel } from "./ChatPanel";
+import { ChatBubbleIcon } from "./ChatBubbleIcon";
 import { useChat } from "../hooks/useChat";
 import styles from "./FloatingChat.module.css";
 
 interface FloatingChatProps {
   submissionId: string | null;
   patientName: string;
+  /** "fab" floats bottom-right; "inline" sits in a bottom action row beside a CTA. */
+  variant?: "fab" | "inline";
 }
 
-export function FloatingChat({ submissionId, patientName }: FloatingChatProps) {
+export function FloatingChat({ submissionId, patientName, variant = "fab" }: FloatingChatProps) {
   const [open, setOpen] = useState(false);
   const { unreadCount } = useChat(submissionId, "patient", patientName);
 
@@ -36,17 +39,15 @@ export function FloatingChat({ submissionId, patientName }: FloatingChatProps) {
 
   return (
     <>
-      {/* Floating action button */}
+      {/* Trigger — floating FAB or an inline circle beside a CTA */}
       <button
         type="button"
-        className={styles.fab}
+        className={variant === "inline" ? styles.inlineBtn : styles.fab}
         onClick={() => setOpen(true)}
-        aria-label="Open chat"
-        style={{ display: open ? "none" : undefined }}
+        aria-label="Contact support"
+        style={variant === "fab" && open ? { display: "none" } : undefined}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
+        <ChatBubbleIcon size={20} fill={variant === "inline" ? "#121723" : "#ffffff"} />
         {unreadCount > 0 && (
           <span className={styles.fabBadge}>
             {unreadCount > 9 ? "9+" : unreadCount}
@@ -62,9 +63,7 @@ export function FloatingChat({ submissionId, patientName }: FloatingChatProps) {
             <div className={styles.drawerHeader}>
               <div className={styles.drawerHeaderLeft}>
                 <div className={styles.drawerAvatar}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
+                  <ChatBubbleIcon size={18} fill="#ffffff" />
                 </div>
                 <div>
                   <p className={styles.drawerTitle}>Care Team</p>

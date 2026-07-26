@@ -189,7 +189,10 @@
   bottom: 2.1875em; /* 35px */
   left: 50%;
   transform: translateX(-50%);
-  width: min(calc(100% - 2em), 355px);
+  width: min(calc(100% - 2em), calc(var(--app-max) - 2em)); /* matches the app-wide CTA width */
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
   z-index: 4;
 }
 
@@ -197,7 +200,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 43px;
   background-color: #121723;
   color: #ffffff;

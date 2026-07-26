@@ -16,17 +16,30 @@
 
 .tab {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 44px;
-  border-radius: 100px;
+  gap: 3px;
+  min-width: 56px;
+  padding: 5px 8px;
+  border-radius: 18px;
   text-decoration: none;
-  color: #121723;
+  color: #9299a5;               /* inactive: muted */
   transition: color 0.2s ease, background 0.2s ease;
 }
 
-.active { color: #121723; }
+.active { color: #121723; }     /* active: full-strength ink */
+
+.label {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;   /* keep "My Orders" on one line */
+  color: inherit;
+}
+.active .label { font-weight: 700; }
 
 .icon {
   position: relative;

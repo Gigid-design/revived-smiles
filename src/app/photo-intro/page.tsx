@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import styles from "./page.module.css";
+import { FlowSupport } from "../components/FlowSupport";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { IntakeHeader } from "../components/IntakeHeader";
 
@@ -118,6 +119,7 @@ export default function PhotoIntro() {
         >
           TAKE PHOTOS
         </button>
+        <FlowSupport />
       </div>
     </main>
   );

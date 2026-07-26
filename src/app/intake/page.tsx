@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import styles from "./page.module.css";
+import { FlowSupport } from "../components/FlowSupport";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
 import { useMessages } from "../context/MessagesContext";
@@ -176,6 +177,7 @@ export default function ProductStep() {
         >
           CONTINUE
         </button>
+        <FlowSupport />
       </div>
 
       <WrongOrderSheet

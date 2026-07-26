@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { SubscriptionCard } from "@/app/components/SubscriptionCard";
+import { ShippingLabelModal } from "@/app/components/ShippingLabelModal";
 import { productLabels } from "@/app/context/productConfig";
 import { useMessages, REQUEST_LABELS, RequestStatus } from "@/app/context/MessagesContext";
 
@@ -73,11 +74,32 @@ function orderReference(id: string): string {
   return `RS-${id.slice(0, 8).toUpperCase()}`;
 }
 
+/* Once impressions are approved the patient mails the physical molds back, so
+   the ShipStation return label is available from here on. */
+const LABEL_READY: SubmissionStatus[] = ["approved", "in_fabrication", "shipped", "completed"];
+
+/* A patient-facing "arrives by" estimate. Firm once shipped (a few days from
+   the ship date); a rough window while in production; nothing before that. */
+function estimatedArrival(order: Submission): string | null {
+  if (order.shippedAt) {
+    const d = new Date(order.shippedAt);
+    d.setDate(d.getDate() + 3);
+    return formatPlaced(d.toISOString());
+  }
+  if (order.status === "in_fabrication" || order.status === "approved") {
+    const d = new Date(order.createdAt);
+    d.setDate(d.getDate() + 14);
+    return formatPlaced(d.toISOString());
+  }
+  return null;
+}
+
 export default function MyOrder() {
   const { requests, unreadCount } = useMessages();
 
   const [order, setOrder] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
+  const [labelOpen, setLabelOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -185,6 +207,30 @@ export default function MyOrder() {
                 Tracking <span className={styles.trackingNo}>{order.trackingNumber}</span>
               </p>
             )}
+
+            {estimatedArrival(order) && (
+              <p className={styles.eta}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <path d="M16 2v4M8 2v4M3 10h18" />
+                </svg>
+                Arrives by <span className={styles.etaDate}>{estimatedArrival(order)}</span>
+              </p>
+            )}
+
+            {LABEL_READY.includes(order.status) && (
+              <button
+                type="button"
+                className={styles.labelBtn}
+                onClick={() => setLabelOpen(true)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />
+                  <path d="M9 9h4M9 13h6M9 17h6" />
+                </svg>
+                View return shipping label
+              </button>
+            )}
           </section>
         )}
           </div>
@@ -265,6 +311,15 @@ export default function MyOrder() {
       </div>
 
       <BottomNav messagesBadge={unreadCount} />
+
+      {order && (
+        <ShippingLabelModal
+          open={labelOpen}
+          onClose={() => setLabelOpen(false)}
+          submissionId={order.id}
+          patientName={order.name ?? "Patient"}
+        />
+      )}
     </main>
   );
 }

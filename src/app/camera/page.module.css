@@ -272,20 +272,24 @@
 }
 .controlBtn {
   position: absolute;
+  top: 1.34375em;
   width: 2.875em; height: 2.875em;
   background: rgba(255,255,255,0.38);
   border: 1px solid rgba(255,255,255,0.6);
   border-radius: .875em;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  top: 1.34375em;
 }
-.controlBtnTimer { left: 2.4375em; }
-.controlBtnFlash { left: 5.9375em; }
-.controlBtnGrid  { left: 17.9375em; }
+/* Gallery + flash cling to the left edge, flip to the right edge, shutter is
+   centred — so the row stays balanced on ANY container width (the old fixed
+   left offsets clustered everything to the left on the wider frame). */
+.controlBtnTimer { left: 1.75em; }
+.controlBtnFlash { left: 5.25em; }
+.controlBtnGrid  { right: 1.75em; }
 .shutter {
   position: absolute;
-  left: 11.125em;
+  left: 50%;
+  transform: translateX(-50%);
   top: 0;
   width: 4.5em; height: 4.5em;
   border-radius: 50%;
@@ -503,8 +507,8 @@
   position: absolute;
   left: 50%; top: 50%;
   transform: translate(-50%, -50%);
+  width: min(calc(100% - 2em), calc(var(--app-max) - 2em)); /* matches the app-wide CTA width */
   height: 43px;
-  padding-inline: 2em;
   background: #121723;
   color: #ffffff;
   font-family: var(--font-heading);
@@ -852,12 +856,20 @@
 
 /* ── Example overlay ── */
 .exampleToggle {
+  /* Floats just above the shutter controls (out of the card flow) so it never
+     collides with the shutter or gets clipped by the bottom fade. */
+  position: absolute;
+  left: 50%;
+  bottom: 8.75em;
+  transform: translateX(-50%);
+  z-index: 7;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0.5em auto 0;
   padding: 0.375em 1em;
-  background: rgba(14, 27, 77, 0.08);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border: 1px solid rgba(14, 27, 77, 0.15);
   border-radius: 9999px;
   font-family: var(--font-heading);

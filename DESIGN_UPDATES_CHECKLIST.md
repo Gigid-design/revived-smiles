@@ -57,19 +57,19 @@ Source: **M1** = July 16 session, **M2** = July 21 session. Each item has a **Wh
 
 ## ⚠️ Partial — started but needs work
 
-- [ ] **Contact support on EVERY screen** _(M1)_ — `src/app/components/FloatingChat.tsx` (built, not imported anywhere)
+- [x] **Contact support on EVERY screen** _(M1)_ — `src/app/components/FloatingChat.tsx` (built, not imported anywhere)
   **Why:** This was one of Gitai's most-repeated asks. The older demographic gets stuck and abandons — "every slide really, we want to give them an option to contact support at the bottom so they're not confused… it assures them that support is always there." A per-screen support button is the anti-abandonment safety net.
 
-- [ ] **Completion screen: confetti + concrete next steps** _(M1)_ — `src/app/complete/page.tsx`
+- [x] **Completion screen: confetti + concrete next steps** _(M1)_ — `src/app/complete/page.tsx`
   **Why:** Two purposes. Emotional payoff — "confetti and whatever… make them feel good about finishing it" — and expectation-setting so they're not left wondering: "here are the next steps. Our customer service team is currently reviewing your photos and will let you know whether you're approved… a notification in your email and/or this portal."
 
-- [ ] **Shipping label on the order (ShipStation)** _(M2)_ — `src/app/components/ShippingLabelModal.tsx` (built, not used)
+- [x] **Shipping label on the order (ShipStation)** _(M2)_ — `src/app/components/ShippingLabelModal.tsx` (built, not used)
   **Why:** After approval the patient has to mail their impressions back, so the return label must be right there — "when they click accept… automated emails telling them their impressions are approved and providing them with the shipping label from ShipStation within their order."
 
-- [ ] **Chat entry visibility** _(M2)_
+- [x] **Chat entry visibility** _(M2)_
   **Why:** Gitai literally couldn't find the chat entry — "is it that three dots? I didn't even see that it was a text." If the account owner missed it, older patients will too. Jade agreed to "beef up the visuals so it looks more like a chat."
 
-- [ ] **Order ETA / "arrive by"** _(M2)_ — `src/app/my-order/page.tsx`
+- [x] **Order ETA / "arrive by"** _(M2)_ — `src/app/my-order/page.tsx`
   **Why:** Answers "where's my order" before they even ask — "arrive by, expected to arrive by information… so they can just quickly at a glance see that stuff."
 
 ---
@@ -91,7 +91,7 @@ Source: **M1** = July 16 session, **M2** = July 21 session. Each item has a **Wh
 - [ ] **Passwordless authentication (magic link + OTP)** _(M2)_ — `src/app/page.tsx`
   **Why:** Password management is a headache for an older audience and a support burden — "they enter their email, receive a one-time passcode or magic link, so there's no password management." Fewer "forgot password" tickets. Gitai: "Magic link would probably be easier."
 
-- [ ] **Optional free-text notes field in intake** _(M1)_
+- [x] **Optional free-text notes field in intake** _(M1)_
   **Why:** Patients routinely scribble clarifications on paper order forms today — Gitai gave real examples: "they're missing 6 teeth but only want to replace 2… people get confused with the numbering," and "please change my address." An optional, character-limited box captures those instead of losing them ("keep it to a comfortable character limit so you don't receive stories").
 
 ---

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import styles from "./page.module.css";
+import { FlowSupport } from "../components/FlowSupport";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
 import { getNextAfterShade, getStepNumber, getTotalSteps } from "../context/productConfig";
@@ -176,6 +177,7 @@ export default function Step4() {
           }}>
           CONTINUE
         </button>
+        <FlowSupport />
       </div>
     </main>
   );

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
+import { FlowSupport } from "../components/FlowSupport";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
 import { api, ApiError } from "@/lib/api";
@@ -332,6 +333,7 @@ export default function ImpressionPhotos() {
         >
           {submitting ? "SUBMITTING…" : "CONTINUE"}
         </button>
+        <FlowSupport />
       </div>
     </main>
   );
