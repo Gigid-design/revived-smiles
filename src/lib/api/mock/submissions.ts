@@ -8,8 +8,10 @@
 
 import { nanoid } from "nanoid";
 
+import { productLabels } from "@/app/context/productConfig";
 import type { SubmissionsApi } from "../contract";
 import type {
+  ChatMessage,
   ImpressionPhoto,
   Paged,
   Submission,
@@ -22,6 +24,7 @@ import { DEMO_SHOPIFY_ORDER } from "./seed";
 import {
   clone,
   delay,
+  emitMessage,
   emitSubmissionChange,
   getDb,
   mutate,
@@ -30,6 +33,42 @@ import {
 } from "./store";
 
 const DEFAULT_PAGE_SIZE = 25;
+
+/** Gum shades are stored as internal codes; the patient sees the names. */
+const GUM_SHADE_LABELS: Record<string, string> = { G1: "Dark", G2: "Pink", G3: "Clear" };
+
+/**
+ * Builds the plain-language recap the patient's submission drops into the
+ * conversation — the hims/hers pattern: "once you complete the form it sends it
+ * pre-filled to your provider in the messages box." It gives the patient a
+ * single record of exactly what they sent and something the care team can reply
+ * against, instead of the details living only inside the order.
+ */
+function buildSubmissionSummary(row: Submission): string {
+  const lines: string[] = ["Here's a summary of what I submitted:", ""];
+
+  const order = row.orderNumber ? ` (Order ${row.orderNumber})` : "";
+  if (row.products.length) lines.push(`• Product: ${productLabels(row.products)}${order}`);
+  if (row.whiteShade) lines.push(`• Tooth shade: ${row.whiteShade}`);
+  if (row.gumShade) lines.push(`• Gum shade: ${GUM_SHADE_LABELS[row.gumShade] ?? row.gumShade}`);
+
+  if (row.teethNotSure) {
+    lines.push("• Teeth to replace: Not sure — please advise");
+  } else if (row.selectedTeeth.length) {
+    lines.push(`• Teeth to replace: ${row.selectedTeeth.map((n) => `#${n}`).join(", ")}`);
+  }
+
+  const teethPhotos = row.closeBitePhotos.filter(Boolean).length + row.openBitePhotos.filter(Boolean).length;
+  const impressionPhotos = row.impressionPhotos.filter(Boolean).length;
+  const photoParts: string[] = [];
+  if (teethPhotos) photoParts.push(`${teethPhotos} teeth photo${teethPhotos === 1 ? "" : "s"}`);
+  if (impressionPhotos) photoParts.push(`${impressionPhotos} impression photo${impressionPhotos === 1 ? "" : "s"}`);
+  if (photoParts.length) lines.push(`• Photos: ${photoParts.join(" + ")} attached`);
+
+  if (row.notes?.trim()) lines.push(`• Notes: ${row.notes.trim()}`);
+
+  return lines.join("\n");
+}
 
 function byNewest(a: Submission, b: Submission): number {
   return b.createdAt.localeCompare(a.createdAt);
@@ -164,7 +203,7 @@ export const mockSubmissions: SubmissionsApi = {
   async finalize(id, impressionPhotos: ImpressionPhoto[]) {
     await delay();
 
-    return mutate((db) => {
+    const { row, summary } = mutate((db) => {
       const row = db.submissions.find((s) => s.id === id);
       if (!row) throw new ApiError("not_found", "That order could not be found.");
 
@@ -176,14 +215,37 @@ export const mockSubmissions: SubmissionsApi = {
       const created = row.status === "draft" && isComplete(row);
       if (created) row.status = "pending";
 
+      /* On first submission, drop a pre-filled recap into the conversation so
+         the patient has a record of what they sent and the care team can reply
+         against it. Gated on `created` so replacing photos later never posts a
+         second one. */
+      let summary: ChatMessage | null = null;
+      if (created) {
+        summary = {
+          id: `msg-${nanoid(8)}`,
+          submissionId: row.id,
+          senderRole: "patient",
+          senderName: row.name ?? "You",
+          body: buildSubmissionSummary(row),
+          createdAt: nowIso(),
+          readAt: null,
+        };
+        db.messages.push(summary);
+      }
+
       emitSubmissionChange({
         type: created ? "created" : "updated",
         submissionId: row.id,
         patientName: row.name,
         status: row.status,
       });
-      return clone(row);
+      return { row: clone(row), summary };
     });
+
+    /* Emit outside the mutate so live subscribers (the patient's Messages
+       view) pick the recap up the moment the order is submitted. */
+    if (summary) emitMessage(summary);
+    return row;
   },
 
   async list(query: SubmissionQuery): Promise<Paged<Submission>> {

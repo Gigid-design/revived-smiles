@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import { api, ApiError } from "@/lib/api";
-import type { Submission } from "@/lib/api";
+import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { ImpressionStepsModal } from "@/app/components/ImpressionStepsModal";
 import { SubscriptionCard } from "@/app/components/SubscriptionCard";
@@ -34,14 +35,25 @@ const POST_SUBMIT_STAGES = [
   "On its way to you",
 ];
 
-/* A row on the "Your Progress" timeline. */
-type StageState = "done" | "current" | "upcoming";
+/* A row on the "Your Progress" timeline. `attention` is the red state a step
+   drops into when the care team kicks it back for a resubmit. */
+type StageState = "done" | "current" | "upcoming" | "attention";
 
 interface ProgressStep {
   label: string;
   state: StageState;
   action: { href: string; text: string } | null;
 }
+
+/* Sample review notes for the ?preview= demo, used only when the real order has
+   no notes of its own — so the branch-state UI can be shown without an admin
+   flipping the status first. Mirrors the tone of the seeded admin queue. */
+const PREVIEW_NOTES: Record<"changes_requested" | "rejected", string> = {
+  changes_requested:
+    "The open-bite side photo is too dark to read the gum line. Could you retake it near a window, with the light facing you rather than behind you?",
+  rejected:
+    "The photos show active gum inflammation. Please see a dentist in person before we fit anything.",
+};
 
 /* Routes for the "Start Here" actions. */
 const ROUTE_VIDEO = "/impression-photos";  // impression how-to (examples + tips live here)
@@ -54,6 +66,7 @@ const STAGE_CLASS: Record<StageState, string> = {
   done: styles.stageDone,
   current: styles.stageCurrent,
   upcoming: "",
+  attention: styles.stageAttention,
 };
 
 /* ══════════════════════════════════════
@@ -64,6 +77,7 @@ function Landing() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stepsOpen, setStepsOpen] = useState(false);
+  const searchParams = useSearchParams();
 
   const patientName = submission?.name?.trim().split(" ")[0] || "there";
 
@@ -107,11 +121,26 @@ function Landing() {
 
   const done = submission ? intakeDone(submission) : 0;
 
-  /* Each task is an action card until it's done, then it converts into a
-     completed step on the progress timeline below. */
-  const intakeComplete = done === INTAKE_TOTAL_STEPS;
-  const impressionsComplete = (submission?.impressionPhotos?.length ?? 0) > 0;
-  const allSubmitted = intakeComplete && impressionsComplete;
+  /* `?preview=changes_requested|rejected` overlays a branch status so the
+     denial/resubmit UI can be demoed without an admin flipping the order. */
+  const preview = searchParams.get("preview");
+  const previewStatus =
+    preview === "changes_requested" || preview === "rejected" ? preview : null;
+  const status: SubmissionStatus | undefined = previewStatus ?? submission?.status;
+
+  /* When the care team sends the order back, the impressions turn red and the
+     patient resubmits — but the intake stays green, because that's a one-time
+     thing we don't ask for again. */
+  const changesRequested = status === "changes_requested";
+  const rejected = status === "rejected";
+  const branched = changesRequested || rejected;
+  const reviewNotes = submission?.reviewNotes ?? (previewStatus ? PREVIEW_NOTES[previewStatus] : null);
+
+  /* A branch status only happens after the order was fully submitted, so both
+     prior steps read as complete (intake green, impressions red-for-resubmit). */
+  const intakeComplete = branched || done === INTAKE_TOTAL_STEPS;
+  const impressionsComplete = branched || (submission?.impressionPhotos?.length ?? 0) > 0;
+  const onTrack = intakeComplete && impressionsComplete && !branched;
   const showTimeline = intakeComplete || impressionsComplete;
 
   const steps: ProgressStep[] = [];
@@ -119,10 +148,16 @@ function Landing() {
     steps.push({ label: "Intake complete", state: "done", action: { href: ROUTE_INTAKE, text: "Review" } });
   }
   if (impressionsComplete) {
-    steps.push({ label: "Impression photos submitted", state: "done", action: { href: ROUTE_UPLOAD, text: "Replace" } });
+    if (changesRequested) {
+      steps.push({ label: "Impression photos — resubmit needed", state: "attention", action: { href: ROUTE_UPLOAD, text: "Resubmit" } });
+    } else if (rejected) {
+      steps.push({ label: "Impressions not approved", state: "attention", action: { href: "/messages", text: "Details" } });
+    } else {
+      steps.push({ label: "Impression photos submitted", state: "done", action: { href: ROUTE_UPLOAD, text: "Replace" } });
+    }
   }
-  /* Downstream stages only make sense once everything is in */
-  if (allSubmitted) {
+  /* Downstream stages only make sense once everything is in and on the happy path */
+  if (onTrack) {
     POST_SUBMIT_STAGES.forEach((label, i) => {
       steps.push({
         label,
@@ -172,6 +207,52 @@ function Landing() {
             <p className={styles.emptyMsg}>{error}</p>
             <button className={styles.retryBtn} onClick={() => window.location.reload()}>TRY AGAIN</button>
           </div></div>
+        )}
+
+        {/* ── Care-team sent it back: prominent action banner ── */}
+        {!loading && !error && branched && (
+          <section
+            className={`${styles.reviewBanner} ${rejected ? styles.reviewBannerRejected : styles.reviewBannerChanges}`}
+            role="alert"
+          >
+            <div className={styles.reviewBannerIcon} aria-hidden="true">
+              {rejected ? (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3.5 21 19H3L12 3.5Z" />
+                  <path d="M12 9.5v4" />
+                  <path d="M12 16.5h.01" />
+                </svg>
+              )}
+            </div>
+            <div className={styles.reviewBannerBody}>
+              <h2 className={styles.reviewBannerTitle}>
+                {rejected ? "We couldn't approve your impressions" : "Your impressions need another look"}
+              </h2>
+              {reviewNotes && <p className={styles.reviewBannerReason}>{reviewNotes}</p>}
+              <p className={styles.reviewBannerHint}>
+                {rejected ? "We've explained why in your messages." : "Full details are in your messages."}
+              </p>
+              <div className={styles.reviewBannerActions}>
+                {changesRequested && (
+                  <Link href={ROUTE_UPLOAD} className={styles.reviewBannerPrimary}>
+                    Resubmit impression photos
+                  </Link>
+                )}
+                <Link
+                  href="/messages"
+                  className={changesRequested ? styles.reviewBannerSecondary : styles.reviewBannerPrimary}
+                >
+                  Message the care team
+                </Link>
+              </div>
+            </div>
+          </section>
         )}
 
         {!loading && !error && (
@@ -269,6 +350,12 @@ function Landing() {
                             <path d="M12 7.5v5l3 1.8" />
                           </svg>
                         )}
+                        {step.state === "attention" && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 7.5v5" />
+                            <path d="M12 16.5h.01" />
+                          </svg>
+                        )}
                       </span>
 
                       <div className={styles.stageBody}>
@@ -279,6 +366,11 @@ function Landing() {
                           )}
                           {step.state === "current" && (
                             <span className={`${styles.stageChip} ${styles.chipCurrent}`}>In progress</span>
+                          )}
+                          {step.state === "attention" && (
+                            <span className={`${styles.stageChip} ${styles.chipAttention}`}>
+                              {rejected ? "Not approved" : "Action needed"}
+                            </span>
                           )}
                           {step.action && (
                             <Link href={step.action.href} className={styles.stageAction}>
