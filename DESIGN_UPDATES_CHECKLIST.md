@@ -82,11 +82,13 @@ Source: **M1** = July 16 session, **M2** = July 21 session. Each item has a **Wh
 - [ ] **Welcoming landing page after QR login** _(M1)_
   **Why:** A warm first screen so the process doesn't feel cold or intimidating — "a welcoming landing page saying thank you for ordering, begin your impression process now… make a nice landing page for them to feel involved."
 
-- [ ] **Denial / resubmit states on the dashboard** _(M1)_ — `src/app/dashboard/page.tsx`
+- [x] **Denial / resubmit states on the dashboard** _(M1)_ — `src/app/dashboard/page.tsx`
   **Why:** If impressions are rejected, the patient must clearly see that *only the photos* need redoing — not their whole intake. "Their impressions will turn red and say resubmit… but the intake form stays green because we don't need that information again — that's a one-time thing." Prevents them from redoing completed work and getting frustrated. Reason lives in Messages.
+  **Done:** Action banner + red "resubmit"/"not approved" timeline step for `changes_requested`/`rejected`; intake stays green; reviewNotes reason surfaced with a pointer to Messages. Demo via `?preview=changes_requested|rejected`.
 
-- [ ] **Auto-push submission summary into Messages** _(M1 — the "hims & hers" pattern)_
+- [x] **Auto-push submission summary into Messages** _(M1 — the "hims & hers" pattern)_
   **Why:** Transparency and a single reference point. Gitai modeled it on hims/hers — "once you complete the form it sends it pre-filled to your provider in the messages box… I liked how it showed everything." So the patient sees exactly what they submitted and CS can reply against it, instead of it only living internally.
+  **Done:** On first submission (draft→pending), `finalize` posts a patient-side recap (product, shades, teeth, notes, photo counts) into the order conversation; gated so replacing photos never re-posts.
 
 - [ ] **Passwordless authentication (magic link + OTP)** _(M2)_ — `src/app/page.tsx`
   **Why:** Password management is a headache for an older audience and a support burden — "they enter their email, receive a one-time passcode or magic link, so there's no password management." Fewer "forgot password" tickets. Gitai: "Magic link would probably be easier."
