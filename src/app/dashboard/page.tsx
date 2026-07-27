@@ -11,6 +11,7 @@ import { BottomNav } from "@/app/components/BottomNav";
 import { ImpressionStepsModal } from "@/app/components/ImpressionStepsModal";
 import { SubscriptionCard } from "@/app/components/SubscriptionCard";
 import { useMessages } from "@/app/context/MessagesContext";
+import { useInsurance } from "@/app/hooks/useInsurance";
 
 /* Intake ends once the teeth photos are taken — impression photos are a separate
    task from "Start Here", not an intake step. Total tracks the steps counted
@@ -83,6 +84,9 @@ function Landing() {
 
   /* Unread replies power the bottom-nav Messages badge. */
   const { unreadCount } = useMessages();
+
+  /* Insured appliances get a quiet entry point to file a protection claim. */
+  const { canClaim } = useInsurance();
 
   /* ── Fetch submission (latest of any status, incl. draft) ──
      Also refetches whenever the tab becomes visible again, so finishing a task
@@ -387,6 +391,23 @@ function Landing() {
 
             {/* ══ My Subscription ══ */}
             <SubscriptionCard manageHref="/my-order" />
+
+            {/* ══ Protection claim — only for insured appliances without an
+                   open claim; a quiet entry so it doesn't read as urgent ══ */}
+            {canClaim && (
+              <Link href="/insurance-claim" className={styles.claimEntry}>
+                <span className={styles.claimEntryIcon} aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <path d="M9 12l2 2 4-4" />
+                  </svg>
+                </span>
+                <span className={styles.claimEntryText}>File a protection claim</span>
+                <svg className={styles.claimEntryChevron} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c0c4ce" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </Link>
+            )}
             </div>
           </div>
         )}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./messages.module.css";
 import { BottomNav } from "@/app/components/BottomNav";
+import { useInsurance } from "@/app/hooks/useInsurance";
 import {
   useMessages,
   CARE_NAME,
@@ -67,6 +68,8 @@ export default function Messages() {
     markRead,
     setRequestStatus,
   } = useMessages();
+
+  const { canClaim } = useInsurance();
 
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -335,6 +338,11 @@ export default function Messages() {
             <button type="button" className={styles.chip} onClick={openForm}>
               + Request supplies
             </button>
+            {canClaim && (
+              <Link href="/insurance-claim" className={styles.chip}>
+                File a protection claim
+              </Link>
+            )}
           </div>
         )}
 

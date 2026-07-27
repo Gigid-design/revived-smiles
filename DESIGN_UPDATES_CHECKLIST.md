@@ -98,6 +98,27 @@ Source: **M1** = July 16 session, **M2** = July 21 session. Each item has a **Wh
 
 ---
 
+## 🏥 Insurance (product protection) — built 2026-07-27
+
+The insurance piece Jade parked on Jul 21 ("that'll get worked in next"). Built to the scope the room agreed on in M1, with claims added as the follow-up Gitai asked for. All mock-backed through the `api`/`contract` layer, so a real backend swaps in with no screen changes.
+
+- [x] **View insurance** on My Orders — `src/app/components/InsuranceCard.tsx`
+  **Why:** Gitai asked for it directly — "we'd like you to have it within their orders that they're able to view their insurance… it's more for customer service." Shows plan, coverage, and covered-until when insured.
+
+- [x] **Purchase = link-out prompt** (not in-app checkout) — `InsuranceCard.tsx`
+  **Why:** Jade proposed the lighter path and Gitai agreed — "rather than baking in insurance purchasing… direct them to the website to purchase it. Let's do that." Nathan flagged in-app checkout as timeline-risky. A "Not protected" card offers **Add protection** with the seven-day window as gentle urgency, opening the store in a new tab.
+
+- [x] **In-app claim flow** — `src/app/insurance-claim/page.tsx`
+  **Why:** Gitai wanted claims in the app instead of a phone call — "like an intake form… a few questions, the reasoning, do you still have your models… then it gets prompted to the customer service team." Built as an intake-style wizard (one question per screen, big Continue, visible Back/Close for the older audience): reason → still have the appliance → optional detail → review → submit.
+  **Done:** On submit, `api.insurance.fileClaim` records the claim (`in_review`) and **auto-posts a plain-language recap into the order conversation** — the same hims/hers pattern as the submission recap — so the patient has a copy and CS can reply against it. The card then shows a "Your claim · In review" panel.
+
+- [x] **Claim discoverability** — Dashboard entry + Messages quick-prompt
+  **Why:** So insured patients can actually find the claim path. Both surface a "File a protection claim" entry, gated (via `useInsurance`) to insured appliances with no open claim, so it never prompts on an uninsured appliance or during an active claim.
+
+_Demo:_ the seed appliance starts **not insured** (shows the purchase CTA). Append `?insurance=insured` to `/my-order`, `/dashboard`, or `/messages` to preview the insured + claim surfaces; filing a claim flips the record to insured for real.
+
+---
+
 ## Notes / open decisions (not build tasks yet)
 
 - **Gorgias vs. portal for CS** _(M1/M2)_ — Keep Gorgias for V1 (macros, Shopify order view, Meta/email integrations are too valuable to drop). The portal owns approve/deny and keeps Gorgias updated. Backend integration, not UI.
