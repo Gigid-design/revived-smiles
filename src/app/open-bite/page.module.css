@@ -435,11 +435,20 @@
   white-space: nowrap;
 }
 
-.submitBtn {
+/* Submit row mirrors the intake buttonWrapper: CTA fills, support circle beside. */
+.submitRow {
   position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  width: min(calc(100% - 2em), calc(var(--app-max) - 2em)); /* matches the app-wide CTA width */
+  left: 1.3125em;
+  right: 1.3125em;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+}
+.submitBtn {
+  flex: 1;
+  min-width: 0;
   height: 43px;
   background: #121723;
   color: #fff;
@@ -859,3 +868,12 @@
 .checkPillWarning .checkPillIcon { background: var(--photo-warning-soft); }
 .checkPillWarning .checkPillDetail { color: var(--photo-warning-strong); }
 .checkPillWarning .checkPillStatus { color: var(--photo-warning-strong); }
+
+/* Floating support in the non-submit states (idle/analyzing/warning). Same
+   inline white circle as the intake steps, above the shutter controls. */
+.supportDock {
+  position: fixed;
+  bottom: 5.5em;
+  right: max(1em, calc((100vw - var(--app-max)) / 2 + 1em));
+  z-index: 21;
+}

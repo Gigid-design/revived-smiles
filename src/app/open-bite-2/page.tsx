@@ -384,12 +384,18 @@ export default function OpenBite2() {
           </div>
         )}
         {state === "pass" && (
-          <button className={styles.submitBtn} onClick={handleSubmitPhoto}>{submitting ? "Saving…" : "Submit Photo"}</button>
+          <div className={styles.submitRow}>
+            <button className={styles.submitBtn} onClick={handleSubmitPhoto}>{submitting ? "Saving…" : "Submit Photo"}</button>
+            <FlowSupport />
+          </div>
         )}
       </div>
 
-      {/* Contact support — floating, on every teeth-photo step */}
-      <FlowSupport variant="fab" />
+      {/* Contact support — same inline circle as the intake steps: docked beside
+          the CTA on the submit step, and kept reachable in every other state. */}
+      {state !== "pass" && (
+        <div className={styles.supportDock}><FlowSupport /></div>
+      )}
     </main>
   );
 }
