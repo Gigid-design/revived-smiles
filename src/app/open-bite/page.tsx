@@ -390,10 +390,10 @@ export default function OpenBite() {
         )}
       </div>
 
-      {/* Contact support — only once a photo has been taken (analyzing/review),
-          so the live capture screen stays clean. The submit state shows its own
-          circle beside the CTA. */}
-      {(state === "analyzing" || state === "warning") && (
+      {/* Contact support — shown once a photo has been reviewed and needs a
+          retake (warning); the submit state has its own circle beside the CTA.
+          Hidden while capturing and while scanning, to keep those views clean. */}
+      {state === "warning" && (
         <div className={styles.supportDock}><FlowSupport /></div>
       )}
     </main>
