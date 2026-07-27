@@ -391,9 +391,10 @@ export default function OpenBite2() {
         )}
       </div>
 
-      {/* Contact support — same inline circle as the intake steps: docked beside
-          the CTA on the submit step, and kept reachable in every other state. */}
-      {state !== "pass" && (
+      {/* Contact support — only once a photo has been taken (analyzing/review),
+          so the live capture screen stays clean. The submit state shows its own
+          circle beside the CTA. */}
+      {(state === "analyzing" || state === "warning") && (
         <div className={styles.supportDock}><FlowSupport /></div>
       )}
     </main>

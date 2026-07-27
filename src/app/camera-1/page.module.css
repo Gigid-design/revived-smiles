@@ -814,7 +814,7 @@
      collides with the shutter or gets clipped by the bottom fade. */
   position: absolute;
   left: 50%;
-  bottom: 8.75em;
+  bottom: 13.5em;
   transform: translateX(-50%);
   z-index: 7;
   display: flex;
