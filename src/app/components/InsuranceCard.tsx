@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import styles from "./InsuranceCard.module.css";
 import { api } from "@/lib/api";
 import type { ClaimStatus, Insurance } from "@/lib/api";
+import { applyInsurancePreview } from "@/app/hooks/useInsurance";
 
 const CLAIM_STATUS_LABEL: Record<ClaimStatus, string> = {
   in_review: "In review",
@@ -31,8 +32,8 @@ const CLAIM_STATUS_CLASS: Record<ClaimStatus, string> = {
  * checkout. Renders nothing when the patient has no insurable appliance, so a
  * caller can drop it in unconditionally.
  *
- * For demos, `?insurance=insured` previews the covered layout without changing
- * the seed — the same convention the dashboard uses for its states.
+ * For demos, the `?insurance=insured|claimed|not_insured` URL previews a given
+ * state (see `applyInsurancePreview`) without ever writing to the store.
  */
 
 const DAY_MS = 86_400_000;
@@ -60,19 +61,6 @@ function daysUntil(iso: string): number {
   return Math.max(0, Math.round((then.getTime() - start.getTime()) / DAY_MS));
 }
 
-/** A believable "insured" stand-in for the `?insurance=insured` demo preview. */
-function previewInsured(base: Insurance): Insurance {
-  return {
-    ...base,
-    status: "insured",
-    planName: "Protection Plan",
-    coverage: "1 replacement · 12 months",
-    purchasedAt: new Date(Date.now() - 20 * DAY_MS).toISOString(),
-    expiresAt: new Date(Date.now() + 345 * DAY_MS).toISOString(),
-    windowClosesAt: null,
-  };
-}
-
 export function InsuranceCard() {
   const [insurance, setInsurance] = useState<Insurance | null>(null);
 
@@ -82,13 +70,8 @@ export function InsuranceCard() {
     api.insurance
       .list()
       .then((records) => {
-        if (cancelled) return;
-        let record = records[0] ?? null;
-        // Demo-only: let the URL preview the covered layout.
-        if (record && new URLSearchParams(window.location.search).get("insurance") === "insured") {
-          record = previewInsured(record);
-        }
-        setInsurance(record);
+        // Demo-only: the URL can preview a specific state (see the hook).
+        if (!cancelled) setInsurance(applyInsurancePreview(records[0] ?? null));
       })
       .catch((err) => console.error("Could not load insurance:", err));
 
