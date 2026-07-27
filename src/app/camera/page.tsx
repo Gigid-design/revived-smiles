@@ -6,6 +6,7 @@ import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import PhotoTimeline from "../components/PhotoTimeline";
 import { IntakeHeader } from "../components/IntakeHeader";
+import { FlowSupport } from "../components/FlowSupport";
 import { useSubmission } from "../context/SubmissionContext";
 import { api } from "@/lib/api";
 import type { AnalysisCheck, PhotoAnalysis, PhotoType } from "@/lib/api";
@@ -389,6 +390,9 @@ export default function Camera() {
           <button className={styles.submitBtn} onClick={handleSubmitPhoto}>{submitting ? "Saving…" : "Submit Photo"}</button>
         )}
       </div>
+
+      {/* Contact support — floating, on every teeth-photo step */}
+      <FlowSupport variant="fab" />
     </main>
   );
 }
