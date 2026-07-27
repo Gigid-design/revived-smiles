@@ -685,3 +685,41 @@
 }
 .retryBtn:hover { background: #26304a; }
 
+
+/* ── Protection claim entry (insured appliances) ──
+   A quiet card link, styled like the intake card but as a single row, so it
+   offers the claim path without competing with the primary "Start Here" flow. */
+.claimEntry {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: var(--card-shadow);
+  padding: 16px 18px;
+  text-decoration: none;
+}
+
+.claimEntryIcon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef4ff;
+  color: #2563eb;
+}
+
+.claimEntryText {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1em;         /* 16px */
+  color: #121723;
+}
+
+.claimEntryChevron { flex-shrink: 0; }

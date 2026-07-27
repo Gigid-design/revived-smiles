@@ -464,6 +464,87 @@ export interface Subscription {
 }
 
 /**
+ * Whether an appliance is covered by the product-protection plan.
+ *
+ * Kept to the two states the patient needs to see. `insured` shows the plan
+ * details; `not_insured` shows the offer. Purchasing happens on the website
+ * (Shopify), so there is deliberately no "pending" state here — the record
+ * flips to `insured` once the backend sees the completed purchase.
+ */
+export type InsuranceStatus = "insured" | "not_insured";
+
+/**
+ * Where a filed protection claim sits. A claim is submitted from the app and
+ * worked by the care team, so it opens `in_review` and ends approved/denied —
+ * there is no patient-visible "draft" claim.
+ */
+export type ClaimStatus = "in_review" | "approved" | "denied";
+
+/**
+ * A protection claim the patient filed against their plan.
+ *
+ * Modelled on the intake form Gitai described — "a few questions, the
+ * reasoning, do you still have your models" — then routed to the care team.
+ */
+export interface InsuranceClaim {
+  /** Why they're claiming, e.g. "Broke or cracked". */
+  reason: string;
+  /** Answer to "do you still have your appliance?". */
+  hasAppliance: boolean;
+  /** Anything else they added, character-limited on the way in. */
+  detail: string;
+  status: ClaimStatus;
+  submittedAt: Timestamp;
+}
+
+/**
+ * The product-protection plan for one appliance.
+ *
+ * Product insurance is Revived Smiles' most-purchased add-on. It is bought on
+ * the website (upsell links, Shopify), so V1 only *reads* it here — the card
+ * shows coverage when insured, or an "add protection" offer that links out to
+ * the website when not. One record per insurable appliance (`submissionId`).
+ */
+export interface Insurance {
+  id: string;
+  /** The appliance order this plan covers. */
+  submissionId: string;
+  /** The appliance's name, denormalised so the card needn't load the order. */
+  productName: string;
+  status: InsuranceStatus;
+
+  /* ── Present when `insured` ── */
+  /** Plan name, e.g. "Protection Plan". */
+  planName: string | null;
+  /** Human coverage summary, e.g. "1 replacement · 12 months". */
+  coverage: string | null;
+  /** When the plan was purchased. */
+  purchasedAt: Timestamp | null;
+  /** When coverage ends. */
+  expiresAt: Timestamp | null;
+
+  /* ── Present when `not_insured` ── */
+  /** Offer price in minor units (cents), so the CTA can show what it costs. */
+  price: number | null;
+  /** ISO-4217, e.g. "USD". */
+  currency: string;
+  /**
+   * The soft deadline to add protection — seven days after the appliance is
+   * received. Drives the urgency line. Null once the appliance hasn't shipped
+   * yet, or when the policy no longer imposes a window.
+   */
+  windowClosesAt: Timestamp | null;
+  /** Where to buy it. Off-app for V1: the website product page. */
+  purchaseUrl: string | null;
+
+  /**
+   * The open (or most recent) claim against this plan, or null if none has
+   * been filed. Only meaningful when `status === "insured"`.
+   */
+  claim: InsuranceClaim | null;
+}
+
+/**
  * Every adapter rejects with this, so screens can show a message without
  * knowing which backend produced it.
  */

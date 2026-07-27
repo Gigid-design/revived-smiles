@@ -10,6 +10,7 @@ import type {
   AppNotification,
   AuthUser,
   ChatMessage,
+  Insurance,
   PhotoType,
   PromptConfig,
   Submission,
@@ -32,7 +33,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 5;
+export const SEED_VERSION = 7;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -78,6 +79,13 @@ export const DEMO_SHOPIFY_ORDER = {
 
 /** Stand-in carrier reference. A real backend gets this from the carrier. */
 export const DEMO_TRACKING = "1Z999AA10123456784";
+
+/**
+ * Where the website sells the product-protection plan. Insurance is purchased
+ * off-app (Shopify upsell), so the "add protection" CTA links here. A real
+ * backend returns the exact product URL for the appliance being protected.
+ */
+export const INSURANCE_PURCHASE_URL = "https://revivedsmiles.com/products/protection-plan";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -396,6 +404,36 @@ function buildSubscriptions(): Subscription[] {
   ];
 }
 
+/**
+ * The demo patient's protection plan.
+ *
+ * Seeded as `not_insured` so the primary demo shows the "add protection" offer
+ * (the new revenue path), with a live window so the urgency line has something
+ * to count down. The card also honours `?insurance=insured` to preview the
+ * covered layout without touching this seed. `productName` is denormalised as a
+ * literal to keep this backend-layer file from importing the app's product
+ * catalogue — it mirrors DEMO_SHOPIFY_ORDER's `flexible-partial`.
+ */
+function buildInsurances(): Insurance[] {
+  return [
+    {
+      id: "ins-demo-1",
+      submissionId: DEMO_SUBMISSION_ID,
+      productName: "Flexible Partial Denture",
+      status: "not_insured",
+      planName: null,
+      coverage: null,
+      purchasedAt: null,
+      expiresAt: null,
+      price: 4900,
+      currency: "USD",
+      windowClosesAt: daysInFuture(5),
+      purchaseUrl: INSURANCE_PURCHASE_URL,
+      claim: null,
+    },
+  ];
+}
+
 export function buildSeed(): MockDb {
   const demo = submission({
     id: DEMO_SUBMISSION_ID,
@@ -417,6 +455,7 @@ export function buildSeed(): MockDb {
     version: SEED_VERSION,
     submissions: [demo, ...buildQueue()],
     subscriptions: buildSubscriptions(),
+    insurances: buildInsurances(),
     messages: buildMessages(),
     notifications: buildNotifications(),
     promptConfigs: buildPromptConfigs(),

@@ -13,6 +13,7 @@ import type {
   AppNotification,
   AuthUser,
   ChatMessage,
+  Insurance,
   PromptConfig,
   Submission,
   SubmissionChange,
@@ -30,6 +31,7 @@ export interface MockDb {
   version: number;
   submissions: Submission[];
   subscriptions: Subscription[];
+  insurances: Insurance[];
   messages: ChatMessage[];
   notifications: AppNotification[];
   promptConfigs: PromptConfig[];

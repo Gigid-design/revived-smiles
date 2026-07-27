@@ -4,19 +4,35 @@
 .screen {
   position: relative;
   width: 100%;
+  /* Break out of the shared app-frame column (globals: body > main is capped at
+     --app-max, 430/480/520px). The welcome screen is a full-bleed hero, so the
+     video fills the whole viewport width instead of sitting in a boxed column
+     with gray gutters. The card inside stays centered and capped at 430px. */
+  max-width: none;
   min-height: 100dvh;
   background: var(--surface);
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
+  /* Plain block (not flex) so the sticky video and the card stack cleanly and
+     the card keeps its natural height — a flex column would let flex-shrink
+     squish both when content is taller than the viewport.
+     The screen is its own vertical scroll container so the footer/social row
+     stay reachable on short viewports (landscape phones, small laptops,
+     split-screen) instead of being clipped off. `clip` on the x-axis holds the
+     app frame (and contains the exit-blur scale) without forcing the y-axis to
+     a value that would suppress scrolling. */
+  overflow-x: clip;
+  overflow-y: auto;
 }
 
-/* ── Ambient video background ── */
+/* ── Ambient video background ──
+   Pinned with `position: sticky` so it always covers the viewport as the
+   column scrolls; the negative margin collapses its flow footprint so the
+   card overlays it instead of being pushed a full screen below. */
 .videoBg {
-  position: absolute;
-  inset: 0;
+  position: sticky;
+  top: 0;
   width: 100%;
-  height: 100%;
+  height: 100dvh;
+  margin-bottom: -100dvh;
   object-fit: cover;
   z-index: 0;
   pointer-events: none;
@@ -27,6 +43,7 @@
   z-index: 2;
   width: 100%;
   max-width: 26.875em; /* 430px */
+  margin-inline: auto; /* center within the app-frame column */
   display: flex;
   flex-direction: column;
   align-items: center;

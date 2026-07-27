@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { SubscriptionCard } from "@/app/components/SubscriptionCard";
+import { InsuranceCard } from "@/app/components/InsuranceCard";
 import { ShippingLabelModal } from "@/app/components/ShippingLabelModal";
 import { productLabels } from "@/app/context/productConfig";
 import { useMessages, REQUEST_LABELS, RequestStatus } from "@/app/context/MessagesContext";
@@ -236,6 +237,11 @@ export default function MyOrder() {
           </div>
 
           <div className={styles.colSide}>
+        {/* ── Protection / insurance ──
+             Tied to the appliance: view coverage, or add protection (links out
+             to the website). Renders nothing when there's no insurable order. */}
+        <InsuranceCard />
+
         {/* ── Subscription ──
              The recurring deliveries, alongside the one-off appliance order.
              Same card as Home; no Manage link, because this is where Manage

@@ -1,0 +1,296 @@
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  background: var(--surface);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* White card — same treatment as the intake steps. */
+.card {
+  position: absolute;
+  left: 1em;
+  right: 1em;
+  top: 8.5em;
+  bottom: 0;
+  background: #ffffff;
+  border-radius: 20px 20px 0 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding-inline: 1.25em;
+  padding-bottom: 7em;
+  scrollbar-width: none;
+}
+.card::-webkit-scrollbar { display: none; }
+
+.cardTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.75em;   /* 28px */
+  line-height: 1.1;
+  color: #121723;
+  padding-top: 2.857em;
+  padding-bottom: 0.5em;
+  flex-shrink: 0;
+}
+
+.helpText {
+  font-family: var(--font-body);
+  font-size: 0.9375em;  /* 15px */
+  line-height: 1.5;
+  color: #6b7280;
+  margin: 0 0 1.25em;
+  flex-shrink: 0;
+}
+
+/* ── Option cards (reason, yes/no) ── */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  flex-shrink: 0;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  width: 100%;
+  text-align: left;
+  padding: 1.05em 1.15em;
+  background: #ffffff;
+  border: 2px solid #e8e8e4;
+  border-radius: 0.875em;  /* 14px */
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.option:hover { border-color: #cfd4de; }
+
+.optionActive {
+  border-width: 3px;
+  border-color: #c6dcfe;
+  background: #f7faff;
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  min-width: 0;
+}
+
+.optionLabel {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.0625em;  /* 17px */
+  color: #121723;
+}
+
+.optionDesc {
+  font-family: var(--font-body);
+  font-size: 0.875em;   /* 14px */
+  color: #8a8a8a;
+  line-height: 1.4;
+}
+
+/* Radio dot on the right — fills when the card is active. */
+.radio {
+  flex-shrink: 0;
+  width: 1.375em;
+  height: 1.375em;
+  border-radius: 50%;
+  border: 2px solid #cfd4de;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.optionActive .radio {
+  border-color: #2563eb;
+  background: #2563eb;
+  box-shadow: inset 0 0 0 4px #ffffff;
+}
+
+/* ── Free-text detail ── */
+.textarea {
+  width: 100%;
+  min-height: 8.5em;
+  resize: none;
+  padding: 1em 1.05em;
+  border: 1px solid #e4e7ee;
+  border-radius: 0.875em;
+  background: #ffffff;
+  font-family: var(--font-body);
+  font-size: 1em;       /* 16px — no iOS zoom */
+  color: #121723;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.textarea::placeholder { color: #9aa0ac; }
+.textarea:focus-visible {
+  outline: none;
+  border-color: #121723;
+  box-shadow: 0 0 0 3px rgba(18, 23, 35, 0.06);
+}
+
+.counter {
+  font-family: var(--font-heading);
+  font-size: 0.75em;    /* 12px */
+  color: #9aa0ac;
+  text-align: right;
+  margin: 0.5em 0 0;
+  flex-shrink: 0;
+}
+
+/* ── Review ── */
+.review {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.reviewRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.85em 0;
+  border-bottom: 1px solid #eef0f4;
+}
+
+.reviewLabel {
+  font-family: var(--font-heading);
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b6376;
+  flex-shrink: 0;
+}
+
+.reviewValue {
+  font-family: var(--font-heading);
+  font-size: 0.9375em;  /* 15px */
+  font-weight: 500;
+  color: #121723;
+  text-align: right;
+}
+
+.reviewNote {
+  font-family: var(--font-body);
+  font-size: 0.8125em;  /* 13px */
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 1.1em 0 0;
+}
+
+.error {
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  color: #b91c1c;
+  margin: 0.9em 0 0;
+}
+
+/* ── Success ── */
+.successCard {
+  position: static;
+  margin: 8.5em 1em 0;
+  border-radius: 20px;
+  box-shadow: var(--card-shadow);
+  align-items: center;
+  text-align: center;
+  padding: 2.5em 1.75em 2.25em;
+  bottom: auto;
+}
+
+.successIcon {
+  width: 4em;
+  height: 4em;
+  border-radius: 50%;
+  background: #eafaef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.1em;
+}
+
+.successTitle {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.625em;   /* 26px */
+  color: #121723;
+  margin: 0 0 0.5em;
+}
+
+.successBody {
+  font-family: var(--font-body);
+  font-size: 0.9375em;
+  line-height: 1.55;
+  color: #6b7280;
+  margin: 0 0 1.75em;
+}
+
+.successLink {
+  display: inline-block;
+  margin-top: 1.1em;
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  font-weight: 600;
+  color: #0e1b4d;
+  text-decoration: none;
+}
+.successLink:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── Bottom button (mirrors intake) ── */
+.buttonWrapper {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2em), calc(var(--app-max) - 2em));
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+  padding: 0 1.3125em 2.1875em;
+  z-index: 20;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  height: 43px;
+  background-color: #eef0f5;
+  color: #aab0be;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+}
+
+.btn:disabled { cursor: not-allowed; }
+
+.btnActive {
+  background-color: #121723;
+  color: #ffffff;
+}
+.btnActive:hover { background-color: #26304a; }
+
+/* On the success card the button sits in-flow, full width. */
+.successCard .btn {
+  width: 100%;
+  flex: none;
+}

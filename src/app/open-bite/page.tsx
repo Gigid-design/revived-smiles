@@ -6,6 +6,7 @@ import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
 import PhotoTimeline from "../components/PhotoTimeline";
 import { IntakeHeader } from "../components/IntakeHeader";
+import { FlowSupport } from "../components/FlowSupport";
 import { useSubmission } from "../context/SubmissionContext";
 import { api } from "@/lib/api";
 import type { AnalysisCheck, PhotoAnalysis, PhotoType } from "@/lib/api";
@@ -382,9 +383,19 @@ export default function OpenBite() {
           </div>
         )}
         {state === "pass" && (
-          <button className={styles.submitBtn} onClick={handleSubmitPhoto}>{submitting ? "Saving…" : "Submit Photo"}</button>
+          <div className={styles.submitRow}>
+            <button className={styles.submitBtn} onClick={handleSubmitPhoto}>{submitting ? "Saving…" : "Submit Photo"}</button>
+            <FlowSupport />
+          </div>
         )}
       </div>
+
+      {/* Contact support — shown once a photo has been reviewed and needs a
+          retake (warning); the submit state has its own circle beside the CTA.
+          Hidden while capturing and while scanning, to keep those views clean. */}
+      {state === "warning" && (
+        <div className={styles.supportDock}><FlowSupport /></div>
+      )}
     </main>
   );
 }

@@ -21,6 +21,7 @@ import type {
   AuthUser,
   ChatMessage,
   ImpressionPhoto,
+  Insurance,
   NewPromptConfig,
   OAuthProvider,
   Paged,
@@ -357,6 +358,37 @@ export interface SubscriptionsApi {
 
 /* ------------------------------------------------------------------ */
 
+export interface InsuranceApi {
+  /**
+   * The signed-in patient's protection plans, one per insurable appliance.
+   * Scoped to the caller server-side.
+   *
+   * V1 is read-only: purchasing happens on the website, so a real
+   * implementation reads plan status from the store/subscription system and
+   * returns a `not_insured` record (with an offer + purchase URL) for any
+   * eligible appliance the patient has not yet protected.
+   */
+  list(): Promise<Insurance[]>;
+
+  /**
+   * Files a protection claim against an insured plan.
+   *
+   * The patient answers a short intake (reason, whether they still have the
+   * appliance, free-text detail); this routes the claim to the care team and
+   * drops a plain-language recap into the order conversation, so the patient
+   * has a record and staff can reply against it — the same pattern as the
+   * submission recap. Returns the plan with its `claim` set to `in_review`.
+   *
+   * A real backend must require the plan be `insured` and reject otherwise.
+   */
+  fileClaim(
+    insuranceId: string,
+    claim: { reason: string; hasAppliance: boolean; detail: string },
+  ): Promise<Insurance>;
+}
+
+/* ------------------------------------------------------------------ */
+
 export interface ShippingApi {
   /**
    * The return-shipping label PDF.
@@ -378,5 +410,6 @@ export interface ApiClient {
   notifications: NotificationsApi;
   prompts: PromptsApi;
   subscriptions: SubscriptionsApi;
+  insurance: InsuranceApi;
   shipping: ShippingApi;
 }
