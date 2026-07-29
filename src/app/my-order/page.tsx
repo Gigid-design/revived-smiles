@@ -2,40 +2,71 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
 import { api } from "@/lib/api";
 import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { SubscriptionCard } from "@/app/components/SubscriptionCard";
 import { InsuranceCard } from "@/app/components/InsuranceCard";
-import { ShippingLabelModal } from "@/app/components/ShippingLabelModal";
 import { productLabels } from "@/app/context/productConfig";
 import { useMessages, REQUEST_LABELS, RequestStatus } from "@/app/context/MessagesContext";
 
-/* Fulfilment stages shown in the tracker, in order. */
+/* Fulfilment stages shown in the tracker, in order. "Review completed" sits
+   between the care-team review and production: it's the gate the primary
+   action waits on — the patient can open the full order once review is done. */
 const STAGE_LABELS = [
   "Order placed",
   "Impression kit shipped",
   "Impressions received",
   "In review by your care team",
+  "Review completed",
   "In production",
   "On its way to you",
+  "Delivered",
 ];
 
+/* The index of the stage the "View order" button unlocks on. */
+const REVIEW_COMPLETE_INDEX = STAGE_LABELS.indexOf("Review completed");
+
 /* How far along the tracker each order status sits — the count of stages above
-   that are complete. The last completed stage is the one highlighted. */
+   that are complete. The last completed stage is the one highlighted.
+   `approved` is the moment review is complete, so it clears that new stage. */
 const STAGES_COMPLETE: Record<SubmissionStatus, number> = {
   draft: 2,
   pending: 3,
   in_review: 4,
   changes_requested: 4,
   rejected: 4,
-  approved: 4,
-  in_fabrication: 5,
-  shipped: 6,
-  completed: 6,
+  approved: 5,
+  in_fabrication: 6,
+  shipped: 7,
+  completed: 8,
 };
+
+/* The progress gradient — the same ramp as the dashboard "Continue My Intake"
+   bar. Sampled per completed dot so the circles match the rail at their point. */
+const GRADIENT_STOPS: { t: number; rgb: [number, number, number] }[] = [
+  { t: 0, rgb: [253, 211, 59] },    // #fdd33b
+  { t: 0.49, rgb: [198, 220, 254] }, // #c6dcfe
+  { t: 1, rgb: [18, 23, 35] },       // #121723
+];
+
+/** The gradient colour at position `t` (0–1) along the ramp. */
+function gradientColor(t: number): string {
+  const x = Math.max(0, Math.min(1, t));
+  for (let i = 1; i < GRADIENT_STOPS.length; i++) {
+    const a = GRADIENT_STOPS[i - 1];
+    const b = GRADIENT_STOPS[i];
+    if (x <= b.t) {
+      const f = (x - a.t) / (b.t - a.t || 1);
+      const [r, g, bl] = a.rgb.map((av, k) => Math.round(av + (b.rgb[k] - av) * f));
+      return `rgb(${r}, ${g}, ${bl})`;
+    }
+  }
+  const [r, g, bl] = GRADIENT_STOPS[GRADIENT_STOPS.length - 1].rgb;
+  return `rgb(${r}, ${g}, ${bl})`;
+}
 
 /* The patient-facing wording for an order status. */
 const ORDER_STATUS_COPY: Record<SubmissionStatus, string> = {
@@ -44,7 +75,7 @@ const ORDER_STATUS_COPY: Record<SubmissionStatus, string> = {
   in_review: "In review",
   changes_requested: "Action needed",
   rejected: "Declined",
-  approved: "Approved",
+  approved: "Review completed",
   in_fabrication: "In production",
   shipped: "Shipped",
   completed: "Completed",
@@ -75,10 +106,6 @@ function orderReference(id: string): string {
   return `RS-${id.slice(0, 8).toUpperCase()}`;
 }
 
-/* Once impressions are approved the patient mails the physical molds back, so
-   the ShipStation return label is available from here on. */
-const LABEL_READY: SubmissionStatus[] = ["approved", "in_fabrication", "shipped", "completed"];
-
 /* A patient-facing "arrives by" estimate. Firm once shipped (a few days from
    the ship date); a rough window while in production; nothing before that. */
 function estimatedArrival(order: Submission): string | null {
@@ -98,25 +125,41 @@ function estimatedArrival(order: Submission): string | null {
 export default function MyOrder() {
   const { requests, unreadCount } = useMessages();
 
-  const [order, setOrder] = useState<Submission | null>(null);
+  const [orders, setOrders] = useState<Submission[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [labelOpen, setLabelOpen] = useState(false);
+  /* Demo affordance: lets the tracker be viewed in its delivered state (and the
+     Care Guide link that only appears then) without an admin advancing the
+     order. Set via `?preview=delivered`. */
+  const [forceDelivered, setForceDelivered] = useState(false);
+
+  const headRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading URL params on mount
+    if (params.get("preview") === "delivered") setForceDelivered(true);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadOrder() {
+    async function loadOrders() {
       try {
-        const mine = await api.submissions.getMine();
-        if (!cancelled) setOrder(mine);
+        const mine = await api.submissions.listMine();
+        if (!cancelled) {
+          setOrders(mine);
+          setSelectedId((prev) => prev ?? mine[0]?.id ?? null);
+        }
       } catch (err) {
-        console.error("Could not load your order:", err);
+        console.error("Could not load your orders:", err);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
-    loadOrder();
+    loadOrders();
 
     return () => {
       cancelled = true;
@@ -126,7 +169,38 @@ export default function MyOrder() {
   /* Supplies requests are messages in the conversation; the context already
      narrows them for us, newest first. */
 
-  const stagesComplete = order ? STAGES_COMPLETE[order.status] : 0;
+  /* The order on show — the one picked in the switcher, or the newest. */
+  const order = orders.find((o) => o.id === selectedId) ?? orders[0] ?? null;
+  const hasMultiple = orders.length > 1;
+
+  /* Close the order switcher on an outside click or Escape. */
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (headRef.current && !headRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
+
+  const effectiveStatus: SubmissionStatus | undefined = order
+    ? (forceDelivered ? "completed" : order.status)
+    : undefined;
+  const stagesComplete = effectiveStatus ? STAGES_COMPLETE[effectiveStatus] : 0;
+
+  /* The primary action only opens once the care team's review is complete —
+     i.e. the "Review completed" stage has been cleared. */
+  const reviewComplete = stagesComplete > REVIEW_COMPLETE_INDEX;
+
+  /* The final "Delivered" stage is reached — unlocks the Care Guide. */
+  const deliveredActive = stagesComplete >= STAGE_LABELS.length;
 
   const STATUS_CLASS: Record<RequestStatus, string> = {
     pending: styles.statusPending,
@@ -174,64 +248,159 @@ export default function MyOrder() {
           </div>
         ) : (
           <section className={styles.orderCard}>
-            <div className={styles.orderHead}>
-              <div>
-                <h2 className={styles.orderProduct}>
-                  {order.products.length ? productLabels(order.products) : "Your order"}
-                </h2>
-                <p className={styles.orderMeta}>
-                  {orderReference(order.id)} · Placed {formatPlaced(order.createdAt)}
-                </p>
-              </div>
-              <span className={styles.orderStatus}>{ORDER_STATUS_COPY[order.status]}</span>
+            {/* Order switcher — the header doubles as a dropdown when the
+                patient has more than one order. */}
+            <div className={styles.orderHeadWrap} ref={headRef}>
+              <button
+                type="button"
+                className={`${styles.orderHead} ${styles.orderHeadTrigger} ${hasMultiple ? styles.orderHeadBox : ""}`}
+                onClick={() => hasMultiple && setMenuOpen((o) => !o)}
+                disabled={!hasMultiple}
+                aria-haspopup={hasMultiple ? "listbox" : undefined}
+                aria-expanded={hasMultiple ? menuOpen : undefined}
+                aria-label={hasMultiple ? "Switch order" : undefined}
+              >
+                <div className={styles.orderThumb}>
+                  <Image
+                    src="/assets/images/hero-product.png"
+                    alt=""
+                    width={120}
+                    height={120}
+                    sizes="72px"
+                    style={{ objectFit: "contain" }}
+                  />
+                </div>
+                <div className={styles.orderHeadText}>
+                  <h2 className={styles.orderProduct}>
+                    {order.products.length ? productLabels(order.products) : "Your order"}
+                  </h2>
+                  <p className={styles.orderMeta}>
+                    {orderReference(order.id)} · Placed {formatPlaced(order.createdAt)}
+                  </p>
+                  <span className={styles.orderStatus}>{ORDER_STATUS_COPY[effectiveStatus ?? order.status]}</span>
+                </div>
+                {hasMultiple && (
+                  <svg
+                    className={`${styles.orderHeadChevron} ${menuOpen ? styles.orderHeadChevronOpen : ""}`}
+                    width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                )}
+              </button>
+
+              {hasMultiple && menuOpen && (
+                <div className={styles.orderMenu} role="listbox" aria-label="Your orders">
+                  {orders.map((o) => {
+                    const selected = o.id === order.id;
+                    return (
+                      <button
+                        key={o.id}
+                        type="button"
+                        role="option"
+                        aria-selected={selected}
+                        className={`${styles.orderMenuItem} ${selected ? styles.orderMenuItemActive : ""}`}
+                        onClick={() => { setSelectedId(o.id); setMenuOpen(false); }}
+                      >
+                        <div className={styles.orderMenuThumb}>
+                          <Image src="/assets/images/hero-product.png" alt="" width={96} height={96} sizes="44px" style={{ objectFit: "contain" }} />
+                        </div>
+                        <div className={styles.orderMenuText}>
+                          <span className={styles.orderMenuName}>
+                            {o.products.length ? productLabels(o.products) : "Your order"}
+                          </span>
+                          <span className={styles.orderMenuMeta}>
+                            {orderReference(o.id)} · {ORDER_STATUS_COPY[o.status]}
+                          </span>
+                        </div>
+                        {selected && (
+                          <svg className={styles.orderMenuCheck} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M4 12.5L9.5 18L20 6.5" />
+                          </svg>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            {/* Fulfilment tracker */}
-            <ol className={styles.timeline}>
+            {/* Fulfilment tracker — the completed run is drawn as one
+                continuous gradient rail (see .timeline::after). */}
+            <ol className={styles.timeline} style={{ "--done": stagesComplete } as CSSProperties}>
               {STAGE_LABELS.map((label, i) => {
                 const done = i < stagesComplete;
                 const isCurrent = i === stagesComplete - 1;
+                /* Colour each cleared dot with the gradient at its point on the
+                   rail, so the circles and the bar read as one. */
+                const dotColor = done
+                  ? gradientColor(stagesComplete > 1 ? i / (stagesComplete - 1) : 0)
+                  : undefined;
                 return (
                   <li
                     key={label}
                     className={`${styles.stage} ${done ? styles.stageDone : ""} ${isCurrent ? styles.stageCurrent : ""}`}
                   >
-                    <span className={styles.stageDot} aria-hidden="true" />
+                    <span
+                      className={styles.stageDot}
+                      aria-hidden="true"
+                      style={dotColor ? { background: dotColor, borderColor: dotColor } : undefined}
+                    />
                     <span className={styles.stageLabel}>{label}</span>
                   </li>
                 );
               })}
             </ol>
 
-            {order.trackingNumber && (
-              <p className={styles.tracking}>
-                Tracking <span className={styles.trackingNo}>{order.trackingNumber}</span>
-              </p>
+            {/* Care Guide — sits under "Delivered" and only once it's reached. */}
+            {deliveredActive && (
+              <Link href="/care-guide" className={styles.careGuideLink}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 5a2 2 0 0 1 2-2h10a1 1 0 0 1 1 1v13H6a2 2 0 0 0-2 2z" />
+                  <path d="M4 19a2 2 0 0 0 2 2h11" /><path d="M8 7h6M8 10h6" />
+                </svg>
+                View your Care Guide
+                <svg className={styles.careGuideChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </Link>
             )}
 
-            {estimatedArrival(order) && (
-              <p className={styles.eta}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="3" y="4" width="18" height="18" rx="2" />
-                  <path d="M16 2v4M8 2v4M3 10h18" />
-                </svg>
-                Arrives by <span className={styles.etaDate}>{estimatedArrival(order)}</span>
-              </p>
+            {(order.trackingNumber || estimatedArrival(order)) && (
+              <div className={styles.orderMetaRow}>
+                {estimatedArrival(order) && (
+                  <p className={styles.eta}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect x="3" y="4" width="18" height="18" rx="2" />
+                      <path d="M16 2v4M8 2v4M3 10h18" />
+                    </svg>
+                    Arrives by <span className={styles.etaDate}>{estimatedArrival(order)}</span>
+                  </p>
+                )}
+                {order.trackingNumber && (
+                  <p className={styles.tracking}>
+                    Tracking <span className={styles.trackingNo}>{order.trackingNumber}</span>
+                  </p>
+                )}
+              </div>
             )}
 
-            {LABEL_READY.includes(order.status) && (
-              <button
-                type="button"
-                className={styles.labelBtn}
-                onClick={() => setLabelOpen(true)}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />
-                  <path d="M9 9h4M9 13h6M9 17h6" />
-                </svg>
-                View return shipping label
-              </button>
+            {/* Primary action — unlocked once the care team's review is done. */}
+            {reviewComplete ? (
+              <Link href={`/my-documents?id=${order.id}`} className={styles.viewBtn}>View order</Link>
+            ) : (
+              <>
+                <button type="button" className={`${styles.viewBtn} ${styles.viewBtnLocked}`} disabled aria-disabled="true">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="5" y="11" width="14" height="10" rx="2" />
+                    <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                  </svg>
+                  View order
+                </button>
+                <p className={styles.viewHint}>Unlocks once your review is completed</p>
+              </>
             )}
+
           </section>
         )}
           </div>
@@ -244,9 +413,8 @@ export default function MyOrder() {
 
         {/* ── Subscription ──
              The recurring deliveries, alongside the one-off appliance order.
-             Same card as Home; no Manage link, because this is where Manage
-             was sending her. */}
-        <SubscriptionCard />
+             Same card as Home; Manage opens the full account/billing surface. */}
+        <SubscriptionCard manageHref="/manage-subscription" />
 
         {/* ── Requests ── */}
         <section className={styles.requestsSection}>
@@ -317,15 +485,6 @@ export default function MyOrder() {
       </div>
 
       <BottomNav messagesBadge={unreadCount} />
-
-      {order && (
-        <ShippingLabelModal
-          open={labelOpen}
-          onClose={() => setLabelOpen(false)}
-          submissionId={order.id}
-          patientName={order.name ?? "Patient"}
-        />
-      )}
     </main>
   );
 }

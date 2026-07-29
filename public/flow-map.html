@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revived Smiles — User Flow Map</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --surface-0:#f6f6f4;--surface-1:#ffffff;--surface-2:#ffffff;
+    --text-primary:#1c1c1a;--text-secondary:#5c5c58;--text-muted:#8a8a86;
+    --border:#e6e6e2;--border-strong:#cfcfca;--radius:8px;
+    --text-accent:#2563eb;--bg-accent:#e8f0fe;--border-accent:#9dbcf5;
+    --text-success:#15803d;--bg-success:#e7f6ec;
+    --text-warning:#a15c07;--bg-warning:#fbf0dd;
+    --text-danger:#b42318;--bg-danger:#fdeceb;
+    --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --thumb-w:128px;--thumb-h:210px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface-0);font-family:var(--font-sans);color:var(--text-primary);padding:28px 32px}
+  .page-title{font-size:22px;font-weight:600;margin:0 0 2px}
+  .page-sub{font-size:13px;color:var(--text-muted);margin:0 0 18px}
+  .umap{display:flex;flex-direction:column;gap:14px}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;align-items:center;font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+  .legend .k{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .zone{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--surface-1)}
+  .zhead{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .zpill{font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px}
+  .ztitle{font-size:14px;font-weight:500}
+  .zsub{font-size:12px;color:var(--text-muted);margin-left:auto}
+  .flow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px}
+  .node{display:flex;flex-direction:column;gap:4px;width:var(--thumb-w)}
+  .node img{width:var(--thumb-w);height:var(--thumb-h);object-fit:cover;object-position:top center;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);display:block}
+  .node.entry img{border-color:var(--border-accent);box-shadow:0 0 0 2px var(--bg-accent)}
+  .node.hub img{border-color:var(--border-accent);box-shadow:0 0 0 2px var(--bg-accent)}
+  .node .rt{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .node .nl{font-size:12px;font-weight:500;line-height:1.25}
+  .arw{color:var(--text-muted);font-size:18px;display:inline-flex;align-self:center;margin-top:calc(var(--thumb-h)/2 - 9px)}
+  .decision{width:120px;align-self:center;padding:10px 11px;border:1px dashed var(--border-strong);border-radius:var(--radius);background:var(--surface-1);display:flex;flex-direction:column;gap:3px}
+  .decision .nl{font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px}
+  .decision .cond{font-size:10px;color:var(--text-secondary);line-height:1.3}
+  .note{font-size:11px;color:var(--text-muted);margin-top:10px}
+  .z-auth .zpill{background:var(--bg-accent);color:var(--text-accent)}
+  .z-home .zpill{background:var(--bg-success);color:var(--text-success)}
+  .z-intake .zpill,.z-photo .zpill,.z-imp .zpill{background:var(--bg-warning);color:var(--text-warning)}
+  .z-admin .zpill{background:var(--bg-danger);color:var(--text-danger)}
+</style>
+</head>
+<body>
+  <h1 class="page-title">Revived Smiles — user flow map</h1>
+  <p class="page-sub">Every node is a live screenshot of that route · mobile-first (430px) patient app + /admin staff portal</p>
+
+  <div class="umap">
+    <div class="legend">
+      <span class="k"><span class="dot" style="background:var(--text-accent)"></span>entry / auth</span>
+      <span class="k"><span class="dot" style="background:var(--text-success)"></span>patient home</span>
+      <span class="k"><span class="dot" style="background:var(--text-warning)"></span>submission flow</span>
+      <span class="k"><span class="dot" style="background:var(--text-danger)"></span>admin portal</span>
+      <span class="k"><i class="ti ti-git-branch"></i> decision (no screen)</span>
+    </div>
+
+    <div class="zone z-auth">
+      <div class="zhead"><span class="zpill">A · authentication</span><span class="ztitle">Sign in</span><span class="zsub">any password accepted · seeded patient</span></div>
+      <div class="flow">
+        <div class="node entry"><img src="/shots/home.png" alt="Home login"><span class="rt">/</span><span class="nl">Home — login</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node hub"><img src="/shots/dashboard.png" alt="Dashboard"><span class="rt">/dashboard</span><span class="nl">Enter app</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/forgot-password.png" alt="Forgot password"><span class="rt">/forgot-password</span><span class="nl">Reset request</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/reset-password.png" alt="Reset password"><span class="rt">/reset-password</span><span class="nl">Set new / expired</span></div>
+      </div>
+    </div>
+
+    <div class="zone z-home">
+      <div class="zhead"><span class="zpill">B · patient home</span><span class="ztitle">Bottom-nav hub</span><span class="zsub">Dashboard &#8646; My orders &#8646; Messages</span></div>
+      <div class="flow">
+        <div class="node hub"><img src="/shots/dashboard.png" alt="Dashboard"><span class="rt">/dashboard</span><span class="nl">Dashboard</span></div>
+        <div class="node"><img src="/shots/my-order.png" alt="My orders"><span class="rt">/my-order</span><span class="nl">My orders</span></div>
+        <div class="node"><img src="/shots/messages.png" alt="Messages"><span class="rt">/messages</span><span class="nl">Messages + chat</span></div>
+        <div class="node"><img src="/shots/order-detail.png" alt="Order detail"><span class="rt">/order-detail</span><span class="nl">Order detail</span></div>
+        <div class="node"><img src="/shots/insurance-claim.png" alt="Insurance claim"><span class="rt">/insurance-claim</span><span class="nl">Insurance claim</span></div>
+        <div class="node"><img src="/shots/profile.png" alt="Profile"><span class="rt">/profile</span><span class="nl">Profile</span></div>
+        <div class="node"><img src="/shots/notifications.png" alt="Notifications"><span class="rt">/notifications</span><span class="nl">Notifications</span></div>
+      </div>
+      <div class="note">Dashboard is the hub — it launches both submission flows below and links out to every screen here.</div>
+    </div>
+
+    <div class="zone z-intake">
+      <div class="zhead"><span class="zpill">C · intake</span><span class="ztitle">Product-driven questionnaire</span><span class="zsub">steps vary by product config</span></div>
+      <div class="flow">
+        <div class="node"><img src="/shots/intake.png" alt="Intake"><span class="rt">/intake</span><span class="nl">Pick product</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="decision"><span class="nl"><i class="ti ti-git-branch"></i> needs shade?</span><span class="cond">yes &#8594; step 4<br>no &#8594; skip</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/step4.png" alt="Tooth shade"><span class="rt">/step4</span><span class="nl">Tooth &amp; gum shade</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="decision"><span class="nl"><i class="ti ti-git-branch"></i> needs chart?</span><span class="cond">yes &#8594; step 5<br>no &#8594; skip</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/step5.png" alt="Tooth chart"><span class="rt">/step5</span><span class="nl">Tooth chart</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/photo-intro.png" alt="Photo intro"><span class="rt">/photo-intro</span><span class="nl">To photos</span></div>
+      </div>
+      <div class="note">Optional steps skip forward: a nightguard goes straight to photos; a flexible partial runs all three steps.</div>
+    </div>
+
+    <div class="zone z-photo">
+      <div class="zhead"><span class="zpill">D · guided teeth photos</span><span class="ztitle">4-shot capture</span><span class="zsub">forward / back navigation</span></div>
+      <div class="flow">
+        <div class="node"><img src="/shots/photo-intro.png" alt="Photo intro"><span class="rt">/photo-intro</span><span class="nl">What you'll capture</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/camera.png" alt="Front teeth closed"><span class="rt">/camera</span><span class="nl">Front — teeth closed</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/camera-1.png" alt="Mouth open"><span class="rt">/camera-1</span><span class="nl">Mouth open</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/open-bite.png" alt="Left side"><span class="rt">/open-bite</span><span class="nl">Left side</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/open-bite-2.png" alt="Right side"><span class="rt">/open-bite-2</span><span class="nl">Right side</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/intake-complete.png" alt="Intake complete"><span class="rt">/intake-complete</span><span class="nl">Intake done</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node hub"><img src="/shots/dashboard.png" alt="Dashboard"><span class="rt">/dashboard</span><span class="nl">Back to hub</span></div>
+      </div>
+    </div>
+
+    <div class="zone z-imp">
+      <div class="zhead"><span class="zpill">E · impression photos</span><span class="ztitle">Kit upload</span><span class="zsub">launched from dashboard</span></div>
+      <div class="flow">
+        <div class="node hub"><img src="/shots/dashboard.png" alt="Dashboard"><span class="rt">/dashboard</span><span class="nl">Upload prompt</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/impression-photos.png" alt="Impression photos"><span class="rt">/impression-photos</span><span class="nl">Upper / lower trays</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/complete.png" alt="Impressions submitted"><span class="rt">/complete</span><span class="nl">Impressions submitted</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node hub"><img src="/shots/dashboard.png" alt="Dashboard"><span class="rt">/dashboard</span><span class="nl">Back to hub</span></div>
+      </div>
+    </div>
+
+    <div class="zone z-admin">
+      <div class="zhead"><span class="zpill">F · admin portal</span><span class="ztitle">Staff review</span><span class="zsub">separate auth · /admin</span></div>
+      <div class="flow">
+        <div class="node entry"><img src="/shots/admin-login.png" alt="Admin login"><span class="rt">/admin/login</span><span class="nl">Admin login</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/admin.png" alt="Admin queue"><span class="rt">/admin</span><span class="nl">Queue dashboard</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/admin-submissions.png" alt="Submissions list"><span class="rt">/admin/submissions</span><span class="nl">Submissions list</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/admin-submission-detail.png" alt="Submission review"><span class="rt">/submissions/[id]</span><span class="nl">Review + grade photos</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/admin-prompts.png" alt="AI prompts"><span class="rt">/admin/prompts</span><span class="nl">AI photo prompts</span></div>
+        <span class="arw"><i class="ti ti-arrow-right"></i></span>
+        <div class="node"><img src="/shots/admin-prompts-type.png" alt="Prompt editor"><span class="rt">/prompts/[photoType]</span><span class="nl">Prompt editor</span></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

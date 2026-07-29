@@ -436,7 +436,7 @@ export type AuthEvent = "signed_in" | "signed_out" | "password_recovery";
 /* Subscriptions (recurring consumable deliveries)                     */
 /* ------------------------------------------------------------------ */
 
-export type SubscriptionStatus = "active" | "paused";
+export type SubscriptionStatus = "active" | "paused" | "canceled";
 
 /**
  * A recurring delivery, e.g. whitening gel refills.
@@ -461,6 +461,56 @@ export interface Subscription {
   nextDeliveryAt: Timestamp;
   /** When a delivery was last skipped, so the card can say so. */
   lastSkippedAt: Timestamp | null;
+  /** Set when the subscription is canceled, so the UI can say when it ends. */
+  canceledAt: Timestamp | null;
+}
+
+/**
+ * The card on file for a subscription's recurring charge.
+ *
+ * Only ever the last four digits and the brand — the full number never crosses
+ * this boundary or lands in the store. A real backend tokenises the card with
+ * the payment processor and hands back exactly this much.
+ */
+export interface PaymentMethod {
+  /** "Visa", "Mastercard", "Amex"… */
+  brand: string;
+  last4: string;
+  expMonth: number;
+  expYear: number;
+}
+
+/** The address a subscription is billed and shipped to. */
+export interface BillingAddress {
+  line1: string;
+  line2: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+}
+
+export type InvoiceStatus = "paid" | "refunded" | "failed";
+
+/** A past charge, for the billing-history list. */
+export interface Invoice {
+  id: string;
+  date: Timestamp;
+  description: string;
+  /** Charged amount in minor units (cents). */
+  amount: number;
+  currency: string;
+  status: InvoiceStatus;
+}
+
+/** A plan the patient can switch a subscription to. */
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description: string;
+  intervalWeeks: number;
+  pricePerDelivery: number;
+  currency: string;
 }
 
 /**

@@ -9,13 +9,17 @@
 import type {
   AppNotification,
   AuthUser,
+  BillingAddress,
   ChatMessage,
   Insurance,
+  Invoice,
+  PaymentMethod,
   PhotoType,
   PromptConfig,
   Submission,
   SubmissionStatus,
   Subscription,
+  SubscriptionPlan,
 } from "../types";
 import { REQUEST_LABELS, REQUEST_OUTCOMES } from "../types";
 import type { MockDb } from "./store";
@@ -33,7 +37,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 7;
+export const SEED_VERSION = 12;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -400,7 +404,63 @@ function buildSubscriptions(): Subscription[] {
       status: "active",
       nextDeliveryAt: daysInFuture(19),
       lastSkippedAt: null,
+      canceledAt: null,
     },
+  ];
+}
+
+/** The plans the whitening subscription can move between. */
+function buildPlans(): SubscriptionPlan[] {
+  return [
+    {
+      id: "plan-monthly",
+      name: "Monthly refill",
+      description: "A fresh gel every 4 weeks — best for daily whitening.",
+      intervalWeeks: 4,
+      pricePerDelivery: 3400,
+      currency: "USD",
+    },
+    {
+      id: "plan-standard",
+      name: "Standard refill",
+      description: "Every 8 weeks. The usual pace for most smiles.",
+      intervalWeeks: 8,
+      pricePerDelivery: 2900,
+      currency: "USD",
+    },
+    {
+      id: "plan-quarterly",
+      name: "Quarterly refill",
+      description: "Every 12 weeks — for occasional touch-ups.",
+      intervalWeeks: 12,
+      pricePerDelivery: 2500,
+      currency: "USD",
+    },
+  ];
+}
+
+function buildPaymentMethod(): PaymentMethod {
+  return { brand: "Visa", last4: "4242", expMonth: 8, expYear: 2027 };
+}
+
+function buildBillingAddress(): BillingAddress {
+  return {
+    line1: "128 Maple Avenue",
+    line2: "Apt 4",
+    city: "Austin",
+    state: "Texas",
+    postalCode: "78701",
+    country: "United States",
+  };
+}
+
+/** A short history of past whitening charges, most recent first. */
+function buildInvoices(): Invoice[] {
+  return [
+    { id: "inv-0004", date: daysAgo(3), description: "Whitening Gel Refill", amount: 2900, currency: "USD", status: "paid" },
+    { id: "inv-0003", date: daysAgo(59), description: "Whitening Gel Refill", amount: 2900, currency: "USD", status: "paid" },
+    { id: "inv-0002", date: daysAgo(115), description: "Whitening Gel Refill", amount: 2900, currency: "USD", status: "paid" },
+    { id: "inv-0001", date: daysAgo(171), description: "Whitening starter kit", amount: 4900, currency: "USD", status: "paid" },
   ];
 }
 
@@ -451,10 +511,72 @@ export function buildSeed(): MockDb {
     createdAt: daysAgo(5),
   });
 
+  /* A second, earlier order for the same patient, so My Orders has more than
+     one to switch between. Kept older than `demo` so `getMine` (newest) — and
+     therefore the dashboard — still resolves to the in-progress order. */
+  const demoPast = submission({
+    id: "demo-2",
+    userId: DEMO_PATIENT.id,
+    email: DEMO_PATIENT.email,
+    name: DEMO_PATIENT.name,
+    state: DEMO_PATIENT.state,
+    orderNumber: "#0987",
+    products: ["nightguard"],
+    closeBitePhotos: [
+      "/assets/images/close-bite-front.png",
+      "/assets/images/close-bite-left.png",
+      "/assets/images/close-bite-right.png",
+    ],
+    openBitePhotos: [
+      "/assets/images/open-bite-front.png",
+      "/assets/images/open-bite-left.png",
+      "/assets/images/open-bite-right.png",
+    ],
+    status: "completed",
+    trackingNumber: "1Z999AA10555512345",
+    shippedAt: daysAgo(96),
+    completedAt: daysAgo(92),
+    createdAt: daysAgo(120),
+  });
+
+  /* A third order sitting at "Review completed" — the care team has approved
+     it, so the tracker rests on that stage and the "View order" CTA is active.
+     Older than `demo`, so `getMine`/the dashboard are unaffected. */
+  const demoReview = submission({
+    id: "demo-3",
+    userId: DEMO_PATIENT.id,
+    email: DEMO_PATIENT.email,
+    name: DEMO_PATIENT.name,
+    state: DEMO_PATIENT.state,
+    orderNumber: "#1099",
+    products: ["acrylic-partial", "retainer"],
+    whiteShade: "A2",
+    gumShade: "G3",
+    selectedTeeth: [12, 13, 14],
+    closeBitePhotos: [
+      "/assets/images/close-bite-front.png",
+      "/assets/images/close-bite-left.png",
+      "/assets/images/close-bite-right.png",
+    ],
+    openBitePhotos: [
+      "/assets/images/open-bite-front.png",
+      "/assets/images/open-bite-left.png",
+      "/assets/images/open-bite-right.png",
+    ],
+    status: "approved",
+    reviewedBy: CARE_TEAM_NAME,
+    reviewedAt: daysAgo(2),
+    createdAt: daysAgo(15),
+  });
+
   return {
     version: SEED_VERSION,
-    submissions: [demo, ...buildQueue()],
+    submissions: [demo, demoReview, demoPast, ...buildQueue()],
     subscriptions: buildSubscriptions(),
+    plans: buildPlans(),
+    paymentMethod: buildPaymentMethod(),
+    billingAddress: buildBillingAddress(),
+    invoices: buildInvoices(),
     insurances: buildInsurances(),
     messages: buildMessages(),
     notifications: buildNotifications(),

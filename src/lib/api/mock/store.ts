@@ -12,12 +12,16 @@ import type {
   AdminUser,
   AppNotification,
   AuthUser,
+  BillingAddress,
   ChatMessage,
   Insurance,
+  Invoice,
+  PaymentMethod,
   PromptConfig,
   Submission,
   SubmissionChange,
   Subscription,
+  SubscriptionPlan,
 } from "../types";
 import { SEED_VERSION, buildSeed } from "./seed";
 
@@ -31,6 +35,14 @@ export interface MockDb {
   version: number;
   submissions: Submission[];
   subscriptions: Subscription[];
+  /** The plans a subscription can be switched between. */
+  plans: SubscriptionPlan[];
+  /** The card on file for recurring charges. */
+  paymentMethod: PaymentMethod | null;
+  /** Where subscriptions are billed and shipped. */
+  billingAddress: BillingAddress | null;
+  /** Past charges, most recent first. */
+  invoices: Invoice[];
   insurances: Insurance[];
   messages: ChatMessage[];
   notifications: AppNotification[];

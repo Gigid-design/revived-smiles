@@ -1,0 +1,14 @@
+import { chromium } from "playwright";
+const OUT = "/private/tmp/claude-501/-Users-gigic-Downloads-revived-smiles-main/667838ce-d43d-4f28-a363-dc25f27360d0/scratchpad";
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ viewport: { width: 430, height: 1150 }, deviceScaleFactor: 2 });
+const page = await ctx.newPage();
+const card = () => page.locator("section").filter({ hasText: "Placed" }).first();
+await page.goto("http://localhost:3000/my-order", { waitUntil: "networkidle" });
+await page.getByRole("heading", { name: "Flexible Partial Denture" }).waitFor({ timeout: 10000 });
+await card().screenshot({ path: `${OUT}/box-1-closed.png` });
+await page.getByRole("button", { name: "Switch order" }).click();
+await page.getByRole("option").first().waitFor({ timeout: 5000 });
+await card().screenshot({ path: `${OUT}/box-2-open.png` });
+await browser.close();
+console.log("OK");

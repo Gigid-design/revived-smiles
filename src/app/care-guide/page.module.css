@@ -1,0 +1,170 @@
+/* ══════════════════════════════════════
+   Care Guide — aftercare, reached from the order tracker once delivered.
+   ══════════════════════════════════════ */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  background-color: transparent;
+  overflow-x: hidden;
+}
+
+:global(body):has(.screen) {
+  background-color: var(--surface);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1em 1em 0.75em;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.backBtn {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  color: #121723;
+  box-shadow: 0 1.3px 2.6px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.375rem;
+  letter-spacing: -0.02em;
+  color: #121723;
+  margin: 0;
+}
+
+.content {
+  padding: 0.5em 1em 3em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* ── Intro ── */
+.introCard {
+  margin-top: 0.5em;
+  padding: 20px;
+  border-radius: 20px;
+  color: #ffffff;
+  background: linear-gradient(140deg, #0e1b4d 0%, #26306a 100%);
+  box-shadow: var(--card-shadow);
+}
+.introEyebrow {
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0 0 4px;
+}
+.introTitle {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.introBody {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 10px 0 0;
+}
+
+/* ── Section cards ── */
+.card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  padding: 18px;
+}
+/* Icon + title on one row — same treatment as the Protection card: a plain
+   stroked icon in muted ink, no filled badge. */
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cardIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: #5b6376;
+}
+.cardTitle {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  color: #121723;
+  margin: 0;
+}
+.cardBody {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.45;
+  margin: 6px 0 0;
+}
+
+.pointList {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.point {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: #3f4552;
+  line-height: 1.4;
+}
+.point svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #1f9d61;
+}
+
+/* ── Help card ── */
+.helpCard {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.helpBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  border-radius: 100px;
+  background: #121723;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.helpBtn:hover { background: #26304a; }

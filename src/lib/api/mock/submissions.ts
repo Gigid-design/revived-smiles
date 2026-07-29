@@ -153,6 +153,19 @@ export const mockSubmissions: SubmissionsApi = {
     return mine.length > 0 ? clone(mine[0]) : null;
   },
 
+  async listMine() {
+    await delay();
+    const db = getDb();
+    const user = db.authUser;
+    if (!user) return [];
+
+    return clone(
+      db.submissions
+        .filter((s) => s.userId === user.id || s.email === user.email)
+        .sort(byNewest),
+    );
+  },
+
   async findByEmail(email) {
     await delay();
     const normalised = email.trim().toLowerCase();

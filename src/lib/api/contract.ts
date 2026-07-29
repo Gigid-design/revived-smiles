@@ -19,12 +19,15 @@ import type {
   AppNotification,
   AuthEvent,
   AuthUser,
+  BillingAddress,
   ChatMessage,
   ImpressionPhoto,
   Insurance,
+  Invoice,
   NewPromptConfig,
   OAuthProvider,
   Paged,
+  PaymentMethod,
   PhotoAnalysis,
   PhotoType,
   PromptConfig,
@@ -34,6 +37,7 @@ import type {
   StoredPhoto,
   Submission,
   Subscription,
+  SubscriptionPlan,
   SubscriptionStatus,
   SubmissionChange,
   SubmissionDraft,
@@ -126,6 +130,12 @@ export interface SubmissionsApi {
    * null if they have none. Must be scoped to the caller server-side.
    */
   getMine(): Promise<Submission | null>;
+
+  /**
+   * All of the signed-in patient's orders, most recent first. Powers the order
+   * switcher on My Orders. Must be scoped to the caller server-side.
+   */
+  listMine(): Promise<Submission[]>;
 
   /**
    * Looks up an order for the returning-patient flow on the landing screen.
@@ -354,6 +364,49 @@ export interface SubscriptionsApi {
 
   /** Pauses or resumes. A paused subscription bills nothing and ships nothing. */
   setStatus(id: string, status: SubscriptionStatus): Promise<Subscription>;
+
+  /**
+   * Cancels for good. Unlike pausing, this is terminal: billing stops, no
+   * further deliveries are scheduled, and `canceledAt` is stamped so the UI can
+   * say when it ends. A real backend should keep the row (not delete it) so the
+   * patient can still see their history and re-subscribe.
+   */
+  cancel(id: string): Promise<Subscription>;
+
+  /** The plans a subscription can be switched between. */
+  listPlans(): Promise<SubscriptionPlan[]>;
+
+  /**
+   * Moves the subscription onto a different plan (interval / price). The change
+   * takes effect from the next delivery; the current cycle is not re-billed.
+   */
+  changePlan(id: string, planId: string): Promise<Subscription>;
+
+  /** The card on file, or `null` if none has been added yet. */
+  getPaymentMethod(): Promise<PaymentMethod | null>;
+
+  /**
+   * Replaces the card on file.
+   *
+   * The full number is accepted here only to derive the brand and last four —
+   * a real implementation tokenises it with the payment processor and never
+   * stores or logs the PAN. The prototype keeps only `{brand, last4, exp}`.
+   */
+  updatePaymentMethod(input: {
+    number: string;
+    expMonth: number;
+    expYear: number;
+    cvc: string;
+  }): Promise<PaymentMethod>;
+
+  /** The billing/shipping address, or `null` if none is set. */
+  getBillingAddress(): Promise<BillingAddress | null>;
+
+  /** Replaces the billing/shipping address. */
+  updateBillingAddress(input: BillingAddress): Promise<BillingAddress>;
+
+  /** Past charges, most recent first. */
+  listInvoices(): Promise<Invoice[]>;
 }
 
 /* ------------------------------------------------------------------ */

@@ -1,0 +1,22 @@
+import { chromium } from "playwright";
+const OUT = "/private/tmp/claude-501/-Users-gigic-Downloads-revived-smiles-main/667838ce-d43d-4f28-a363-dc25f27360d0/scratchpad";
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ viewport: { width: 430, height: 1150 }, deviceScaleFactor: 2 });
+const page = await ctx.newPage();
+const log = (m) => console.log("  " + m);
+const card = () => page.locator("section").filter({ hasText: "Placed" }).first();
+await page.goto("http://localhost:3000/my-order", { waitUntil: "networkidle" });
+await page.getByRole("heading", { name: "Flexible Partial Denture" }).waitFor({ timeout: 10000 });
+await page.getByRole("button", { name: "Switch order" }).click();
+const opts = (await page.getByRole("option").allInnerTexts()).map(t=>t.replace(/\s+/g," ").trim());
+log(`options (${opts.length}): ${opts.join(" | ")}`);
+await card().screenshot({ path: `${OUT}/review-1-menu.png` });
+// select the Review completed order (Essix Retainer)
+await page.getByRole("option", { name: /Review completed/ }).click();
+await page.getByText("Review completed", { exact: false }).first().waitFor({ timeout: 5000 });
+const viewLink = page.getByRole("link", { name: "View order" });
+log(`selected: 'View order' active link present = ${await viewLink.count()}, href = ${await viewLink.getAttribute("href").catch(()=>null)}`);
+log(`selected: locked View button present = ${await page.getByRole("button", { name: /View order/ }).count()}`);
+await card().screenshot({ path: `${OUT}/review-2-selected.png` });
+await browser.close();
+console.log("VERIFY OK");

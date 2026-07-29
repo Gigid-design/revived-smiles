@@ -15,12 +15,10 @@ gsap.registerPlugin(useGSAP);
 
 export default function Home() {
   const router = useRouter();
-  const { update, ensureSubmissionId } = useSubmission();
+  const { update } = useSubmission();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -29,7 +27,6 @@ export default function Home() {
   }, []);
   const screenRef = useRef<HTMLElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
 
   const { contextSafe } = useGSAP(() => {}, { scope: screenRef });
 
@@ -57,47 +54,20 @@ export default function Home() {
   });
 
   // eslint-disable-next-line react-hooks/refs -- GSAP contextSafe requires render-time wrapping
-  const handleSubmit = contextSafe(async (e: FormEvent) => {
+  const handleSubmit = contextSafe((e: FormEvent) => {
     e.preventDefault();
-    // Read DOM values as fallback for browser autofill (which skips onChange)
+    // Read DOM value as fallback for browser autofill (which skips onChange)
     const emailValue = (email || emailRef.current?.value || "").trim();
-    const passwordValue = (password || passwordRef.current?.value || "").trim();
-    if (!emailValue || !passwordValue) return;
-    setError(null);
-    setLoading(true);
-
-    try {
-      if (mode === "signup") {
-        await api.auth.signUp(emailValue, passwordValue);
-      } else {
-        await api.auth.signIn(emailValue, passwordValue);
-      }
-      update({ email: emailValue });
-
-      /* Adopt the order already on file before starting a new one. Signing in
-         used to create a second draft, which then shadowed the real order and
-         landed the patient on an empty dashboard. */
-      const existing = await api.submissions.getById(await ensureSubmissionId());
-
-      if (existing.status === "draft") {
-        // Resume the draft, so intake picks up where it left off.
-        update({
-          submissionId: existing.id,
-          name: existing.name ?? "",
-          state: existing.state ?? "",
-          products: existing.products,
-          whiteShade: existing.whiteShade,
-          gumShade: existing.gumShade,
-          selectedTeeth: existing.selectedTeeth,
-          teethNotSure: existing.teethNotSure,
-        });
-      }
-
-      animateOut("/dashboard");
-    } catch (err: unknown) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong.");
-      setLoading(false);
+    if (!emailValue) {
+      setError("Enter your email address.");
+      return;
     }
+    setError(null);
+
+    // Carry the email forward; the temporary password is created on the next
+    // screen, which is where the account is actually set up.
+    update({ email: emailValue });
+    animateOut("/create-password");
   });
 
   return (
@@ -139,19 +109,9 @@ export default function Home() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <input
-            ref={passwordRef}
-            id="password"
-            type="password"
-            placeholder="Password"
-            className={styles.input}
-            autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
           {error && <p className={styles.errorText}>{error}</p>}
-          <button type="submit" className={styles.submitBtn} disabled={loading}>
-            {loading ? "Please wait…" : "SUBMIT"}
+          <button type="submit" className={styles.submitBtn}>
+            SUBMIT
           </button>
         </form>
 

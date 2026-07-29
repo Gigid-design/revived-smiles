@@ -9,7 +9,6 @@ import { api, ApiError } from "@/lib/api";
 import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { ImpressionStepsModal } from "@/app/components/ImpressionStepsModal";
-import { SubscriptionCard } from "@/app/components/SubscriptionCard";
 import { useMessages } from "@/app/context/MessagesContext";
 import { useInsurance } from "@/app/hooks/useInsurance";
 
@@ -189,9 +188,10 @@ function Landing() {
             sizes="120px"
           />
           <Link href="/profile" className={styles.profileBtn} aria-label="Your profile">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="#121723" aria-hidden>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
               <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2.2c-4.4 0-8 2.6-8 5.8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.2-3.6-5.8-8-5.8z" />
             </svg>
+            <span className={styles.profileLabel}>Profile</span>
           </Link>
         </div>
 
@@ -389,9 +389,6 @@ function Landing() {
               </section>
             )}
 
-            {/* ══ My Subscription ══ */}
-            <SubscriptionCard manageHref="/my-order" />
-
             {/* ══ Protection claim — only for insured appliances without an
                    open claim; a quiet entry so it doesn't read as urgent ══ */}
             {canClaim && (
@@ -408,6 +405,40 @@ function Landing() {
                 </svg>
               </Link>
             )}
+
+            {/* ══ Customer Service — always reachable help ══ */}
+            <section className={styles.supportCard} aria-labelledby="support-title">
+              <div className={styles.supportHead}>
+                <div className={styles.supportTitleRow}>
+                  <svg className={styles.supportIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M5 13v-1a7 7 0 0 1 14 0v1" />
+                    <rect x="3" y="13" width="4" height="6" rx="2" />
+                    <rect x="17" y="13" width="4" height="6" rx="2" />
+                    <path d="M19 19a3 3 0 0 1-3 3h-2" />
+                  </svg>
+                  <h2 id="support-title" className={styles.supportTitle}>Customer Service</h2>
+                </div>
+                <p className={styles.supportSubtitle}>
+                  Questions about your order, kit or account? Our care team is here to help.
+                </p>
+              </div>
+
+              <div className={styles.supportActions}>
+                <Link href="/messages" className={styles.supportPrimary}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z" />
+                  </svg>
+                  Chat with us
+                </Link>
+                <a href="mailto:support@revivedsmiles.com" className={styles.supportSecondary}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="3" y="5" width="18" height="14" rx="2" />
+                    <path d="m3.5 6.5 8.5 6 8.5-6" />
+                  </svg>
+                  Email us
+                </a>
+              </div>
+            </section>
             </div>
           </div>
         )}

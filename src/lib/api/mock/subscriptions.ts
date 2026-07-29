@@ -6,7 +6,7 @@
  */
 
 import type { SubscriptionsApi } from "../contract";
-import type { Subscription, SubscriptionStatus } from "../types";
+import type { BillingAddress, PaymentMethod, Subscription, SubscriptionStatus } from "../types";
 import { ApiError } from "../types";
 import { clone, delay, getDb, mutate, nowIso } from "./store";
 
@@ -84,6 +84,9 @@ export const mockSubscriptions: SubscriptionsApi = {
 
     return mutate((db) => {
       const sub = find(db, id);
+      if (sub.status === "canceled") {
+        throw new ApiError("validation", "This subscription has been canceled.");
+      }
       sub.status = status;
 
       /* Resuming from a lapsed pause would otherwise leave a date in the past. */
@@ -93,4 +96,104 @@ export const mockSubscriptions: SubscriptionsApi = {
       return clone(sub);
     });
   },
+
+  async cancel(id) {
+    await delay();
+
+    return mutate((db) => {
+      const sub = find(db, id);
+      if (sub.status === "canceled") return clone(sub); // idempotent
+      sub.status = "canceled";
+      sub.canceledAt = nowIso();
+      return clone(sub);
+    });
+  },
+
+  async listPlans() {
+    await delay();
+    return clone(getDb().plans);
+  },
+
+  async changePlan(id, planId) {
+    await delay();
+
+    return mutate((db) => {
+      const sub = find(db, id);
+      if (sub.status === "canceled") {
+        throw new ApiError("validation", "This subscription has been canceled.");
+      }
+      const plan = db.plans.find((p) => p.id === planId);
+      if (!plan) throw new ApiError("not_found", "That plan could not be found.");
+
+      sub.intervalWeeks = plan.intervalWeeks;
+      sub.pricePerDelivery = plan.pricePerDelivery;
+      sub.currency = plan.currency;
+      return clone(sub);
+    });
+  },
+
+  async getPaymentMethod() {
+    await delay();
+    return clone(getDb().paymentMethod);
+  },
+
+  async updatePaymentMethod(input) {
+    await delay();
+
+    /* Keep only what a tokenising processor would hand back — never the PAN. */
+    const digits = input.number.replace(/\D/g, "");
+    if (digits.length < 12) {
+      throw new ApiError("validation", "That card number doesn't look right.");
+    }
+    if (input.cvc.replace(/\D/g, "").length < 3) {
+      throw new ApiError("validation", "Enter the 3- or 4-digit security code.");
+    }
+    if (input.expMonth < 1 || input.expMonth > 12) {
+      throw new ApiError("validation", "Enter a valid expiry month.");
+    }
+
+    const method: PaymentMethod = {
+      brand: brandFromNumber(digits),
+      last4: digits.slice(-4),
+      expMonth: input.expMonth,
+      expYear: input.expYear,
+    };
+
+    return mutate((db) => {
+      db.paymentMethod = method;
+      return clone(method);
+    });
+  },
+
+  async getBillingAddress() {
+    await delay();
+    return clone(getDb().billingAddress);
+  },
+
+  async updateBillingAddress(input: BillingAddress) {
+    await delay();
+
+    if (!input.line1.trim() || !input.city.trim() || !input.postalCode.trim()) {
+      throw new ApiError("validation", "Street, city and postal code are required.");
+    }
+
+    return mutate((db) => {
+      db.billingAddress = clone(input);
+      return clone(db.billingAddress);
+    });
+  },
+
+  async listInvoices() {
+    await delay();
+    return clone(getDb().invoices);
+  },
 };
+
+/** Best-effort card brand from the leading digits — enough for the demo badge. */
+function brandFromNumber(digits: string): string {
+  if (/^4/.test(digits)) return "Visa";
+  if (/^5[1-5]/.test(digits) || /^2[2-7]/.test(digits)) return "Mastercard";
+  if (/^3[47]/.test(digits)) return "Amex";
+  if (/^6(?:011|5)/.test(digits)) return "Discover";
+  return "Card";
+}

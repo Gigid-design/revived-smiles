@@ -1,0 +1,13 @@
+import { chromium } from "playwright";
+const OUT = "/private/tmp/claude-501/-Users-gigic-Downloads-revived-smiles-main/667838ce-d43d-4f28-a363-dc25f27360d0/scratchpad";
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ viewport: { width: 430, height: 1050 }, deviceScaleFactor: 2 });
+const page = await ctx.newPage();
+await page.goto("http://localhost:3000/my-order?preview=delivered", { waitUntil: "networkidle" });
+await page.getByRole("heading", { name: "Flexible Partial Denture" }).waitFor({ timeout: 10000 });
+await page.getByRole("link", { name: "View your Care Guide" }).waitFor({ timeout: 5000 });
+console.log("  'View return shipping label' present =", await page.getByText("View return shipping label").count());
+console.log("  Care Guide link present =", await page.getByRole("link", { name: "View your Care Guide" }).count());
+await page.locator("section").filter({ hasText: "Flexible Partial Denture" }).first().screenshot({ path: `${OUT}/nolabel-delivered.png` });
+await browser.close();
+console.log("VERIFY OK");

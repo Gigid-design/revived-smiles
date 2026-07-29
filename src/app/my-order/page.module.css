@@ -95,30 +95,56 @@
 
 .orderHead {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding-bottom: 1rem;
+  align-items: center;
+  gap: 0.875rem;
+  padding-bottom: 1.125rem;
   border-bottom: 1px solid #eef0f5;
+}
+
+.orderThumb {
+  flex-shrink: 0;
+  width: 62px;
+  height: 62px;
+  border-radius: 14px;
+  background: linear-gradient(155deg, #f2f6ff 0%, #e7eeff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  overflow: hidden;
+}
+.orderThumb img { width: 100%; height: 100%; object-fit: contain; }
+
+.orderHeadText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
 }
 
 .orderProduct {
   font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 700;
+  font-size: 1.125rem;   /* 18px */
+  letter-spacing: -0.01em;
   color: #121723;
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
 .orderMeta {
   font-size: 0.75rem;
   color: #6b7280;
-  margin: 0.25rem 0 0;
+  margin: 0;
 }
 
+/* Status chip sits below the subtitle, so the title/subtitle get the full
+   width of the column instead of being squeezed beside it. */
 .orderStatus {
-  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 0.1rem;
   font-family: var(--font-heading);
   font-size: 0.625rem;
   font-weight: 700;
@@ -126,15 +152,156 @@
   text-transform: uppercase;
   color: #0e1b4d;
   background: #eef2ff;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
 }
+
+/* ── Order switcher (dropdown) ── */
+.orderHeadWrap { position: relative; }
+
+/* The header used as a dropdown trigger — reset the button chrome but keep
+   the .orderHead layout and its divider. */
+.orderHeadTrigger {
+  width: 100%;
+  padding: 0 0 1.125rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #eef0f5;
+  border-radius: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.orderHeadTrigger:disabled { cursor: default; }
+
+/* When it's an active switcher, enclose the whole trigger (thumbnail, title,
+   subtitle, status pill and arrow) in a bordered box so it clearly reads as a
+   dropdown. Overrides the plain header's bottom divider. */
+.orderHeadBox {
+  padding: 0.7rem 0.8rem;
+  border: 1.5px solid #dbe1ec;
+  border-bottom: 1.5px solid #dbe1ec;
+  border-radius: 14px;
+  background: #fbfcfe;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.orderHeadBox:hover { border-color: #bcc7db; background: #f5f8fd; }
+.orderHeadBox[aria-expanded="true"] {
+  border-color: #0e1b4d;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(14, 27, 77, 0.08);
+}
+
+.orderHeadChevron {
+  flex-shrink: 0;
+  align-self: center;
+  margin-left: 0.25rem;
+  color: #8a90a0;
+  transition: transform 0.18s ease;
+}
+.orderHeadChevronOpen { transform: rotate(180deg); }
+
+/* Dropdown panel */
+.orderMenu {
+  position: absolute;
+  top: calc(100% - 0.4rem);
+  left: -0.35rem;
+  right: -0.35rem;
+  z-index: 30;
+  background: #ffffff;
+  border: 1px solid #eef0f5;
+  border-radius: 14px;
+  box-shadow: 0 12px 34px rgba(14, 27, 77, 0.14);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.orderMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.6rem 0.65rem;
+  border: none;
+  border-radius: 11px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.13s ease;
+}
+.orderMenuItem:hover { background: #f5f7fb; }
+.orderMenuItemActive { background: #eef4ff; }
+.orderMenuItemActive:hover { background: #e6eeff; }
+
+.orderMenuThumb {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  background: linear-gradient(155deg, #f2f6ff 0%, #e7eeff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  overflow: hidden;
+}
+.orderMenuThumb img { width: 100%; height: 100%; object-fit: contain; }
+
+.orderMenuText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.orderMenuName {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #121723;
+  line-height: 1.25;
+}
+.orderMenuMeta {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+.orderMenuCheck { flex-shrink: 0; color: #2563eb; }
 
 /* ── Fulfilment tracker ── */
 .timeline {
+  position: relative;
   list-style: none;
   margin: 1rem 0 0;
   padding: 0;
+  /* Geometry the rail is built from: dot-to-dot pitch and the inset of the
+     first/last dot centre. Rows are uniform, so these are constant. */
+  --stage-pitch: 2.0625rem; /* 33px — spacing between consecutive dots */
+  --dot-center: 0.53rem;    /* 8.5px — first/last dot centre from the ends */
+}
+
+/* Grey track running the length of the tracker, behind the dots. */
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 0.22rem; /* centres the 4px line on the 11px dot */
+  top: var(--dot-center);
+  bottom: var(--dot-center);
+  width: 4px;
+  border-radius: 4px;
+  background: #eef0f5;
+  z-index: 0;
+}
+
+/* Completed progress, drawn as ONE continuous gradient — the same ramp as the
+   dashboard "Continue My Intake" bar, running top→bottom. Height is the number
+   of cleared segments (`--done` minus one) times the dot pitch. */
+.timeline::after {
+  content: "";
+  position: absolute;
+  left: 0.22rem;
+  top: var(--dot-center);
+  width: 4px;
+  border-radius: 4px;
+  height: max(0px, calc(var(--stage-pitch) * (var(--done, 0) - 1)));
+  background: linear-gradient(to bottom, #fdd33b 0%, #c6dcfe 49%, #121723 100%);
+  z-index: 0;
 }
 
 .stage {
@@ -145,18 +312,6 @@
   padding-bottom: 1rem;
 }
 .stage:last-child { padding-bottom: 0; }
-
-/* Connector line between dots */
-.stage:not(:last-child)::before {
-  content: "";
-  position: absolute;
-  left: 0.34375rem; /* centre of the 11px dot */
-  top: 1.0625rem;
-  bottom: -0.1875rem;
-  width: 1px;
-  background: #eef0f5;
-}
-.stageDone:not(:last-child)::before { background: #c9d0e4; }
 
 .stageDot {
   position: relative;
@@ -341,6 +496,79 @@
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 .labelBtn:hover { background: #f5f7fb; border-color: #c3c9d6; }
+
+/* ── Meta row (eta + tracking) sits between the tracker and the CTA ── */
+.orderMetaRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 1rem;
+}
+.orderMetaRow .eta,
+.orderMetaRow .tracking { margin-top: 0; }
+
+/* ── Primary "View order" CTA — the redesigned card's anchor action.
+   Deep navy to match the tracker dots; locked (muted, non-interactive) until
+   the care team's review is complete. ── */
+.viewBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 54px;
+  margin-top: 1.25rem;
+  border-radius: 14px;
+  background: #0e1b4d;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 6px 18px rgba(14, 27, 77, 0.18);
+}
+.viewBtn:hover { background: #16265f; }
+
+.viewBtnLocked {
+  background: #eceef4;
+  color: #a2a9b8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.viewBtnLocked:hover { background: #eceef4; }
+
+.viewHint {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #9299a5;
+}
+
+/* ── Care Guide link — appears under "Delivered", aligned with the stage
+   labels, once the order is delivered. ── */
+.careGuideLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.4rem 0 0 1.4375rem; /* aligns under the tracker labels */
+  padding: 0.35rem 0.6rem;
+  border-radius: 9px;
+  background: #eef4ff;
+  color: #1d4ed8;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.careGuideLink:hover { background: #e2ecff; }
+.careGuideChevron { margin-left: -0.05rem; opacity: 0.75; }
+
 .labelBtn:active { background: #eef1f7; }
 .labelBtn svg { color: #0e1b4d; flex-shrink: 0; }
 

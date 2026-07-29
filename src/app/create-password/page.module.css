@@ -1,0 +1,150 @@
+/* ══════════════════════════════════════
+   Create temporary password — mirrors the
+   login hero (same video bg, logo, title)
+   ══════════════════════════════════════ */
+.screen {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  background: var(--surface);
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+.videoBg {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100dvh;
+  margin-bottom: -100dvh;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 26.875em; /* 430px */
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4.5em 1.75em 2.5em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .videoBg { display: none; }
+  .screen {
+    background: #fdfdfd url("/assets/images/login-bg-poster.jpg") center / cover no-repeat;
+  }
+}
+
+.logo {
+  width: 168px;
+  height: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1) drop-shadow(0 1px 8px rgba(0, 0, 0, 0.25));
+}
+
+.heading {
+  margin: 1.75rem 0 0.75rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 2.125rem;      /* 34px */
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  text-align: center;
+  color: #ffffff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+}
+
+.subtitle {
+  margin: 0 0 1.75rem;
+  font-family: var(--font-body);
+  font-size: 1rem;          /* 16px */
+  line-height: 1.4;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Form ── */
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.input {
+  width: 100%;
+  height: 3.5rem;           /* 56px */
+  padding: 0 1.125rem;
+  background: #ffffff;
+  border: 1px solid #e4e7ee;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(20, 30, 55, 0.06);
+  font-family: var(--font-body);
+  font-size: 1rem;          /* 16px — prevents iOS zoom */
+  color: #121723;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input::placeholder { color: #9aa0ac; }
+.input:focus {
+  outline: none;
+  border-color: #121723;
+  box-shadow: 0 0 0 3px rgba(18, 23, 35, 0.06);
+}
+
+.errorText {
+  margin: 0.15rem 0.25rem;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: #d64545;
+  line-height: 1.4;
+}
+
+.submitBtn {
+  width: 100%;
+  height: 43px;
+  margin-top: 0.25rem;
+  background: #121723;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.submitBtn:hover { background: #26304a; }
+.submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Footer links ── */
+.footerLinks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+.footerLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.footerLink:hover { color: #ffffff; text-decoration: underline; }

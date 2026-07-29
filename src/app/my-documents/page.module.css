@@ -1,0 +1,203 @@
+/* ══════════════════════════════════════
+   My Documents — the intake record for an order, reached from "View order".
+   ══════════════════════════════════════ */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  background-color: transparent;
+  overflow-x: hidden;
+}
+
+:global(body):has(.screen) {
+  background-color: var(--surface);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1em 1em 0.75em;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.backBtn {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  color: #0e1b4d;
+  box-shadow: 0 1.3px 2.6px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  color: #0e1b4d;
+  margin: 0;
+}
+
+.content {
+  padding: 0.5em 1em 3em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.muted {
+  color: #8a8f9a;
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  padding: 1rem 0.25rem;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  padding: 18px 20px;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  letter-spacing: 0.01em;
+  color: #0e1b4d;
+  margin: 0 0 14px;
+}
+
+/* ── About you ── */
+.infoList { margin: 0; }
+.infoRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f1f4;
+}
+.infoRow:first-child { padding-top: 0; }
+.infoRow:last-child { padding-bottom: 0; border-bottom: none; }
+
+.infoLabel {
+  flex-shrink: 0;
+  font-size: 0.9375rem;
+  color: #8a8f9a;
+}
+.infoValue {
+  margin: 0;
+  text-align: right;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: #121723;
+  line-height: 1.35;
+}
+
+/* ── Photo grid ── */
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (max-width: 360px) {
+  .photoGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.photoCell {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.photoThumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f2f4f8;
+  border: 1px solid #eceef3;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.photoCell:hover .photoThumb {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(14, 27, 77, 0.12);
+}
+
+.photoCaption {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #4a5163;
+}
+
+/* ── Lightbox ── */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(10, 15, 30, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+.lightboxClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  cursor: pointer;
+}
+.lightboxClose:hover { background: rgba(255, 255, 255, 0.24); }
+.lightboxInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+}
+.lightboxImg {
+  width: auto;
+  height: auto;
+  max-width: min(92vw, 520px);
+  max-height: 74vh;
+  border-radius: 14px;
+  object-fit: contain;
+}
+.lightboxCaption {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.92);
+}
