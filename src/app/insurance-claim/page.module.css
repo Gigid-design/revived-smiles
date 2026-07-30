@@ -34,7 +34,7 @@
   font-size: 1.75em;   /* 28px */
   line-height: 1.1;
   color: #121723;
-  padding-top: 2.857em;
+  padding-top: 1.286em;  /* ~36px — matches the intake step spacing */
   padding-bottom: 0.5em;
   flex-shrink: 0;
 }

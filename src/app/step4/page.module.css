@@ -37,7 +37,7 @@
   font-size: 1.75em;   /* 28px */
   line-height: 1;
   color: #121723;
-  padding-top: 2.857em;  /* ~80px from card top */
+  padding-top: 1.286em;  /* ~36px — matches the intake step spacing */
   padding-bottom: 0.571em;
   flex-shrink: 0;
 }
