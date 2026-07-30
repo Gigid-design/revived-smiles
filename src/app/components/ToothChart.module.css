@@ -1,0 +1,110 @@
+/* Standalone tooth chart — a self-contained copy of the intake (step 5) chart
+   so it can be reused (e.g. in the messages "adjust appliance" form) without
+   touching the intake flow. */
+
+.chartWrap {
+  background: #f7f9fc;
+  border-radius: 1em;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.chartLabels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75em 0.75em 0;
+}
+
+.chartLabel {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.6875em;  /* 11px */
+  line-height: 1;
+  color: #8090a8;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+/* Chart area. Its height comes from the arch geometry, set inline. */
+.chart {
+  position: relative;
+  width: 100%;
+}
+
+/* Horizontal centre divider, sitting in the gap between the two arches */
+.chartDivider {
+  position: absolute;
+  left: 8px; right: 8px;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(220,228,240,0) 0%, rgb(220,228,240) 20%, rgb(220,228,240) 80%, rgba(220,228,240,0) 100%);
+}
+
+/* Jaw labels — centred in the empty middle of each arch, Left/Right in corners. */
+.upperLabel,
+.lowerLabel {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.6875em;
+  line-height: 1;
+  color: #8090a8;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.upperLabel { top: 32%; }
+.lowerLabel { top: 64%; }
+
+/* Individual tooth button — positioned/rotated via inline style. */
+.tooth {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transform-origin: center;
+}
+
+/* Tooth number — placed just outside the arch, always upright */
+.toothNum {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 9px;  /* fixed px so it doesn't scale */
+  line-height: 1;
+  color: #7c8a99;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 0.625em;
+  font-family: var(--font-body);
+  font-size: 0.75em;
+  color: #7a8ea8;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.legendText {
+  margin-right: 0.75em;
+}

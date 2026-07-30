@@ -276,6 +276,73 @@
   padding: 1rem;
 }
 
+/* The adjust form carries a photo grid + full tooth chart, so it scrolls within
+   a capped height rather than pushing the composer off screen. */
+.adjustForm {
+  max-height: 60vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Photo uploader ── */
+.photoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.photoTile {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 0.625rem;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #eef3fc;
+}
+.photoTile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.photoRemove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(18, 23, 35, 0.72);
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+.photoAdd {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 1px dashed #c6dcfe;
+  border-radius: 0.625rem;
+  background: #f7faff;
+  color: #4a6fa5;
+  font-family: var(--font-heading);
+  font-size: 0.625rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.photoAdd span { font-size: 1.125rem; line-height: 1; }
+.photoAdd:hover { background: #eef3fc; }
+
 .requestFormHead {
   display: flex;
   align-items: center;
@@ -317,6 +384,19 @@
 }
 
 .optional { font-weight: 500; color: #6b7280; }
+
+/* Checklist of what to submit for an appliance-adjustment request. */
+.checklist {
+  margin: 0.125rem 0 0;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+.checklist li {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #4a4f5a;
+  margin-bottom: 0.25rem;
+}
 
 .optionList {
   display: flex;
