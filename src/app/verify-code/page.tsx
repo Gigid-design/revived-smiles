@@ -166,7 +166,7 @@ export default function VerifyCode() {
     if (secondsLeft > 0) return;
     setError(null);
     try {
-      await api.auth.requestPasswordReset(data.email);
+      await api.auth.requestPasswordReset(data.email, `${window.location.origin}/reset-password`);
     } catch {
       /* The demo can't fail to "send"; nothing to surface. */
     }
