@@ -54,14 +54,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25em;
-  background: #f5f8ff;
+  gap: 0.4em;
+  background: #ffffff;
   border-radius: 1em;
-  padding: 1em 0.75em;
+  box-shadow: var(--card-shadow);
+  padding: 1.25em 0.75em;
 }
 
 .summaryIcon {
   font-size: 1.5em;
+}
+/* The teeth glyph is a navy raster baked into the SVG, so recolour it to a
+   light grey with a filter rather than a fill. */
+.summaryIcon img {
+  filter: grayscale(1) opacity(0.25);
 }
 
 .summaryLabel {
@@ -83,15 +89,35 @@
 
 .sectionHeader {
   display: flex;
-  align-items: flex-start;
-  gap: 0.5em;
+  align-items: center;
+  gap: 0.625em;
   margin-bottom: 0.75em;
 }
 
-.sectionEmoji {
-  font-size: 1.25em;
-  line-height: 1;
+/* Circular thumbnail of the section's teeth photo, replacing the camera glyph. */
+.sectionThumb {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
   flex-shrink: 0;
+  background: #eef2f8;
+}
+
+.sectionHeaderText {
+  flex: 1;
+  min-width: 0;
+}
+
+/* "2 photos", pushed to the right edge and centred against the title. */
+.sectionCount {
+  flex-shrink: 0;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.8125em;   /* 13px */
+  color: #7a8ea8;
+  white-space: nowrap;
 }
 
 .sectionTitle {
