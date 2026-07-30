@@ -169,11 +169,26 @@
   color: #9aa1b1;
 }
 
+.docProduct {
+  padding: 0.6em 0;
+  border-top: 1px solid #f2f3f7;
+}
+.docProduct:first-of-type {
+  border-top: none;
+}
+.docProductName {
+  margin: 0 0 0.15em;
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  font-weight: 700;
+  color: #121723;
+}
+
 .downloadRow {
   display: flex;
   align-items: center;
   gap: 0.625em;
-  padding: 0.6em 0;
+  padding: 0.4em 0;
   text-decoration: none;
   color: #0e1b4d;
   font-family: var(--font-heading);

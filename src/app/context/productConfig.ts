@@ -128,6 +128,16 @@ export function productPriceCents(slug: string): number {
   return PRODUCTS.find((p) => p.id === slug)?.priceCents ?? 0;
 }
 
+/** Does this product carry a shade selection (step 4)? */
+export function productNeedsShade(slug: string): boolean {
+  return PRODUCTS.find((p) => p.id === slug)?.needsShade ?? false;
+}
+
+/** Does this product carry a tooth-chart selection (step 5)? */
+export function productNeedsTeethChart(slug: string): boolean {
+  return PRODUCTS.find((p) => p.id === slug)?.needsTeethChart ?? false;
+}
+
 /** Line-item price sum for a submission's `products`, in USD cents. */
 export function productsSubtotalCents(slugs: string[]): number {
   return slugs.reduce((sum, s) => sum + productPriceCents(s), 0);

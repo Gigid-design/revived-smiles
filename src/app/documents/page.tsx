@@ -21,6 +21,8 @@ import {
   productLabel,
   productPriceCents,
   productsSubtotalCents,
+  productNeedsShade,
+  productNeedsTeethChart,
   formatUsd,
 } from "@/app/context/productConfig";
 
@@ -49,6 +51,7 @@ function DocumentView() {
   const params = useSearchParams();
   const id = params.get("id");
   const type = params.get("type") === "prescription" ? "prescription" : "invoice";
+  const productParam = params.get("product");
 
   const [order, setOrder] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,6 +71,19 @@ function DocumentView() {
     })();
     return () => { cancelled = true; };
   }, [id]);
+
+  /* Scope the document to a single product when asked (per-product invoice /
+     prescription); otherwise cover every product on the order. */
+  const scopedProducts = order
+    ? productParam && order.products.includes(productParam)
+      ? [productParam]
+      : order.products
+    : [];
+
+  /* A prescription only lists specs that apply to the device(s) it covers:
+     teeth-to-replace for partials/dentures, shade for shade-based products. */
+  const showTeeth = scopedProducts.some(productNeedsTeethChart);
+  const showShade = scopedProducts.some(productNeedsShade);
 
   const teeth = order && !order.teethNotSure && order.selectedTeeth.length
     ? [...order.selectedTeeth].sort((a, b) => a - b).join(", ")
@@ -129,7 +145,7 @@ function DocumentView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {order.products.map((slug) => (
+                  {scopedProducts.map((slug) => (
                     <tr key={slug}>
                       <td className={styles.tdLeft}>{productLabel(slug)}</td>
                       <td className={styles.tdRight}>{formatUsd(productPriceCents(slug))}</td>
@@ -139,7 +155,7 @@ function DocumentView() {
                 <tfoot>
                   <tr>
                     <td className={styles.totalLabel}>Total</td>
-                    <td className={styles.totalValue}>{formatUsd(productsSubtotalCents(order.products))}</td>
+                    <td className={styles.totalValue}>{formatUsd(productsSubtotalCents(scopedProducts))}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -152,22 +168,22 @@ function DocumentView() {
             <>
               <dl className={styles.specs}>
                 <div className={styles.specRow}>
-                  <dt className={styles.specLabel}>Device(s)</dt>
-                  <dd className={styles.specValue}>{order.products.map(productLabel).join(", ") || "—"}</dd>
+                  <dt className={styles.specLabel}>{scopedProducts.length === 1 ? "Device" : "Device(s)"}</dt>
+                  <dd className={styles.specValue}>{scopedProducts.map(productLabel).join(", ") || "—"}</dd>
                 </div>
-                {teeth && (
+                {showTeeth && teeth && (
                   <div className={styles.specRow}>
                     <dt className={styles.specLabel}>Teeth to replace</dt>
                     <dd className={styles.specValue}>{teeth}</dd>
                   </div>
                 )}
-                {order.whiteShade && (
+                {showShade && order.whiteShade && (
                   <div className={styles.specRow}>
                     <dt className={styles.specLabel}>Tooth shade</dt>
                     <dd className={styles.specValue}>{order.whiteShade}</dd>
                   </div>
                 )}
-                {order.gumShade && (
+                {showShade && order.gumShade && (
                   <div className={styles.specRow}>
                     <dt className={styles.specLabel}>Gum shade</dt>
                     <dd className={styles.specValue}>{order.gumShade}</dd>
@@ -189,7 +205,12 @@ function DocumentView() {
       )}
 
       <p className={styles.footerLink}>
-        <Link href={`/my-documents?id=${order?.id ?? ""}`} className={styles.toolBtn}>Back to documents</Link>
+        <Link
+          href={order ? `/my-documents?id=${order.id}${productParam ? `&product=${productParam}` : ""}` : "/my-documents"}
+          className={styles.toolBtn}
+        >
+          Back to documents
+        </Link>
       </p>
     </main>
   );
