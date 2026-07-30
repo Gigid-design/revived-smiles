@@ -6,12 +6,6 @@ import styles from "./page.module.css";
 import { api } from "@/lib/api";
 import type { Submission } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
-import { productLabels } from "@/app/context/productConfig";
-
-function formatProductLabel(products: string[]): string {
-  if (!products?.length) return "—";
-  return productLabels(products);
-}
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "—";
@@ -134,11 +128,6 @@ export default function ProfilePage() {
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>State</span>
                 <span className={styles.infoValue}>{profile?.state || "—"}</span>
-              </div>
-
-              <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Product</span>
-                <span className={styles.infoValue}>{formatProductLabel(profile?.products || [])}</span>
               </div>
 
               <div className={styles.infoRow}>
