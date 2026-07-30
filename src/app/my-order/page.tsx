@@ -9,7 +9,13 @@ import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { SubscriptionCard } from "@/app/components/SubscriptionCard";
 import { InsuranceCard } from "@/app/components/InsuranceCard";
-import { productLabels } from "@/app/context/productConfig";
+import { productLabels, productImage } from "@/app/context/productConfig";
+
+/* An order's thumbnail = its first product's photo, falling back to the
+   generic hero image for an order with no recognised product. */
+function orderImage(products: string[]): string {
+  return (products.length ? productImage(products[0]) : null) ?? "/assets/images/hero-product.png";
+}
 import { useMessages, REQUEST_LABELS, RequestStatus } from "@/app/context/MessagesContext";
 
 /* Fulfilment stages shown in the tracker, in order. "Review completed" sits
@@ -262,12 +268,12 @@ export default function MyOrder() {
               >
                 <div className={styles.orderThumb}>
                   <Image
-                    src="/assets/images/hero-product.png"
+                    src={orderImage(order.products)}
                     alt=""
                     width={120}
                     height={120}
                     sizes="72px"
-                    style={{ objectFit: "contain" }}
+                    style={{ objectFit: "cover" }}
                   />
                 </div>
                 <div className={styles.orderHeadText}>
@@ -303,7 +309,7 @@ export default function MyOrder() {
                         onClick={() => { setSelectedId(o.id); setMenuOpen(false); }}
                       >
                         <div className={styles.orderMenuThumb}>
-                          <Image src="/assets/images/hero-product.png" alt="" width={96} height={96} sizes="44px" style={{ objectFit: "contain" }} />
+                          <Image src={orderImage(o.products)} alt="" width={96} height={96} sizes="44px" style={{ objectFit: "cover" }} />
                         </div>
                         <div className={styles.orderMenuText}>
                           <span className={styles.orderMenuName}>
