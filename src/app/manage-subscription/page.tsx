@@ -65,13 +65,6 @@ export default function ManageSubscriptionPage() {
 
   const closeSheet = () => setSheet(null);
 
-  const statusLabel =
-    sub?.status === "paused" ? "Paused" : sub?.status === "canceled" ? "Canceled" : "Active";
-  const statusClass =
-    sub?.status === "paused" ? styles.badgePaused
-      : sub?.status === "canceled" ? styles.badgeCanceled
-      : styles.badgeActive;
-
   return (
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
@@ -110,21 +103,20 @@ export default function ManageSubscriptionPage() {
 
         {!loading && sub && (
           <>
-            {/* ── Current plan ── */}
+            {/* ── Current plan ── product photo + gradient badge (Figma 476-65) ── */}
             <section className={styles.planCard} aria-label="Current plan">
-              <div className={styles.planTop}>
-                <div>
-                  <p className={styles.planEyebrow}>Current plan</p>
-                  <p className={styles.planName}>{sub.productName}</p>
-                </div>
-                <span className={`${styles.badge} ${statusClass}`}>{statusLabel}</span>
+              <div className={styles.planImage} role="img" aria-label={sub.productName} />
+              <div className={styles.planBody}>
+                <span className={styles.planBadge}>Current plan</span>
+                <p className={styles.planName}>{sub.productName}</p>
+                <p className={styles.planMeta}>
+                  every {sub.intervalWeeks} weeks
+                  {sub.status === "active" && <> · renews {shortDate(sub.nextDeliveryAt)}</>}
+                  {sub.status === "paused" && <> · paused</>}
+                  {sub.status === "canceled" && sub.canceledAt && <> · canceled {shortDate(sub.canceledAt)}</>}
+                </p>
+                <p className={styles.planPrice}>{money(sub.pricePerDelivery, sub.currency)}</p>
               </div>
-              <p className={styles.planMeta}>
-                {money(sub.pricePerDelivery, sub.currency)} · every {sub.intervalWeeks} weeks
-                {sub.status === "active" && <> · renews {shortDate(sub.nextDeliveryAt)}</>}
-                {sub.status === "paused" && <> · paused</>}
-                {sub.status === "canceled" && sub.canceledAt && <> · canceled {shortDate(sub.canceledAt)}</>}
-              </p>
             </section>
 
             {/* ── Billing ── */}

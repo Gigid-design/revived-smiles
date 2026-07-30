@@ -130,7 +130,7 @@ export function SubscriptionCard({ title = "My Subscription", manageHref }: Subs
 
       <div className={styles.row}>
         <div className={styles.thumb}>
-          <Image src={subscription.imageUrl} alt="" width={40} height={48} style={{ objectFit: "contain" }} sizes="40px" />
+          <Image src={subscription.imageUrl} alt="" width={52} height={52} style={{ width: "100%", height: "100%", objectFit: "cover" }} sizes="52px" />
         </div>
         <div className={styles.info}>
           <p className={styles.name}>{subscription.productName}</p>

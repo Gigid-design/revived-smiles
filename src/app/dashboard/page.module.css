@@ -64,8 +64,8 @@
 }
 
 .profileBtn {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: #ffffff;
   box-shadow: 0 1.3px 2.6px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -73,7 +73,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 2px;
   flex-shrink: 0;
   text-decoration: none;
   color: #121723;
@@ -83,7 +83,7 @@
    stacked beneath the icon. */
 .profileLabel {
   font-family: var(--font-heading);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.01em;
   line-height: 1;
@@ -739,83 +739,128 @@
 .claimEntryChevron { flex-shrink: 0; }
 
 /* ══════════════════════════════════════
-   Customer Service — always-available help card. Same white card language as
-   the rest of the dashboard, with a support icon badge and two contact paths
-   (in-app chat + email).
+   Your Care Team — real care-team photos staggered on the right, a heading +
+   description + "Chat with us" pill on the left. Built to the Figma frame
+   (475-20): photos bleed to the card edges, bottom one clipped by the corner.
    ══════════════════════════════════════ */
 .supportCard {
+  position: relative;
   margin-top: 16px;
+  min-height: 159px;
   background: #ffffff;
   border-radius: 20px;
   box-shadow: var(--card-shadow);
-  padding: 20px;
+  padding: 22px 20px;
+  overflow: hidden;
 }
 
-.supportHead { }
-
-/* Icon + title on one row — same treatment as the Protection card: a plain
-   stroked icon in muted ink, no filled badge. */
-.supportTitleRow {
+.supportCopy {
+  position: relative;
+  z-index: 1;
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.supportIcon {
-  flex-shrink: 0;
-  color: #5b6376;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 60%;
 }
 
 .supportTitle {
   font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 1.375em;     /* 22px — matches other card titles */
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  font-size: 1.5em;       /* 24px */
+  letter-spacing: -0.02em;
   color: #121723;
   margin: 0;
 }
 
 .supportSubtitle {
   font-size: 0.8125em;    /* 13px */
-  color: #6b7280;
+  color: #8a8a8a;
   line-height: 1.45;
-  margin: 4px 0 0;
-}
-
-.supportActions {
-  display: flex;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.supportPrimary,
-.supportSecondary {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 44px;
-  border-radius: 100px;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 0.8125em;    /* 13px */
-  letter-spacing: 0.01em;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s;
+  margin: 10px 0 0;
 }
 
 .supportPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 43px;
+  margin-top: 18px;
+  padding: 0 28px;
+  border-radius: 100px;
   background: #121723;
   color: #ffffff;
   border: none;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8125em;    /* 13px */
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
 }
 .supportPrimary:hover { background: #26304a; }
 
-.supportSecondary {
-  background: #ffffff;
-  color: #121723;
-  border: 1px solid #d7dbe3;
+/* ── Photo cluster ── anchored to the card's right edge, spanning full height so
+   the photos bleed past the padding (top one grazes the top, bottom one is
+   clipped by the card's rounded corner). */
+.supportVisual {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 160px;
+  z-index: 0;
 }
-.supportSecondary:hover { border-color: #b9c0cc; background: #f8fafc; }
+
+/* Circular photos. Sizes + background crops are lifted straight from the Figma
+   pattern transforms so the framing matches the design exactly. */
+.carePhoto {
+  position: absolute;
+  border-radius: 50%;
+  background-color: #f2f2f2;
+  background-repeat: no-repeat;
+}
+
+.carePhotoMain {
+  left: 0;
+  top: 45px;
+  width: 82px;
+  height: 82px;
+  z-index: 3;
+  background-image: url("/assets/images/care-team-main.png");
+  background-size: 121.9px 182.9px;
+  background-position: -19.6px -14.8px;
+}
+.carePhotoTop {
+  left: 58px;
+  top: -16px;
+  width: 72px;
+  height: 72px;
+  z-index: 2;
+  transform: scaleX(-1);
+  background-image: url("/assets/images/care-team-top.png");
+  background-size: 97.9px 146.9px;
+  background-position: -14.7px -0.4px;
+}
+.carePhotoBottom {
+  left: 52px;
+  top: 124px;
+  width: 59px;
+  height: 59px;
+  z-index: 1;
+  transform: scaleX(-1);
+  background-image: url("/assets/images/care-team-bottom.png");
+  background-size: 84px 126px;
+  background-position: -13.8px -9.3px;
+}
+
+/* Yellow chat bubble floating between the photos. */
+.chatBadge {
+  position: absolute;
+  left: 104px;
+  top: 82px;
+  line-height: 0;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.14));
+  z-index: 4;
+}

@@ -406,37 +406,33 @@ function Landing() {
               </Link>
             )}
 
-            {/* ══ Customer Service — always reachable help ══ */}
+            {/* ══ Your Care Team — real care-team photos + chat CTA (Figma 475-20) ══ */}
             <section className={styles.supportCard} aria-labelledby="support-title">
-              <div className={styles.supportHead}>
-                <div className={styles.supportTitleRow}>
-                  <svg className={styles.supportIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M5 13v-1a7 7 0 0 1 14 0v1" />
-                    <rect x="3" y="13" width="4" height="6" rx="2" />
-                    <rect x="17" y="13" width="4" height="6" rx="2" />
-                    <path d="M19 19a3 3 0 0 1-3 3h-2" />
-                  </svg>
-                  <h2 id="support-title" className={styles.supportTitle}>Customer Service</h2>
-                </div>
+              <div className={styles.supportCopy}>
+                <h2 id="support-title" className={styles.supportTitle}>Your Care Team</h2>
                 <p className={styles.supportSubtitle}>
-                  Questions about your order, kit or account? Our care team is here to help.
+                  Need assistance? Our care team is ready to help.
                 </p>
-              </div>
-
-              <div className={styles.supportActions}>
                 <Link href="/messages" className={styles.supportPrimary}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z" />
-                  </svg>
                   Chat with us
                 </Link>
-                <a href="mailto:support@revivedsmiles.com" className={styles.supportSecondary}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <path d="m3.5 6.5 8.5 6 8.5-6" />
+              </div>
+
+              {/* Staggered care-team photos with a yellow chat bubble, bleeding to
+                  the card edges. Cropped to match the Figma frame. */}
+              <div className={styles.supportVisual} aria-hidden="true">
+                <span className={`${styles.carePhoto} ${styles.carePhotoTop}`} />
+                <span className={`${styles.carePhoto} ${styles.carePhotoMain}`} />
+                <span className={`${styles.carePhoto} ${styles.carePhotoBottom}`} />
+                <span className={styles.chatBadge}>
+                  <svg viewBox="0 0 48 40" width="42" height="35" aria-hidden="true">
+                    <rect x="2" y="2" width="44" height="26" rx="10" fill="#FDD33B" />
+                    <path d="M14 25 L9 37 L24 25 Z" fill="#FDD33B" />
+                    <circle cx="16" cy="15" r="2.6" fill="#2b2b2b" />
+                    <circle cx="24" cy="15" r="2.6" fill="#2b2b2b" />
+                    <circle cx="32" cy="15" r="2.6" fill="#2b2b2b" />
                   </svg>
-                  Email us
-                </a>
+                </span>
               </div>
             </section>
             </div>

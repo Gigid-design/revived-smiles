@@ -171,7 +171,6 @@ export function InsuranceCard() {
               <span className={styles.ctaPrice}>{money(insurance.price, insurance.currency)}</span>
             )}
           </a>
-          <p className={styles.offsite}>Opens the Revived Smiles store in a new tab.</p>
         </>
       )}
     </section>
