@@ -11,6 +11,7 @@ import type { Submission, SubmissionStatus } from "@/lib/api";
 import {
   productLabel,
   productLabels,
+  productImage,
   productNeedsShade,
   productNeedsTeethChart,
 } from "@/app/context/productConfig";
@@ -199,12 +200,17 @@ function MyDocuments() {
                 const href = slug === "order"
                   ? `/my-documents?id=${o.id}`
                   : `/my-documents?id=${o.id}&product=${slug}`;
+                const img = slug === "order" ? null : productImage(slug);
                 return (
                   <Link key={`${o.id}-${slug}`} href={href} className={styles.orderRow}>
-                    <span className={styles.orderIcon} aria-hidden>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5" /><path d="M9 13h6M9 17h4" />
-                      </svg>
+                    <span className={styles.orderThumb} aria-hidden>
+                      {img ? (
+                        <Image src={img} alt="" fill sizes="44px" style={{ objectFit: "cover" }} />
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3559c7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5" /><path d="M9 13h6M9 17h4" />
+                        </svg>
+                      )}
                     </span>
                     <span className={styles.orderMain}>
                       <span className={styles.orderTitle}>{slug === "order" ? "Order" : productLabel(slug)}</span>

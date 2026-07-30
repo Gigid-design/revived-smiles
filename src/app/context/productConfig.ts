@@ -8,6 +8,8 @@ export interface ProductConfig {
   /** Retail price in USD cents, used on the invoice/receipt document.
    *  NOTE: these are PLACEHOLDERS — set your real prices here. */
   priceCents: number;
+  /** Product photo (from revivedsmiles.com), shown in document lists. */
+  image: string;
 }
 
 export const PRODUCTS: ProductConfig[] = [
@@ -20,6 +22,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsTeethChart: true,
     category: "partial-denture",
     priceCents: 45000,
+    image: "/assets/images/products/flexible-partial.jpg",
   },
   {
     id: "acrylic-partial",
@@ -30,6 +33,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsTeethChart: true,
     category: "partial-denture",
     priceCents: 28000,
+    image: "/assets/images/products/acrylic-partial.jpg",
   },
   {
     id: "unilateral-partial",
@@ -40,6 +44,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsTeethChart: true,
     category: "partial-denture",
     priceCents: 39000,
+    image: "/assets/images/products/unilateral-partial.jpg",
   },
   {
     id: "clear-partial",
@@ -50,6 +55,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsTeethChart: true,
     category: "partial-denture",
     priceCents: 42000,
+    image: "/assets/images/products/clear-partial.jpg",
   },
   {
     id: "full-denture",
@@ -60,6 +66,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsTeethChart: false,
     category: "full-denture",
     priceCents: 65000,
+    image: "/assets/images/products/full-denture.jpg",
   },
   {
     id: "retainer",
@@ -70,6 +77,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsTeethChart: false,
     category: "retainer",
     priceCents: 12000,
+    image: "/assets/images/products/retainer.jpg",
   },
   {
     id: "nightguard",
@@ -80,6 +88,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsTeethChart: false,
     category: "guard",
     priceCents: 12000,
+    image: "/assets/images/products/nightguard.jpg",
   },
   {
     id: "sports-mouthguard",
@@ -90,6 +99,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsTeethChart: false,
     category: "guard",
     priceCents: 9900,
+    image: "/assets/images/products/sports-mouthguard.jpg",
   },
   {
     id: "revived-veneers",
@@ -100,6 +110,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsTeethChart: false,
     category: "veneer",
     priceCents: 35000,
+    image: "/assets/images/products/revived-veneers.jpg",
   },
 ];
 
@@ -126,6 +137,11 @@ export function productLabels(slugs: string[]): string {
 /** Retail price for a product slug, in USD cents (0 if unknown). */
 export function productPriceCents(slug: string): number {
   return PRODUCTS.find((p) => p.id === slug)?.priceCents ?? 0;
+}
+
+/** Product photo for a slug (null if the product isn't in the catalogue). */
+export function productImage(slug: string): string | null {
+  return PRODUCTS.find((p) => p.id === slug)?.image ?? null;
 }
 
 /** Does this product carry a shade selection (step 4)? */
