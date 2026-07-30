@@ -4,12 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { api } from "@/lib/api";
-import type { Submission, SubmissionStatus } from "@/lib/api";
+import type { Submission } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
-import { productLabel, productLabels } from "@/app/context/productConfig";
-
-/* An order has an issuable invoice + prescription once it's been reviewed. */
-const REVIEWED_STATUSES: SubmissionStatus[] = ["approved", "in_fabrication", "shipped", "completed"];
+import { productLabels } from "@/app/context/productConfig";
 
 function formatProductLabel(products: string[]): string {
   if (!products?.length) return "—";
@@ -27,7 +24,6 @@ function formatDate(dateStr: string | null): string {
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Submission | null>(null);
-  const [docOrder, setDocOrder] = useState<Submission | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
@@ -47,13 +43,6 @@ export default function ProfilePage() {
 
         const mine = await api.submissions.getMine();
         if (!cancelled && mine) setProfile(mine);
-
-        /* Invoice + prescription are issued against the most recent reviewed
-           order, so the downloads always point at a real, finalized record. */
-        const all = await api.submissions.listMine();
-        if (!cancelled) {
-          setDocOrder(all.find((o) => REVIEWED_STATUSES.includes(o.status)) ?? null);
-        }
       } catch (err) {
         console.error("Failed to load profile:", err);
       } finally {
@@ -156,37 +145,6 @@ export default function ProfilePage() {
                 <span className={styles.infoLabel}>Member since</span>
                 <span className={styles.infoValue}>{formatDate(profile?.createdAt ?? null)}</span>
               </div>
-
-              {/* Downloadable documents, itemized per product, for HSA / FSA /
-                  insurance reimbursement. */}
-              <div className={styles.docDownloads}>
-                <p className={styles.docDownloadsTitle}>Documents for HSA, FSA &amp; insurance</p>
-                {docOrder && docOrder.products.length ? (
-                  docOrder.products.map((slug) => (
-                    <div key={slug} className={styles.docProduct}>
-                      <p className={styles.docProductName}>{productLabel(slug)}</p>
-                      <Link href={`/documents?id=${docOrder.id}&type=invoice&product=${slug}`} className={styles.downloadRow}>
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M12 18v-6M9 15l3 3 3-3" />
-                        </svg>
-                        <span>Invoice</span>
-                        <span className={styles.downloadHint}>PDF</span>
-                      </Link>
-                      <Link href={`/documents?id=${docOrder.id}&type=prescription&product=${slug}`} className={styles.downloadRow}>
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M12 18v-6M9 15l3 3 3-3" />
-                        </svg>
-                        <span>Prescription</span>
-                        <span className={styles.downloadHint}>PDF</span>
-                      </Link>
-                    </div>
-                  ))
-                ) : (
-                  <p className={styles.docDownloadsEmpty}>
-                    Available once your order has been reviewed.
-                  </p>
-                )}
-              </div>
             </div>
 
             {/* Actions */}
@@ -197,7 +155,10 @@ export default function ProfilePage() {
                   <path d="M14 3v5h5" />
                   <path d="M9 13h6M9 17h4" />
                 </svg>
-                <span>My Documents</span>
+                <span className={styles.actionText}>
+                  My Documents
+                  <span className={styles.actionSub}>Invoices &amp; prescriptions for HSA, FSA &amp; insurance</span>
+                </span>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className={styles.chevron}>
                   <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
