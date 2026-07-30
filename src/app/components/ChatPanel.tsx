@@ -57,12 +57,13 @@ export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelP
   const router = useRouter();
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  /* Auto-scroll to bottom on new messages */
+  /* Keep the newest message in view. The message list is the scroll
+     container (bubbles + composer are docked), so scroll it directly. */
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const list = listRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
   }, [messages.length]);
 
   /* Mark messages as read when panel is visible */
@@ -159,7 +160,6 @@ export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelP
             );
           })
         )}
-        <div ref={bottomRef} />
       </div>
 
       {/* Quick shortcuts — patient only (kept out of the admin console). */}

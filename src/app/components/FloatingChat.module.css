@@ -174,5 +174,9 @@
 .drawerBody {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  /* Clip here so the message list scrolls inside ChatPanel while the
+     shortcut bubbles and composer stay docked at the bottom. */
+  overflow: hidden;
 }
