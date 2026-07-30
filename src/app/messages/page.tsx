@@ -84,6 +84,17 @@ export default function Messages() {
     if (unreadCount > 0) void markRead();
   }, [unreadCount, markRead]);
 
+  /* Deep link: /messages?compose=material|trays|adjust opens that form on
+     arrival — used by the in-flow Care Team drawer's shortcut bubbles, which
+     route here because those forms (photos, tooth chart) need the full page. */
+  useEffect(() => {
+    const compose = new URLSearchParams(window.location.search).get("compose");
+    if (compose === "adjust") openAdjust();
+    else if (compose === "material" || compose === "trays") openForm(compose);
+    // Runs once on mount; openForm/openAdjust are stable declarations.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /* The conversation is its own scroll container now, so "go to the bottom"
      is a property of that element rather than of the document — which is why
      scrolling the page never reached the newest message. Instant on open,

@@ -289,6 +289,30 @@
 .requestChip:hover { opacity: 0.85; }
 
 /* ── Input bar ── */
+/* Quick shortcut bubbles — mirrors the /messages chip row. */
+.quickRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 0;
+  background: #ffffff;
+}
+
+.quickChip {
+  padding: 0.4375rem 0.8125rem;
+  background: #ffffff;
+  border: 1px solid #e7edf8;
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #121723;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.quickChip:hover { border-color: #c6dcfe; }
+.quickChip:disabled { opacity: 0.5; cursor: default; }
+
 .inputBar {
   display: flex;
   align-items: flex-end;
