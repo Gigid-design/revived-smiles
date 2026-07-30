@@ -42,13 +42,25 @@
   flex-shrink: 0;
 }
 
-/* Live preview row — rgba(235,241,255,0.6), h:86px, rounded:16px */
+/* Disclaimer — sits directly under the title, before the shade selectors. */
+.disclaimer {
+  font-family: var(--font-body);
+  font-size: 0.8125em;   /* 13px */
+  line-height: 1.45;
+  color: #8a8a8a;
+  margin: 0 0 1em;
+  flex-shrink: 0;
+}
+
+/* Live preview row — a white floating card with a soft drop shadow, matching
+   the dashboard card language. */
 .preview {
   display: flex;
   align-items: center;
   gap: 1em;
-  background: rgba(235, 241, 255, 0.6);
+  background: #ffffff;
   border-radius: 1em;    /* 16px */
+  box-shadow: var(--card-shadow);
   padding: 0.9375em 1.0625em; /* 15px 17px */
   height: 5.375em;       /* 86px */
   flex-shrink: 0;
@@ -171,6 +183,7 @@
   line-height: 1;
   color: #8a8a8a;
   text-align: center;
+  white-space: nowrap;
 }
 
 /* Divider */

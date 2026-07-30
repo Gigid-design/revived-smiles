@@ -12,6 +12,8 @@ interface Shade {
   id: string;
   label: string;
   color: string;
+  /** What the user sees, when it differs from the stored `id` (gum drops "G"). */
+  code?: string;
   /** Rendered as transparency rather than a colour — see `.chipClear`. */
   clear?: boolean;
 }
@@ -21,10 +23,11 @@ interface Shade {
    (#f8f6f3 / #f7f6f3 / #f1f1f0), so the picker showed no visible difference
    between the options it was asking her to choose between. */
 const WHITE_SHADES: Shade[] = [
-  { id: "A1", label: "Very Light", color: "#f2ede3" },
-  { id: "A2", label: "Light",      color: "#eae0ce" },
-  { id: "A3", label: "Medium",     color: "#ddcdb2" },
-  { id: "A4", label: "Dark",       color: "#c9b392" },
+  { id: "A1",   label: "Very Light",  color: "#f2ede3" },
+  { id: "A2",   label: "Light",       color: "#eae0ce" },
+  { id: "A3",   label: "Medium",      color: "#ddcdb2" },
+  { id: "A3.5", label: "Med-Dark",    color: "#d3c0a2" },
+  { id: "A4",   label: "Dark",        color: "#c9b392" },
 ];
 
 /* ── Gum shade swatches ──
@@ -32,9 +35,9 @@ const WHITE_SHADES: Shade[] = [
    material used where no gum colour should show — so it gets its own
    treatment rather than a colour chip. */
 const GUM_SHADES: Shade[] = [
-  { id: "G1", label: "Dark",  color: "#8f5350" },
-  { id: "G2", label: "Pink",  color: "#e39c9c" },
-  { id: "G3", label: "Clear", color: "transparent", clear: true },
+  { id: "G2", code: "1", label: "Pink",  color: "#e39c9c" },
+  { id: "G1", code: "2", label: "Dark",  color: "#8f5350" },
+  { id: "G3", code: "3", label: "Clear", color: "transparent", clear: true },
 ];
 
 /**
@@ -88,6 +91,10 @@ export default function Step4() {
       {/* White card */}
       <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Tooth &amp; Gum shade</h1>
+        <p className={styles.disclaimer}>
+          Colors shown here are a guide only. Please refer to your order form for the
+          accurate coloring and confirm your selection matches it.
+        </p>
 
         {/* Live preview — White */}
         <div className={styles.preview} aria-label="Selected white shade preview">
@@ -119,7 +126,7 @@ export default function Step4() {
                   className={`${styles.swatchChip}${clearClass(shade, styles.chipClear)}`}
                   style={swatchStyle(shade, false)}
                 />
-                <span className={styles.swatchCode}>{shade.id}</span>
+                <span className={styles.swatchCode}>{shade.code ?? shade.id}</span>
                 <span className={styles.swatchName}>{shade.label}</span>
               </button>
             );
@@ -136,7 +143,7 @@ export default function Step4() {
             style={swatchStyle(selectedGum, true)}
           />
           <div className={styles.previewText}>
-            <span className={styles.previewCode}>{selectedGum?.id ?? "—"}</span>
+            <span className={styles.previewCode}>{selectedGum?.code ?? selectedGum?.id ?? "—"}</span>
             <span className={styles.previewLabel}>{selectedGum?.label ?? "—"}</span>
           </div>
         </div>
@@ -159,7 +166,7 @@ export default function Step4() {
                   className={`${styles.swatchChip}${clearClass(shade, styles.chipClear)}`}
                   style={swatchStyle(shade, false)}
                 />
-                <span className={styles.swatchCode}>{shade.id}</span>
+                <span className={styles.swatchCode}>{shade.code ?? shade.id}</span>
                 <span className={styles.swatchName}>{shade.label}</span>
               </button>
             );
