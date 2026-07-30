@@ -116,16 +116,6 @@ export default function ProfilePage() {
               <h3 className={styles.cardTitle}>Account Details</h3>
 
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Name</span>
-                <span className={styles.infoValue}>{profile?.name || "—"}</span>
-              </div>
-
-              <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Email</span>
-                <span className={styles.infoValue}>{displayEmail}</span>
-              </div>
-
-              <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>State</span>
                 <span className={styles.infoValue}>{profile?.state || "—"}</span>
               </div>
