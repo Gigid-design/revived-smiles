@@ -1,0 +1,179 @@
+/* Request forms shown inside the Care Team drawer. Fills the drawer body:
+   fixed header, scrolling field area, docked submit — mirrors the styling of
+   the /messages forms. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #ffffff;
+}
+
+.head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #eef0f5;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: #121723;
+}
+
+.cancelBtn {
+  padding: 0.25rem 0.5rem;
+  margin-right: -0.25rem;
+  background: none;
+  border: none;
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 1rem 0.5rem;
+}
+
+.fieldLabel {
+  display: block;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #121723;
+  margin: 1rem 0 0.5rem;
+}
+
+.optional { font-weight: 500; color: #6b7280; }
+
+.checklist {
+  margin: 0.125rem 0 0;
+  padding-left: 1.1rem;
+  list-style: disc;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: #37415a;
+}
+
+.photoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.photoTile {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 0.625rem;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #eef3fc;
+}
+.photoTile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.photoRemove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(18, 23, 35, 0.72);
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.photoAdd {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 1px dashed #c6dcfe;
+  border-radius: 0.625rem;
+  background: #f7faff;
+  color: #4a6fa5;
+  font-family: var(--font-heading);
+  font-size: 0.625rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.note {
+  width: 100%;
+  resize: none;
+  border: 1px solid #e7edf8;
+  border-radius: 12px;
+  background: #f7f9fd;
+  padding: 0.625rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #121723;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.note:focus { border-color: #c6dcfe; background: #ffffff; }
+
+.chipRow { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.chip {
+  padding: 0.4375rem 0.8125rem;
+  background: #ffffff;
+  border: 1px solid #e7edf8;
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #121723;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.chipSelected { background: #0e6c9c; border-color: #0e6c9c; color: #ffffff; }
+
+.submitBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 43px;
+  margin: 0.625rem 1rem 1rem;
+  background: linear-gradient(135deg, #121723 0%, #26304a 100%);
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+}
+.submitBtnDisabled {
+  background: #e9eef7;
+  color: #a3adc2;
+  cursor: not-allowed;
+}

@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api } from "@/lib/api";
-import type { ChatMessage, MessageRole } from "@/lib/api";
+import type { ChatMessage, MessageRole, RequestKind } from "@/lib/api";
 
 export type { ChatMessage } from "@/lib/api";
 
 interface UseChatReturn {
   messages: ChatMessage[];
   sendMessage: (body: string) => Promise<void>;
+  sendRequest: (kind: RequestKind, detail: string, note: string) => Promise<void>;
   markAsRead: () => Promise<void>;
   unreadCount: number;
   loading: boolean;
@@ -74,6 +75,21 @@ export function useChat(
     [currentRole, currentName],
   );
 
+  const sendRequest = useCallback(
+    async (kind: RequestKind, detail: string, note: string) => {
+      const id = idRef.current;
+      if (!id) return;
+
+      try {
+        const sent = await api.messages.sendRequest(id, kind, detail, note, currentName);
+        setMessages((prev) => (prev.some((m) => m.id === sent.id) ? prev : [...prev, sent]));
+      } catch (err) {
+        console.error("Could not send request:", err);
+      }
+    },
+    [currentName],
+  );
+
   const otherRole: MessageRole = currentRole === "admin" ? "patient" : "admin";
 
   const markAsRead = useCallback(async () => {
@@ -94,5 +110,5 @@ export function useChat(
 
   const unreadCount = messages.filter((m) => m.senderRole === otherRole && !m.readAt).length;
 
-  return { messages, sendMessage, markAsRead, unreadCount, loading };
+  return { messages, sendMessage, sendRequest, markAsRead, unreadCount, loading };
 }

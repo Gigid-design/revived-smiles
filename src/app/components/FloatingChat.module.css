@@ -93,6 +93,9 @@
 .drawer {
   width: 100%;
   max-width: var(--app-max);
+  /* Fixed height so the sheet stays put whether it shows the tall chat or a
+     short request form — the form fills it and docks its submit at the base. */
+  height: 85dvh;
   max-height: 85dvh;
   background: #ffffff;
   border-radius: 1.25em 1.25em 0 0;

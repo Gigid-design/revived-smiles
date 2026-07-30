@@ -1,18 +1,18 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useChat } from "../hooks/useChat";
+import type { FormKind } from "./ChatRequestForm";
 import styles from "./ChatPanel.module.css";
 
 /* Same shortcuts as the full /messages chat. The two questions send inline;
-   the form actions route to /messages, which opens the matching form (they
-   need photo upload + the tooth chart, which don't fit this small drawer). */
+   the form actions open the matching form (Materials, Trays, Adjust) via
+   onOpenForm — the host (the Care Team drawer) shows it in place. */
 const QUICK_QUESTIONS = ["Where is my order?", "How do I take my impressions?"];
-const QUICK_FORMS: { label: string; compose: string }[] = [
-  { label: "Materials", compose: "material" },
-  { label: "Trays", compose: "trays" },
-  { label: "Need to adjust my appliance", compose: "adjust" },
+const QUICK_FORMS: { label: string; kind: FormKind }[] = [
+  { label: "Materials", kind: "material" },
+  { label: "Trays", kind: "trays" },
+  { label: "Need to adjust my appliance", kind: "adjust" },
 ];
 
 /** Admin ↔ patient conversation, used by the admin submission console.
@@ -22,6 +22,8 @@ interface ChatPanelProps {
   submissionId: string | null;
   currentRole: "admin" | "patient";
   currentName: string;
+  /** Patient drawer only: open a Materials/Trays/Adjust form in the host. */
+  onOpenForm?: (kind: FormKind) => void;
 }
 
 function formatTime(dateStr: string): string {
@@ -48,13 +50,12 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelProps) {
+export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm }: ChatPanelProps) {
   const { messages, sendMessage, markAsRead, loading } = useChat(
     submissionId,
     currentRole,
     currentName
   );
-  const router = useRouter();
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
@@ -178,10 +179,10 @@ export function ChatPanel({ submissionId, currentRole, currentName }: ChatPanelP
           ))}
           {QUICK_FORMS.map((f) => (
             <button
-              key={f.compose}
+              key={f.kind}
               type="button"
               className={styles.quickChip}
-              onClick={() => router.push(`/messages?compose=${f.compose}`)}
+              onClick={() => onOpenForm?.(f.kind)}
             >
               {f.label}
             </button>
