@@ -52,29 +52,18 @@
   flex-shrink: 0;
 }
 
-/* Selected summary — bg #f3f7ff, h:86px, rounded:12px */
+/* Selected summary — a white floating card with a drop shadow, matching the
+   dashboard card language. */
 .summary {
   display: flex;
   align-items: center;
-  gap: 1em;
-  background: #f3f7ff;
-  border-radius: 0.75em;
-  padding: 0 1em;
+  background: #ffffff;
+  border-radius: 1em;
+  box-shadow: var(--card-shadow);
+  padding: 0 1.25em;
   height: 5.375em;  /* 86px */
   flex-shrink: 0;
   margin-bottom: 1em;
-}
-
-.summaryIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.5em;
-  height: 3.5em;
-  background: #ffffff;
-  border-radius: 0.5em;
-  font-size: 1em;
-  flex-shrink: 0;
 }
 
 .summaryText {
@@ -141,11 +130,11 @@
   background: linear-gradient(90deg, rgba(220,228,240,0) 0%, rgb(220,228,240) 20%, rgb(220,228,240) 80%, rgba(220,228,240,0) 100%);
 }
 
-/* Lower jaw label — sits in the empty middle of the lower arch, which both
-   labels the arch it's inside and keeps it clear of the CONTINUE button. */
+/* Jaw labels — centred in the empty middle of each arch (Upper up top, Lower
+   down low), with the Left/Right labels living in the corners of the chart. */
+.upperLabel,
 .lowerLabel {
   position: absolute;
-  top: 64%;
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--font-heading);
@@ -155,7 +144,11 @@
   color: #8090a8;
   letter-spacing: 1.2px;
   text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
 }
+.upperLabel { top: 32%; }
+.lowerLabel { top: 64%; }
 
 /* Individual tooth button.
    Positioned by its centre and rotated to sit on the arch — the full transform

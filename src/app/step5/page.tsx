@@ -8,91 +8,49 @@ import { useSubmission } from "../context/SubmissionContext";
 import { getBackForTeethChart, getTotalSteps, getStepNumber } from "../context/productConfig";
 import { IntakeHeader } from "../components/IntakeHeader";
 
-/* ── Tooth shape colors ── */
-const DEFAULT = { fill1: "#DCE4F0", fill2: "#E8EEF6", stroke1: "#C8D4E4", stroke2: "#B8C8DC" };
-const SELECTED = { fill1: "#121723", fill2: "#121723", stroke1: "#0a0d16", stroke2: "transparent" };
+/* ── Tooth shape colors — outlined crowns, yellow when selected ── */
+type Palette = { fill: string; stroke: string; groove: string };
+const DEFAULT: Palette  = { fill: "#ffffff", stroke: "#b3bcca", groove: "#c8d0dc" };
+const SELECTED: Palette = { fill: "#FDD33B", stroke: "#E1A70C", groove: "#c1900a" };
 
 /* ── Inline SVG tooth shapes ── */
-function UpperMolar({ sel }: { sel: boolean }) {
-  const c = sel ? SELECTED : DEFAULT;
+/* Occlusal-view crowns traced from the order-form art. The distinctive
+   textures — branching molar grooves, a crescent premolar groove, a canine
+   ridge, and the incisor's double incisal edge — sit toward the crown's
+   biting side (SVG bottom). Lower-arch teeth pass `flip` so that side faces
+   the occlusal plane rather than the gum. */
+function Molar({ c, flip }: { c: Palette; flip?: boolean }) {
   return (
-    <svg width="20" height="30" viewBox="0 0 20 30" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-      <path opacity="0.7" d="M12.5 0H7.5C5.84315 0 4.5 1.34315 4.5 3V5C4.5 6.65685 5.84315 8 7.5 8H12.5C14.1569 8 15.5 6.65685 15.5 5V3C15.5 1.34315 14.1569 0 12.5 0Z" fill={c.fill1}/>
-      <path d="M15 8H5C2.23858 8 0 10.2386 0 13V25C0 27.7614 2.23858 30 5 30H15C17.7614 30 20 27.7614 20 25V13C20 10.2386 17.7614 8 15 8Z" fill={c.fill2} stroke={c.stroke1} strokeWidth="1.5"/>
-      <path d="M10 10V27" stroke={c.stroke2} strokeLinecap="round"/>
+    <svg width="20" height="22" viewBox="0 0 20 22" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible" style={flip ? { transform: "scaleY(-1)" } : undefined}>
+      <path d="M10 1.6C6.3 1.4 2.5 2.6 2 6.4C1.7 9 1.7 13 2 15.6C2.5 19.4 6.3 20.6 10 20.4C13.7 20.6 17.5 19.4 18 15.6C18.3 13 18.3 9 18 6.4C17.5 2.6 13.7 1.4 10 1.6Z" fill={c.fill} stroke={c.stroke} strokeWidth="1.3" strokeLinejoin="round"/>
+      <path d="M10 5.6C9.4 8 10.6 9.4 10 11.4M10 8.4C8 8 6.1 6.9 5.1 5.9M10 8.4C12 8 13.9 6.9 14.9 5.9M10 11.4C8 12.4 6.4 14.3 5.6 16M10 11.4C12 12.4 13.6 14.3 14.4 16" stroke={c.groove} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
 
-function UpperPremolar({ sel }: { sel: boolean }) {
-  const c = sel ? SELECTED : DEFAULT;
+function Premolar({ c, flip }: { c: Palette; flip?: boolean }) {
   return (
-    <svg width="16" height="29" viewBox="0 0 16 29" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-      <path opacity="0.7" d="M9 0H7C5.34315 0 4 1.34315 4 3V7C4 8.65685 5.34315 10 7 10H9C10.6569 10 12 8.65685 12 7V3C12 1.34315 10.6569 0 9 0Z" fill={c.fill1}/>
-      <path d="M11 10H5C2.23858 10 0 12.2386 0 15V24C0 26.7614 2.23858 29 5 29H11C13.7614 29 16 26.7614 16 24V15C16 12.2386 13.7614 10 11 10Z" fill={c.fill2} stroke={c.stroke1} strokeWidth="1.5"/>
-      <path d="M8 12V26" stroke={c.stroke2} strokeLinecap="round"/>
+    <svg width="16" height="22" viewBox="0 0 16 22" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible" style={flip ? { transform: "scaleY(-1)" } : undefined}>
+      <path d="M8 1.6C4.7 1.4 2.1 2.8 1.8 6.2C1.6 9 1.6 13 1.8 15.8C2.1 19.2 4.7 20.6 8 20.4C11.3 20.6 13.9 19.2 14.2 15.8C14.4 13 14.4 9 14.2 6.2C13.9 2.8 11.3 1.4 8 1.6Z" fill={c.fill} stroke={c.stroke} strokeWidth="1.3" strokeLinejoin="round"/>
+      <path d="M4.6 9C6.1 11.6 9.9 11.6 11.4 9M8 10.8V13.8" stroke={c.groove} strokeWidth="1" strokeLinecap="round"/>
     </svg>
   );
 }
 
-function UpperCanine({ sel }: { sel: boolean }) {
-  const c = sel ? SELECTED : DEFAULT;
+function Canine({ c, flip }: { c: Palette; flip?: boolean }) {
   return (
-    <svg width="13" height="33" viewBox="0 0 13 33" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-      <path opacity="0.7" d="M6.75 0H6.25C4.59315 0 3.25 1.34315 3.25 3V9C3.25 10.6569 4.59315 12 6.25 12H6.75C8.40685 12 9.75 10.6569 9.75 9V3C9.75 1.34315 8.40685 0 6.75 0Z" fill={c.fill1}/>
-      <path d="M7 12H6C2.68629 12 0 14.6863 0 18V27C0 30.3137 2.68629 33 6 33H7C10.3137 33 13 30.3137 13 27V18C13 14.6863 10.3137 12 7 12Z" fill={c.fill2} stroke={c.stroke1} strokeWidth="1.5"/>
+    <svg width="13" height="24" viewBox="0 0 13 24" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible" style={flip ? { transform: "scaleY(-1)" } : undefined}>
+      <path d="M6.5 1.3C8.9 1.5 10.6 4.2 10.9 8C11.2 11 11 13.6 10.3 16.2C9.6 19.6 8.2 22.6 6.5 23.4C4.8 22.6 3.4 19.6 2.7 16.2C2 13.6 1.8 11 2.1 8C2.4 4.2 4.1 1.5 6.5 1.3Z" fill={c.fill} stroke={c.stroke} strokeWidth="1.3" strokeLinejoin="round"/>
+      <path d="M6.5 4.5V17.5" stroke={c.groove} strokeWidth="1" strokeLinecap="round"/>
     </svg>
   );
 }
 
-function UpperIncisor({ sel }: { sel: boolean }) {
-  const c = sel ? SELECTED : DEFAULT;
+function Incisor({ c, flip }: { c: Palette; flip?: boolean }) {
   return (
-    <svg width="13" height="30" viewBox="0 0 13 30" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-      <path opacity="0.7" d="M6.75 0H6.25C4.59315 0 3.25 1.34315 3.25 3V9C3.25 10.6569 4.59315 12 6.25 12H6.75C8.40685 12 9.75 10.6569 9.75 9V3C9.75 1.34315 8.40685 0 6.75 0Z" fill={c.fill1}/>
-      <path d="M7 12H6C2.68629 12 0 14.6863 0 18V24C0 27.3137 2.68629 30 6 30H7C10.3137 30 13 27.3137 13 24V18C13 14.6863 10.3137 12 7 12Z" fill={c.fill2} stroke={c.stroke1} strokeWidth="1.5"/>
-    </svg>
-  );
-}
-
-function LowerMolar({ sel }: { sel: boolean }) {
-  const c = sel ? SELECTED : DEFAULT;
-  return (
-    <svg width="20" height="30" viewBox="0 0 20 30" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-      <path opacity="0.7" d="M12.5 22H7.5C5.84315 22 4.5 23.3431 4.5 25V27C4.5 28.6569 5.84315 30 7.5 30H12.5C14.1569 30 15.5 28.6569 15.5 27V25C15.5 23.3431 14.1569 22 12.5 22Z" fill={c.fill1}/>
-      <path d="M15 0H5C2.23858 0 0 2.23858 0 5V17C0 19.7614 2.23858 22 5 22H15C17.7614 22 20 19.7614 20 17V5C20 2.23858 17.7614 0 15 0Z" fill={c.fill2} stroke={c.stroke1} strokeWidth="1.5"/>
-      <path d="M10 2V19" stroke={c.stroke2} strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function LowerPremolar({ sel }: { sel: boolean }) {
-  const c = sel ? SELECTED : DEFAULT;
-  return (
-    <svg width="16" height="29" viewBox="0 0 16 29" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-      <path opacity="0.7" d="M9 19H7C5.34315 19 4 20.3431 4 22V26C4 27.6569 5.34315 29 7 29H9C10.6569 29 12 27.6569 12 26V22C12 20.3431 10.6569 19 9 19Z" fill={c.fill1}/>
-      <path d="M11 0H5C2.23858 0 0 2.23858 0 5V14C0 16.7614 2.23858 19 5 19H11C13.7614 19 16 16.7614 16 14V5C16 2.23858 13.7614 0 11 0Z" fill={c.fill2} stroke={c.stroke1} strokeWidth="1.5"/>
-      <path d="M8 2V16" stroke={c.stroke2} strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function LowerCanine({ sel }: { sel: boolean }) {
-  const c = sel ? SELECTED : DEFAULT;
-  return (
-    <svg width="13" height="33" viewBox="0 0 13 33" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-      <path opacity="0.7" d="M6.75 21H6.25C4.59315 21 3.25 22.3431 3.25 24V30C3.25 31.6569 4.59315 33 6.25 33H6.75C8.40685 33 9.75 31.6569 9.75 30V24C9.75 22.3431 8.40685 21 6.75 21Z" fill={c.fill1}/>
-      <path d="M7 0H6C2.68629 0 0 2.68629 0 6V15C0 18.3137 2.68629 21 6 21H7C10.3137 21 13 18.3137 13 15V6C13 2.68629 10.3137 0 7 0Z" fill={c.fill2} stroke={c.stroke1} strokeWidth="1.5"/>
-    </svg>
-  );
-}
-
-function LowerIncisor({ sel }: { sel: boolean }) {
-  const c = sel ? SELECTED : DEFAULT;
-  return (
-    <svg width="13" height="30" viewBox="0 0 13 30" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-      <path opacity="0.7" d="M6.75 18H6.25C4.59315 18 3.25 19.3431 3.25 21V27C3.25 28.6569 4.59315 30 6.25 30H6.75C8.40685 30 9.75 28.6569 9.75 27V21C9.75 19.3431 8.40685 18 6.75 18Z" fill={c.fill1}/>
-      <path d="M7 0H6C2.68629 0 0 2.68629 0 6V12C0 15.3137 2.68629 18 6 18H7C10.3137 18 13 15.3137 13 12V6C13 2.68629 10.3137 0 7 0Z" fill={c.fill2} stroke={c.stroke1} strokeWidth="1.5"/>
+    <svg width="13" height="22" viewBox="0 0 13 22" fill="none" xmlns="http://www.w3.org/2000/svg" overflow="visible" style={flip ? { transform: "scaleY(-1)" } : undefined}>
+      <path d="M6.5 1.4C4 1.4 2.4 3 2 6C1.6 9 1.6 12.6 2.3 15.6C2.9 18.4 4.4 20.4 6.5 20.4C8.6 20.4 10.1 18.4 10.7 15.6C11.4 12.6 11.4 9 11 6C10.6 3 9 1.4 6.5 1.4Z" fill={c.fill} stroke={c.stroke} strokeWidth="1.3" strokeLinejoin="round"/>
+      <path d="M3.3 16.2C5.1 18.6 7.9 18.6 9.7 16.2M3.9 17.9C5.4 19.8 7.6 19.8 9.1 17.9" stroke={c.groove} strokeWidth="0.9" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -105,7 +63,6 @@ interface ToothDef { num: number; shape: ToothShape; w: number; }
    runs 17–32 the same way — the mapping the flat chart already used, kept
    unchanged so a given tooth still means the same tooth. */
 const UPPER: ToothDef[] = [
-  { num: 1,  shape: "molar",    w: 20 },
   { num: 2,  shape: "molar",    w: 20 },
   { num: 3,  shape: "molar",    w: 20 },
   { num: 4,  shape: "premolar", w: 16 },
@@ -120,7 +77,6 @@ const UPPER: ToothDef[] = [
   { num: 13, shape: "premolar", w: 16 },
   { num: 14, shape: "molar",    w: 20 },
   { num: 15, shape: "molar",    w: 20 },
-  { num: 16, shape: "molar",    w: 20 },
 ];
 
 const LOWER: ToothDef[] = UPPER.map((t) => ({ ...t, num: t.num + 16 }));
@@ -271,17 +227,18 @@ function layOutArch(defs: ToothDef[], jaw: "upper" | "lower"): PlacedTooth[] {
 const UPPER_ARCH = layOutArch(UPPER, "upper");
 const LOWER_ARCH = layOutArch(LOWER, "lower");
 
-const UPPER_SVG: Record<ToothShape, (s: boolean) => React.ReactElement> = {
-  molar:    (s) => <UpperMolar    sel={s} />,
-  premolar: (s) => <UpperPremolar sel={s} />,
-  canine:   (s) => <UpperCanine   sel={s} />,
-  incisor:  (s) => <UpperIncisor  sel={s} />,
+const UPPER_SVG: Record<ToothShape, (c: Palette) => React.ReactElement> = {
+  molar:    (c) => <Molar    c={c} />,
+  premolar: (c) => <Premolar c={c} />,
+  canine:   (c) => <Canine   c={c} />,
+  incisor:  (c) => <Incisor  c={c} />,
 };
-const LOWER_SVG: Record<ToothShape, (s: boolean) => React.ReactElement> = {
-  molar:    (s) => <LowerMolar    sel={s} />,
-  premolar: (s) => <LowerPremolar sel={s} />,
-  canine:   (s) => <LowerCanine   sel={s} />,
-  incisor:  (s) => <LowerIncisor  sel={s} />,
+/* Lower teeth are the same crowns flipped, so their biting side faces up. */
+const LOWER_SVG: Record<ToothShape, (c: Palette) => React.ReactElement> = {
+  molar:    (c) => <Molar    c={c} flip />,
+  premolar: (c) => <Premolar c={c} flip />,
+  canine:   (c) => <Canine   c={c} flip />,
+  incisor:  (c) => <Incisor  c={c} flip />,
 };
 
 function ToothButton({ tooth, jaw, selected, onToggle }: {
@@ -303,7 +260,7 @@ function ToothButton({ tooth, jaw, selected, onToggle }: {
         }}
         onClick={() => onToggle(tooth.num)}
       >
-        {svgFn(selected)}
+        {svgFn(selected ? SELECTED : DEFAULT)}
       </button>
 
       {/* Outside the button and never rotated, so the numbers stay upright and
@@ -385,12 +342,11 @@ export default function Step5() {
       <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Tooth Chart</h1>
         <p className={styles.cardSubtitle}>
-          Tap teeth that need attention or have existing work (crowns, implants, missing)
+          Select missing teeth you would like to replace.
         </p>
 
         {/* Selected summary */}
         <div className={styles.summary}>
-          <div className={styles.summaryIcon}>🦷</div>
           <div className={styles.summaryText}>
             <span className={styles.summaryTitle}>{summaryTitle()}</span>
             <span className={styles.summarySubtitle}>{summarySubtitle()}</span>
@@ -400,19 +356,20 @@ export default function Step5() {
         {/* Tooth chart */}
         <div className={styles.chartWrap} aria-label="Tooth chart">
           <div className={styles.chartLabels}>
-            <span className={styles.chartLabel}>Upper jaw</span>
-            <span className={styles.chartLabel}>Right ←</span>
+            <span className={styles.chartLabel}>Left</span>
+            <span className={styles.chartLabel}>Right</span>
           </div>
           <div className={styles.chart} style={{ height: CHART_HEIGHT }}>
+            <span className={styles.upperLabel}>Upper Jaw</span>
             {UPPER_ARCH.map(t => <ToothButton key={t.num} tooth={t} jaw="upper" selected={selectedTeeth.has(t.num)} onToggle={toggleTooth} />)}
             <div className={styles.chartDivider} />
             {LOWER_ARCH.map(t => <ToothButton key={t.num} tooth={t} jaw="lower" selected={selectedTeeth.has(t.num)} onToggle={toggleTooth} />)}
-            <span className={styles.lowerLabel}>Lower jaw</span>
+            <span className={styles.lowerLabel}>Lower Jaw</span>
           </div>
           <div className={styles.legend}>
-            <span className={styles.legendDot} style={{ background: "#e8eef6", border: "1px solid #c8d4e4" }} />
+            <span className={styles.legendDot} style={{ background: "#ffffff", border: "1px solid #b3bcca" }} />
             <span className={styles.legendText}>Healthy</span>
-            <span className={styles.legendDot} style={{ background: "#121723" }} />
+            <span className={styles.legendDot} style={{ background: "#FDD33B", border: "1px solid #E1A70C" }} />
             <span className={styles.legendText}>Selected</span>
           </div>
         </div>
