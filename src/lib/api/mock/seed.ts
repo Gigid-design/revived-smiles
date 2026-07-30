@@ -37,7 +37,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 14;
+export const SEED_VERSION = 15;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -565,12 +565,12 @@ export function buildSeed(): MockDb {
       "/assets/images/open-bite-left.png",
       "/assets/images/close-bite-right.png",
     ],
-    /* Clean tray illustrations (no success checkmark overlay). */
+    /* The real impression photo on file, minus the green success overlay. */
     impressionPhotos: [
-      "/assets/images/imp-tray-upper-1.svg",
-      "/assets/images/imp-tray-upper-2.svg",
-      "/assets/images/imp-tray-lower.svg",
-      "/assets/images/imp-tray-upper.svg",
+      "/assets/images/impression-photo.svg",
+      "/assets/images/impression-photo.svg",
+      "/assets/images/impression-photo.svg",
+      "/assets/images/impression-photo.svg",
     ],
     status: "approved",
     reviewedBy: CARE_TEAM_NAME,

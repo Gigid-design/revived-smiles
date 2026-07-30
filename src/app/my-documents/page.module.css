@@ -135,12 +135,6 @@
   border: 1px solid #eceef3;
 }
 
-/* Impression trays are illustrations, not photos — show them whole. */
-.photoThumbContain {
-  padding: 4px;
-  background: #f7f9fc;
-}
-
 .photoCaption {
   font-family: var(--font-heading);
   font-weight: 600;
