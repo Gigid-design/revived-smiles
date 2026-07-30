@@ -17,6 +17,8 @@ interface InfoRow {
 interface PhotoItem {
   src: string;
   caption: string;
+  /** Impression trays are illustrations — show them whole rather than cropped. */
+  contain?: boolean;
 }
 
 export default function MyDocumentsPage() {
@@ -65,7 +67,7 @@ export default function MyDocumentsPage() {
           .map((src, i) => ({ src, caption: teethLabels[i] }))
           .filter((p): p is PhotoItem => Boolean(p.src)),
         ...(order.impressionPhotos ?? [])
-          .map((src, i) => ({ src, caption: impressionLabels[i] ?? `Impression ${i + 1}` }))
+          .map((src, i) => ({ src, caption: impressionLabels[i] ?? `Impression ${i + 1}`, contain: true }))
           .filter((p): p is PhotoItem => Boolean(p.src)),
       ]
     : [];
@@ -117,8 +119,8 @@ export default function MyDocumentsPage() {
                 <div className={styles.photoGrid}>
                   {photos.map((p, i) => (
                     <figure key={`${p.src}-${i}`} className={styles.photoCell}>
-                      <span className={styles.photoThumb}>
-                        <Image src={p.src} alt={p.caption} fill sizes="90px" style={{ objectFit: "cover" }} />
+                      <span className={`${styles.photoThumb} ${p.contain ? styles.photoThumbContain : ""}`}>
+                        <Image src={p.src} alt={p.caption} fill sizes="44px" style={{ objectFit: p.contain ? "contain" : "cover" }} />
                       </span>
                       <figcaption className={styles.photoCaption}>{p.caption}</figcaption>
                     </figure>

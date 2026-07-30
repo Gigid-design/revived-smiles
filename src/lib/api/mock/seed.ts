@@ -37,7 +37,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 13;
+export const SEED_VERSION = 14;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -523,13 +523,14 @@ export function buildSeed(): MockDb {
     orderNumber: "#0987",
     products: ["nightguard"],
     /* The four teeth photos the intake flow actually captures:
-       [Front — teeth closed, Mouth open] then [Left side, Right side]. */
+       [Front — teeth closed, Mouth open] then [Left side, Right side].
+       Clean shots only — no captions or badges burned into the image. */
     closeBitePhotos: [
       "/assets/images/close-bite-front.png",
       "/assets/images/open-bite-front.png",
     ],
     openBitePhotos: [
-      "/assets/images/close-bite-left.png",
+      "/assets/images/open-bite-left.png",
       "/assets/images/close-bite-right.png",
     ],
     status: "completed",
@@ -554,16 +555,23 @@ export function buildSeed(): MockDb {
     gumShade: "G3",
     selectedTeeth: [12, 13, 14],
     /* The four teeth photos the intake flow actually captures:
-       [Front — teeth closed, Mouth open] then [Left side, Right side]. */
+       [Front — teeth closed, Mouth open] then [Left side, Right side].
+       Clean shots only — no captions or badges burned into the image. */
     closeBitePhotos: [
       "/assets/images/close-bite-front.png",
       "/assets/images/open-bite-front.png",
     ],
     openBitePhotos: [
-      "/assets/images/close-bite-left.png",
+      "/assets/images/open-bite-left.png",
       "/assets/images/close-bite-right.png",
     ],
-    impressionPhotos: [DEMO_IMPRESSION_PHOTO, DEMO_IMPRESSION_PHOTO, DEMO_IMPRESSION_PHOTO, DEMO_IMPRESSION_PHOTO],
+    /* Clean tray illustrations (no success checkmark overlay). */
+    impressionPhotos: [
+      "/assets/images/imp-tray-upper-1.svg",
+      "/assets/images/imp-tray-upper-2.svg",
+      "/assets/images/imp-tray-lower.svg",
+      "/assets/images/imp-tray-upper.svg",
+    ],
     status: "approved",
     reviewedBy: CARE_TEAM_NAME,
     reviewedAt: daysAgo(2),
