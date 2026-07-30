@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 import styles from "./page.module.css";
 import { FlowSupport } from "../components/FlowSupport";
@@ -111,36 +112,41 @@ export default function ProductStep() {
           {!loading && product && (
             <>
               {/* Read-only: this is a statement of what was ordered. */}
-              <div className={styles.orderCard}>
-                <div className={styles.orderCardHead}>
-                  <span className={styles.orderProduct}>{productLabel(product)}</span>
-                  <span className={styles.orderLock} aria-hidden="true">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="4" y="10.5" width="16" height="10" rx="2.5" />
-                      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
-                    </svg>
-                  </span>
-                </div>
-
-                {config && <p className={styles.orderDescription}>{config.description}</p>}
-
-                <div className={styles.orderMeta}>
-                  {config && <span className={styles.orderBadge}>{CATEGORY_LABELS[config.category]}</span>}
-                  {orderNumber && (
-                    <span className={styles.orderRef}>From your order {orderNumber}</span>
-                  )}
-                </div>
-
-                {openFlag && (
-                  <span className={styles.orderFlagChip}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M12 7.5v5l3 1.8" />
-                    </svg>
-                    We&apos;re checking this for you
-                  </span>
-                )}
+              {/* Product hero — the ordered item, floating on a soft tint. */}
+              <div className={styles.productHero}>
+                <Image
+                  src="/assets/images/product-denture.jpg"
+                  alt={productLabel(product)}
+                  width={600}
+                  height={600}
+                  className={styles.productHeroImg}
+                  sizes="(max-width: 520px) 100vw, 520px"
+                  priority
+                />
               </div>
+
+              <div className={styles.productInfo}>
+                {config && <span className={styles.productCategory}>{CATEGORY_LABELS[config.category]}</span>}
+                <h2 className={styles.productName}>{productLabel(product)}</h2>
+                {config && <p className={styles.productDesc}>{config.description}</p>}
+              </div>
+
+              {orderNumber && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Your order</span>
+                  <span className={styles.detailValue}>{orderNumber}</span>
+                </div>
+              )}
+
+              {openFlag && (
+                <span className={styles.orderFlagChip}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7.5v5l3 1.8" />
+                  </svg>
+                  We&apos;re checking this for you
+                </span>
+              )}
 
               <p className={styles.orderNote}>
                 This comes from the order you placed, so it can&apos;t be changed here.
