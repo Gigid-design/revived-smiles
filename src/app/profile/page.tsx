@@ -149,6 +149,18 @@ export default function ProfilePage() {
 
             {/* Actions */}
             <div className={styles.actionsSection}>
+              <Link href="/my-documents" className={styles.actionRow}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                  <path d="M14 3v5h5" />
+                  <path d="M9 13h6M9 17h4" />
+                </svg>
+                <span>My Documents</span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className={styles.chevron}>
+                  <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
+
               <a href="mailto:support@revivedsmiles.com" className={styles.actionRow}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
