@@ -43,11 +43,22 @@ export default function MyDocumentsPage() {
     return () => { cancelled = true; };
   }, []);
 
+  /* The tooth-chart selection from intake (step 5): which missing teeth the
+     customer asked us to replace, or "Not sure" if they weren't certain. */
+  const teethToReplace = order
+    ? order.teethNotSure
+      ? "Not sure"
+      : order.selectedTeeth.length
+        ? [...order.selectedTeeth].sort((a, b) => a - b).join(", ")
+        : null
+    : null;
+
   const rows: InfoRow[] = order
     ? [
         { label: "Name", value: order.name },
         { label: "State", value: order.state },
         { label: "Ordered product", value: order.products.length ? productLabels(order.products) : null },
+        { label: "Teeth to replace", value: teethToReplace },
         { label: "Tooth shade", value: order.whiteShade },
         { label: "Gum shade", value: order.gumShade },
       ].filter((r) => r.value)
