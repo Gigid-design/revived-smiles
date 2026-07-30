@@ -1,0 +1,233 @@
+/* Print-ready invoice / prescription document. */
+.screen {
+  min-height: 100dvh;
+  background: #eef1f6;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toolbar {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.toolBtn {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #0e1b4d;
+  background: #ffffff;
+  border: 1px solid #dfe3ec;
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.toolBtnPrimary {
+  background: #0e1b4d;
+  color: #ffffff;
+  border-color: #0e1b4d;
+}
+
+.loading {
+  color: #6b7280;
+  font-family: var(--font-heading);
+  padding: 2rem;
+}
+
+/* The printable sheet */
+.sheet {
+  width: 100%;
+  max-width: 640px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(14, 27, 77, 0.1);
+  padding: 40px 44px;
+  color: #1a2233;
+  font-family: var(--font-body);
+}
+
+.docHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding-bottom: 22px;
+  border-bottom: 2px solid #0e1b4d;
+}
+
+.brand {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #0e1b4d;
+  margin: 0 0 6px;
+}
+.brandMeta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.docTitleBlock {
+  text-align: right;
+  flex-shrink: 0;
+}
+.docType {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #0e1b4d;
+  margin: 0 0 6px;
+}
+.docNo { margin: 0; font-size: 0.875rem; color: #1a2233; font-weight: 600; }
+.docDate { margin: 2px 0 0; font-size: 0.8125rem; color: #6b7280; }
+
+.parties {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 24px 0;
+}
+.partyRight { text-align: right; }
+.partyLabel {
+  margin: 0 0 6px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9aa1b1;
+}
+.partyName { margin: 0; font-weight: 600; font-size: 0.9375rem; color: #1a2233; }
+.partyMeta { margin: 2px 0 0; font-size: 0.8125rem; color: #6b7280; }
+
+/* Invoice table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 6px;
+}
+.thLeft, .thRight {
+  font-family: var(--font-heading);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9aa1b1;
+  padding: 10px 0;
+  border-bottom: 1px solid #e6e9f0;
+}
+.thLeft { text-align: left; }
+.thRight { text-align: right; }
+.tdLeft, .tdRight {
+  padding: 14px 0;
+  font-size: 0.9375rem;
+  border-bottom: 1px solid #f0f2f6;
+}
+.tdLeft { text-align: left; color: #1a2233; }
+.tdRight { text-align: right; color: #1a2233; font-variant-numeric: tabular-nums; }
+
+.totalLabel {
+  padding: 16px 0 0;
+  text-align: left;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1rem;
+  color: #0e1b4d;
+}
+.totalValue {
+  padding: 16px 0 0;
+  text-align: right;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1rem;
+  color: #0e1b4d;
+  font-variant-numeric: tabular-nums;
+}
+
+.paidBadge {
+  display: inline-block;
+  margin: 18px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1f7a4d;
+  background: #e6f6ec;
+  border-radius: 6px;
+  padding: 5px 12px;
+}
+
+/* Prescription specs */
+.specs { margin: 6px 0 0; }
+.specRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 13px 0;
+  border-bottom: 1px solid #f0f2f6;
+}
+.specLabel { font-size: 0.875rem; color: #6b7280; }
+.specValue {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: #1a2233;
+  text-align: right;
+}
+
+.legal {
+  margin: 22px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: #6b7280;
+}
+
+.signature {
+  margin-top: 34px;
+  padding-top: 14px;
+  border-top: 1px solid #e6e9f0;
+  max-width: 260px;
+}
+.sigName {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: #0e1b4d;
+}
+.sigMeta { margin: 3px 0 0; font-size: 0.8125rem; color: #6b7280; }
+
+.footerLink { margin: 0; }
+
+/* ── Narrow screens: stack the header so the doc title never clips.
+   (Print uses the page width, not the phone width, so it keeps two columns.) ── */
+@media (max-width: 480px) {
+  .sheet { padding: 28px 24px; }
+  .brand { font-size: 1.25rem; }
+  .docHeader { flex-direction: column; gap: 14px; }
+  .docTitleBlock { text-align: left; }
+  .brandMeta { word-break: break-word; }
+}
+
+/* ── Print: show only the sheet, edge to edge ── */
+@media print {
+  .screen { background: #ffffff; padding: 0; }
+  .toolbar, .footerLink { display: none; }
+  .sheet {
+    max-width: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+  }
+}

@@ -5,6 +5,9 @@ export interface ProductConfig {
   needsShade: boolean;
   needsTeethChart: boolean;
   category: "partial-denture" | "full-denture" | "veneer" | "retainer" | "guard";
+  /** Retail price in USD cents, used on the invoice/receipt document.
+   *  NOTE: these are PLACEHOLDERS — set your real prices here. */
+  priceCents: number;
 }
 
 export const PRODUCTS: ProductConfig[] = [
@@ -16,6 +19,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsShade: true,
     needsTeethChart: true,
     category: "partial-denture",
+    priceCents: 45000,
   },
   {
     id: "acrylic-partial",
@@ -25,6 +29,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsShade: true,
     needsTeethChart: true,
     category: "partial-denture",
+    priceCents: 28000,
   },
   {
     id: "unilateral-partial",
@@ -34,6 +39,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsShade: true,
     needsTeethChart: true,
     category: "partial-denture",
+    priceCents: 39000,
   },
   {
     id: "clear-partial",
@@ -43,6 +49,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsShade: false,
     needsTeethChart: true,
     category: "partial-denture",
+    priceCents: 42000,
   },
   {
     id: "full-denture",
@@ -52,6 +59,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsShade: true,
     needsTeethChart: false,
     category: "full-denture",
+    priceCents: 65000,
   },
   {
     id: "retainer",
@@ -61,6 +69,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsShade: false,
     needsTeethChart: false,
     category: "retainer",
+    priceCents: 12000,
   },
   {
     id: "nightguard",
@@ -70,6 +79,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsShade: false,
     needsTeethChart: false,
     category: "guard",
+    priceCents: 12000,
   },
   {
     id: "sports-mouthguard",
@@ -79,6 +89,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsShade: false,
     needsTeethChart: false,
     category: "guard",
+    priceCents: 9900,
   },
   {
     id: "revived-veneers",
@@ -88,6 +99,7 @@ export const PRODUCTS: ProductConfig[] = [
     needsShade: true,
     needsTeethChart: false,
     category: "veneer",
+    priceCents: 35000,
   },
 ];
 
@@ -109,6 +121,21 @@ export function productLabel(slug: string): string {
 /** Comma-separated product names, for a submission's `products` array. */
 export function productLabels(slugs: string[]): string {
   return slugs.map(productLabel).join(", ");
+}
+
+/** Retail price for a product slug, in USD cents (0 if unknown). */
+export function productPriceCents(slug: string): number {
+  return PRODUCTS.find((p) => p.id === slug)?.priceCents ?? 0;
+}
+
+/** Line-item price sum for a submission's `products`, in USD cents. */
+export function productsSubtotalCents(slugs: string[]): number {
+  return slugs.reduce((sum, s) => sum + productPriceCents(s), 0);
+}
+
+/** Format USD cents as e.g. "$450.00". */
+export function formatUsd(cents: number): string {
+  return (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
 /** Given a product ID, return the route after the product selection screen (/intake). */

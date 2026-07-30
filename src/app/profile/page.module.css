@@ -152,6 +152,53 @@
   white-space: nowrap;
 }
 
+/* ── Document downloads (inside Account Details) ── */
+.docDownloads {
+  margin-top: 0.75em;
+  padding-top: 0.875em;
+  border-top: 1px solid #f0f1f5;
+}
+
+.docDownloadsTitle {
+  margin: 0 0 0.5em;
+  font-family: var(--font-heading);
+  font-size: 0.75em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #9aa1b1;
+}
+
+.downloadRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625em;
+  padding: 0.6em 0;
+  text-decoration: none;
+  color: #0e1b4d;
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  font-weight: 600;
+}
+
+.downloadHint {
+  margin-left: auto;
+  font-size: 0.6875em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #7a8095;
+  background: #f1f2f6;
+  border-radius: 5px;
+  padding: 2px 7px;
+}
+
+.docDownloadsEmpty {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 0.8125em;
+  color: #8a8a8a;
+}
+
 /* ── Actions section ── */
 .actionsSection {
   display: flex;

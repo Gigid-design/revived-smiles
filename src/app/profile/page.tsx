@@ -4,9 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { api } from "@/lib/api";
-import type { Submission } from "@/lib/api";
+import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { productLabels } from "@/app/context/productConfig";
+
+/* An order has an issuable invoice + prescription once it's been reviewed. */
+const REVIEWED_STATUSES: SubmissionStatus[] = ["approved", "in_fabrication", "shipped", "completed"];
 
 function formatProductLabel(products: string[]): string {
   if (!products?.length) return "—";
@@ -24,6 +27,7 @@ function formatDate(dateStr: string | null): string {
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Submission | null>(null);
+  const [docOrder, setDocOrder] = useState<Submission | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
@@ -43,6 +47,13 @@ export default function ProfilePage() {
 
         const mine = await api.submissions.getMine();
         if (!cancelled && mine) setProfile(mine);
+
+        /* Invoice + prescription are issued against the most recent reviewed
+           order, so the downloads always point at a real, finalized record. */
+        const all = await api.submissions.listMine();
+        if (!cancelled) {
+          setDocOrder(all.find((o) => REVIEWED_STATUSES.includes(o.status)) ?? null);
+        }
       } catch (err) {
         console.error("Failed to load profile:", err);
       } finally {
@@ -144,6 +155,33 @@ export default function ProfilePage() {
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>Member since</span>
                 <span className={styles.infoValue}>{formatDate(profile?.createdAt ?? null)}</span>
+              </div>
+
+              {/* Downloadable documents for HSA / FSA / insurance reimbursement. */}
+              <div className={styles.docDownloads}>
+                <p className={styles.docDownloadsTitle}>Documents for HSA, FSA &amp; insurance</p>
+                {docOrder ? (
+                  <>
+                    <Link href={`/documents?id=${docOrder.id}&type=invoice`} className={styles.downloadRow}>
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M12 18v-6M9 15l3 3 3-3" />
+                      </svg>
+                      <span>Download invoice</span>
+                      <span className={styles.downloadHint}>PDF</span>
+                    </Link>
+                    <Link href={`/documents?id=${docOrder.id}&type=prescription`} className={styles.downloadRow}>
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M12 18v-6M9 15l3 3 3-3" />
+                      </svg>
+                      <span>Download prescription</span>
+                      <span className={styles.downloadHint}>PDF</span>
+                    </Link>
+                  </>
+                ) : (
+                  <p className={styles.docDownloadsEmpty}>
+                    Available once your order has been reviewed.
+                  </p>
+                )}
               </div>
             </div>
 
