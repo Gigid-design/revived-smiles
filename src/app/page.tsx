@@ -64,10 +64,10 @@ export default function Home() {
     }
     setError(null);
 
-    // Carry the email forward; the temporary password is created on the next
-    // screen, which is where the account is actually set up.
+    // Carry the email forward; the next screen verifies the 6-digit code we
+    // "send" to this address, which is where the session is established.
     update({ email: emailValue });
-    animateOut("/create-password");
+    animateOut("/verify-code");
   });
 
   return (
