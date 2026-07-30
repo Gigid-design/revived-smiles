@@ -36,7 +36,7 @@
   position: absolute;
   left: 1rem;
   right: 1rem;
-  top: 21rem;
+  top: 25rem;
   bottom: 0;
   border-radius: 2rem 2rem 0 0;
   overflow: hidden;
@@ -131,26 +131,28 @@
 .confettiPiece {
   position: absolute;
   top: -8%;
-  width: 9px;
-  height: 14px;
-  border-radius: 2px;
+  width: 5px;
+  height: 11px;
+  border-radius: 1px;
   opacity: 0;
   will-change: transform, opacity;
   animation-name: confettiFall;
-  animation-timing-function: ease-in;
+  animation-timing-function: cubic-bezier(0.33, 0, 0.4, 1);
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
 }
 .confettiRound {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
 }
 
+/* Gentle, drifting tumble (per-piece --drift / --spin) for a refined,
+   less bouncy fall. */
 @keyframes confettiFall {
-  0%   { transform: translateY(0) rotate(0deg);      opacity: 0; }
-  8%   { opacity: 1; }
-  100% { transform: translateY(112vh) rotate(720deg); opacity: 0.9; }
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.9; }
+  100% { transform: translate(var(--drift, 0px), 112vh) rotate(var(--spin, 460deg)); opacity: 0.8; }
 }
 
 @media (prefers-reduced-motion: reduce) {

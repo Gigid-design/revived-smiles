@@ -7,13 +7,15 @@ import styles from "./page.module.css";
 /* Deterministic confetti pieces — values derived from the index (not
    Math.random) so server and client render identically (no hydration
    mismatch). Colours are the brand palette. */
-const CONFETTI_COLORS = ["#FDD33B", "#C6DCFE", "#0E184D", "#10b981", "#ffffff"];
+const CONFETTI_COLORS = ["#F5C24C", "#AFC9F2", "#0E184D", "#E58F8F", "#8FD0C2", "#ffffff"];
 const CONFETTI = Array.from({ length: 32 }, (_, i) => ({
   left: (i * 173) % 100,                 // spread across the width
   delay: (i % 8) * 0.18,                 // staggered start
-  duration: 2.6 + (i % 5) * 0.35,        // varied fall speed
+  duration: 2.8 + (i % 5) * 0.4,         // varied fall speed
   color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
   round: i % 3 === 0,                    // mix rounds and rectangles
+  drift: ((i % 5) - 2) * 16,             // -32..32px lateral sway
+  spin: 320 + (i % 4) * 80,              // 320..560deg gentle tumble
 }));
 
 export default function Complete() {
@@ -32,6 +34,8 @@ export default function Complete() {
               backgroundColor: c.color,
               animationDelay: `${c.delay}s`,
               animationDuration: `${c.duration}s`,
+              ["--drift" as string]: `${c.drift}px`,
+              ["--spin" as string]: `${c.spin}deg`,
             }}
           />
         ))}

@@ -134,7 +134,7 @@
   scrollbar-width: none;
   display: flex;
   flex-direction: column;
-  padding: 2.875em 1.25em 10em 1.25em;
+  padding: 2.25em 1.25em 10em 1.25em;
 }
 .card::-webkit-scrollbar { display: none;
 }
@@ -211,7 +211,7 @@
 .viewfinder {
   position: relative;
   flex-shrink: 0;
-  height: 24.4375em;/* 391px */
+  height: 19em;/* 304px */
   border-radius: 2em;
   border: 2px solid rgba(255, 255, 255, 0.65);
   background: linear-gradient(140.7deg, rgba(155,195,235,0.45) 0%, rgba(130,175,225,0.55) 60%, rgba(160,200,230,0.4) 100%);
@@ -669,7 +669,7 @@
      collides with the shutter or gets clipped by the bottom fade. */
   position: absolute;
   left: 50%;
-  bottom: 13.5em;
+  bottom: 10.75em;
   transform: translateX(-50%);
   z-index: 7;
   display: flex;

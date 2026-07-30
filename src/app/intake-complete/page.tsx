@@ -6,14 +6,17 @@ import Link from "next/link";
    screens are visually identical — one source of truth for the treatment. */
 import styles from "../complete/page.module.css";
 
-/* Deterministic confetti (index-derived, no Math.random) — matches /complete. */
-const CONFETTI_COLORS = ["#FDD33B", "#C6DCFE", "#0E184D", "#10b981", "#ffffff"];
+/* Deterministic confetti (index-derived, no Math.random) — matches /complete.
+   Muted, harmonious palette + fine ribbon pieces for a refined, Apple-like feel. */
+const CONFETTI_COLORS = ["#F5C24C", "#AFC9F2", "#0E184D", "#E58F8F", "#8FD0C2", "#ffffff"];
 const CONFETTI = Array.from({ length: 32 }, (_, i) => ({
   left: (i * 173) % 100,
   delay: (i % 8) * 0.18,
-  duration: 2.6 + (i % 5) * 0.35,
+  duration: 2.8 + (i % 5) * 0.4,
   color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
   round: i % 3 === 0,
+  drift: ((i % 5) - 2) * 16,   /* -32..32px lateral sway */
+  spin: 320 + (i % 4) * 80,    /* 320..560deg gentle tumble */
 }));
 
 /** Shown once the intake form and all four teeth photos are done.
@@ -34,6 +37,8 @@ export default function IntakeComplete() {
               backgroundColor: c.color,
               animationDelay: `${c.delay}s`,
               animationDuration: `${c.duration}s`,
+              ["--drift" as string]: `${c.drift}px`,
+              ["--spin" as string]: `${c.spin}deg`,
             }}
           />
         ))}
@@ -58,15 +63,6 @@ export default function IntakeComplete() {
           sizes="432px"
         />
       </div>
-
-      {/* Progress bar — all segments filled */}
-      <svg className={styles.progressBar} viewBox="0 0 395 5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Intake complete" role="progressbar">
-        <rect x="0"   width="23"  height="5" rx="2.5" fill="#0E184D"/>
-        <rect x="31"  width="23"  height="5" rx="2.5" fill="#0E184D"/>
-        <rect x="62"  width="23"  height="5" rx="2.5" fill="#0E184D"/>
-        <rect x="93"  width="302" height="5" rx="2.5" fill="white"/>
-        <rect x="93"  width="302" height="5" rx="2.5" fill="#0E184D"/>
-      </svg>
 
       <div className={styles.card} id="main-content">
         <Image
