@@ -187,11 +187,11 @@ function Landing() {
             style={{ objectFit: "contain", objectPosition: "left center" }}
             sizes="120px"
           />
-          <Link href="/profile" className={styles.profileBtn} aria-label="Your profile">
+          <Link href="/profile" className={styles.profileBtn} aria-label="Your account">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
               <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2.2c-4.4 0-8 2.6-8 5.8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.2-3.6-5.8-8-5.8z" />
             </svg>
-            <span className={styles.profileLabel}>Profile</span>
+            <span className={styles.profileLabel}>Account</span>
           </Link>
         </div>
 

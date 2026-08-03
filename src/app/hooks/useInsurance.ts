@@ -43,10 +43,16 @@ export function applyInsurancePreview(record: Insurance | null): Insurance | nul
 
   switch (new URLSearchParams(window.location.search).get("insurance")) {
     case "insured":
-      return { ...record, ...INSURED_FIELDS, claim: null };
+      return { ...record, ...INSURED_FIELDS, claim: null, nextClaimEligibleAt: null };
     case "claimed":
     case "in_review":
-      return { ...record, ...INSURED_FIELDS, claim: PREVIEW_CLAIM };
+      // A claim already filed this coverage year → blocked until next year.
+      return {
+        ...record,
+        ...INSURED_FIELDS,
+        claim: PREVIEW_CLAIM,
+        nextClaimEligibleAt: new Date(Date.now() + 330 * DAY_MS).toISOString(),
+      };
     case "not_insured":
     case "none":
       return {
@@ -57,6 +63,7 @@ export function applyInsurancePreview(record: Insurance | null): Insurance | nul
         purchasedAt: null,
         expiresAt: null,
         claim: null,
+        nextClaimEligibleAt: null,
         price: record.price ?? 4900,
         currency: record.currency || "USD",
         windowClosesAt: record.windowClosesAt ?? new Date(Date.now() + 5 * DAY_MS).toISOString(),
@@ -72,9 +79,11 @@ export function applyInsurancePreview(record: Insurance | null): Insurance | nul
  * whether to offer a claim (Dashboard, Messages). `InsuranceCard` loads its own
  * copy because it renders the full plan; this is the lightweight gate.
  *
- * `canClaim` is true only when the appliance is insured and has no open claim —
- * so we don't invite a second claim while one is already in review, or prompt a
- * claim on an uninsured appliance.
+ * `canClaim` is true only when the appliance is insured and eligible to file
+ * under the one-claim-per-coverage-year rule (`nextClaimEligibleAt` is null) —
+ * so we don't invite a claim on an uninsured appliance, or a second one before
+ * the coverage year rolls over. `nextClaimEligibleAt` is returned so callers can
+ * show when the customer becomes eligible again.
  */
 export function useInsurance() {
   const [insurance, setInsurance] = useState<Insurance | null>(null);
@@ -95,5 +104,6 @@ export function useInsurance() {
   }, []);
 
   const insured = insurance?.status === "insured";
-  return { insurance, insured, canClaim: insured && !insurance?.claim };
+  const nextClaimEligibleAt = insurance?.nextClaimEligibleAt ?? null;
+  return { insurance, insured, canClaim: insured && !nextClaimEligibleAt, nextClaimEligibleAt };
 }

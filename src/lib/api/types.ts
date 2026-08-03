@@ -592,6 +592,14 @@ export interface Insurance {
    * been filed. Only meaningful when `status === "insured"`.
    */
   claim: InsuranceClaim | null;
+
+  /**
+   * When the patient may next file a claim, per the one-claim-per-coverage-year
+   * rule — the coverage year is measured from the order date. `null` means they
+   * can file now. Computed by the backend from the order date and the most
+   * recent claim, so the UI never re-derives the policy and can't drift from it.
+   */
+  nextClaimEligibleAt: Timestamp | null;
 }
 
 /**

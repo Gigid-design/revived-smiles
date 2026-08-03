@@ -14,6 +14,7 @@ import {
   productImage,
   productNeedsShade,
   productNeedsTeethChart,
+  isClaimProduct,
 } from "@/app/context/productConfig";
 
 interface InfoRow {
@@ -71,6 +72,8 @@ function teethValue(order: Submission): string | null {
 
 function DownloadLinks({ orderId, product }: { orderId: string; product?: string }) {
   const suffix = product ? `&product=${product}` : "";
+  // A claim line has no prescription — only offer the invoice for it.
+  const showPrescription = !(product && isClaimProduct(product));
   return (
     <div className={styles.downloads}>
       <Link href={`/documents?id=${orderId}&type=invoice${suffix}`} className={styles.downloadRow}>
@@ -80,13 +83,15 @@ function DownloadLinks({ orderId, product }: { orderId: string; product?: string
         <span>Download invoice</span>
         <span className={styles.downloadHint}>PDF</span>
       </Link>
-      <Link href={`/documents?id=${orderId}&type=prescription${suffix}`} className={styles.downloadRow}>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M12 18v-6M9 15l3 3 3-3" />
-        </svg>
-        <span>Download prescription</span>
-        <span className={styles.downloadHint}>PDF</span>
-      </Link>
+      {showPrescription && (
+        <Link href={`/documents?id=${orderId}&type=prescription${suffix}`} className={styles.downloadRow}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M12 18v-6M9 15l3 3 3-3" />
+          </svg>
+          <span>Download prescription</span>
+          <span className={styles.downloadHint}>PDF</span>
+        </Link>
+      )}
     </div>
   );
 }
@@ -148,6 +153,9 @@ function MyDocuments() {
 
   const isDetail = Boolean(selectedId);
   const activeProduct = order && productParam && order.products.includes(productParam) ? productParam : null;
+  /* A claim invoice is available as soon as the claim is filed — it isn't tied
+     to appliance fabrication, so it bypasses the review gate below. */
+  const claimSlug = order?.products.find(isClaimProduct) ?? null;
 
   /* Record rows — scoped to a single product when one is selected. */
   const rows: InfoRow[] = order
@@ -274,11 +282,36 @@ function MyDocuments() {
                   ))}
                 </section>
               )
+            ) : activeProduct ? (
+              /* Single-item view before review. A claim invoice is always
+                 available; an appliance's docs wait for review. */
+              isClaimProduct(activeProduct) ? (
+                <section className={styles.card}>
+                  <h2 className={styles.sectionTitle}>Documents</h2>
+                  <p className={styles.cardHint}>For HSA, FSA &amp; insurance reimbursement.</p>
+                  <DownloadLinks orderId={order.id} product={activeProduct} />
+                </section>
+              ) : (
+                <section className={styles.card}>
+                  <h2 className={styles.sectionTitle}>Documents</h2>
+                  <p className={styles.muted}>
+                    Your invoice and prescription will be available here once your order has been reviewed.
+                  </p>
+                </section>
+              )
             ) : (
+              /* Whole-order view before review. Surface the claim invoice now,
+                 and note the rest follows review. */
               <section className={styles.card}>
                 <h2 className={styles.sectionTitle}>Documents</h2>
+                {claimSlug && (
+                  <div className={styles.productDocs}>
+                    <p className={styles.productDocsName}>{productLabel(claimSlug)}</p>
+                    <DownloadLinks orderId={order.id} product={claimSlug} />
+                  </div>
+                )}
                 <p className={styles.muted}>
-                  Your invoice and prescription will be available here once your order has been reviewed.
+                  Your appliance invoice and prescription will be available here once your order has been reviewed.
                 </p>
               </section>
             )}

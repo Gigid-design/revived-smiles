@@ -4,12 +4,14 @@ export interface ProductConfig {
   description: string;
   needsShade: boolean;
   needsTeethChart: boolean;
-  category: "partial-denture" | "full-denture" | "veneer" | "retainer" | "guard";
+  category: "partial-denture" | "full-denture" | "veneer" | "retainer" | "guard" | "claim";
   /** Retail price in USD cents, used on the invoice/receipt document.
    *  NOTE: these are PLACEHOLDERS — set your real prices here. */
   priceCents: number;
-  /** Product photo (from revivedsmiles.com), shown in document lists. */
-  image: string;
+  /** Product photo (from revivedsmiles.com), shown in document lists.
+   *  `null` for non-appliance line items (e.g. an insurance claim), which
+   *  fall back to a generic document icon. */
+  image: string | null;
 }
 
 export const PRODUCTS: ProductConfig[] = [
@@ -111,6 +113,19 @@ export const PRODUCTS: ProductConfig[] = [
     category: "veneer",
     priceCents: 35000,
     image: "/assets/images/products/revived-veneers.jpg",
+  },
+  {
+    // Not a purchasable appliance — added to an order automatically when the
+    // patient files a protection claim, so it appears as a line on the order.
+    // Pricing (deductible / processing fee) is a business decision, TBD.
+    id: "insurance-claim",
+    label: "Insurance Claim",
+    description: "Protection-plan claim processing.",
+    needsShade: false,
+    needsTeethChart: false,
+    category: "claim",
+    priceCents: 0,
+    image: null,
   },
 ];
 
@@ -226,4 +241,14 @@ export const CATEGORY_LABELS: Record<ProductConfig["category"], string> = {
   veneer: "Veneers",
   retainer: "Retainer",
   guard: "Protective Guard",
+  claim: "Insurance Claim",
 };
+
+/**
+ * A claim line is not a fabricated appliance — it carries no prescription,
+ * shade, or teeth chart. Surfaces that describe the physical device (e.g. the
+ * prescription document) use this to filter claim lines out.
+ */
+export function isClaimProduct(slug: string): boolean {
+  return PRODUCTS.find((p) => p.id === slug)?.category === "claim";
+}

@@ -124,24 +124,32 @@ export function InsuranceCard() {
       ) : null}
 
       {insured && (
-        insurance.claim ? (
-          <div className={styles.claimPanel}>
-            <div className={styles.claimHead}>
-              <span className={styles.claimTitle}>Your claim</span>
-              <span className={`${styles.claimBadge} ${CLAIM_STATUS_CLASS[insurance.claim.status]}`}>
-                {CLAIM_STATUS_LABEL[insurance.claim.status]}
-              </span>
+        <>
+          {insurance.claim && (
+            <div className={styles.claimPanel}>
+              <div className={styles.claimHead}>
+                <span className={styles.claimTitle}>Your claim</span>
+                <span className={`${styles.claimBadge} ${CLAIM_STATUS_CLASS[insurance.claim.status]}`}>
+                  {CLAIM_STATUS_LABEL[insurance.claim.status]}
+                </span>
+              </div>
+              <p className={styles.claimMeta}>
+                {insurance.claim.reason} · Filed {longDate(insurance.claim.submittedAt)}
+              </p>
+              {insurance.nextClaimEligibleAt && (
+                <p className={styles.claimMeta}>
+                  One claim per year — next claim available {longDate(insurance.nextClaimEligibleAt)}.
+                </p>
+              )}
+              <Link href="/messages" className={styles.claimLink}>View in Messages →</Link>
             </div>
-            <p className={styles.claimMeta}>
-              {insurance.claim.reason} · Filed {longDate(insurance.claim.submittedAt)}
-            </p>
-            <Link href="/messages" className={styles.claimLink}>View in Messages →</Link>
-          </div>
-        ) : (
-          <Link href="/insurance-claim" className={styles.claimBtn}>
-            File a claim
-          </Link>
-        )
+          )}
+          {!insurance.nextClaimEligibleAt && (
+            <Link href="/insurance-claim" className={styles.claimBtn}>
+              File a claim
+            </Link>
+          )}
+        </>
       )}
 
       {!insured && (

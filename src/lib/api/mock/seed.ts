@@ -490,6 +490,7 @@ function buildInsurances(): Insurance[] {
       windowClosesAt: daysInFuture(5),
       purchaseUrl: INSURANCE_PURCHASE_URL,
       claim: null,
+      nextClaimEligibleAt: null,
     },
   ];
 }

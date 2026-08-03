@@ -23,6 +23,7 @@ import {
   productsSubtotalCents,
   productNeedsShade,
   productNeedsTeethChart,
+  isClaimProduct,
   formatUsd,
 } from "@/app/context/productConfig";
 
@@ -79,6 +80,10 @@ function DocumentView() {
       ? [productParam]
       : order.products
     : [];
+
+  /* A prescription describes fabricated appliances only — a claim line carries
+     no device, so it never appears on the Rx (it still itemizes on invoices). */
+  const prescriptionProducts = scopedProducts.filter((s) => !isClaimProduct(s));
 
   /* A prescription only lists specs that apply to the device(s) it covers:
      teeth-to-replace for partials/dentures, shade for shade-based products. */
@@ -168,8 +173,8 @@ function DocumentView() {
             <>
               <dl className={styles.specs}>
                 <div className={styles.specRow}>
-                  <dt className={styles.specLabel}>{scopedProducts.length === 1 ? "Device" : "Device(s)"}</dt>
-                  <dd className={styles.specValue}>{scopedProducts.map(productLabel).join(", ") || "—"}</dd>
+                  <dt className={styles.specLabel}>{prescriptionProducts.length === 1 ? "Device" : "Device(s)"}</dt>
+                  <dd className={styles.specValue}>{prescriptionProducts.map(productLabel).join(", ") || "—"}</dd>
                 </div>
                 {showTeeth && teeth && (
                   <div className={styles.specRow}>
