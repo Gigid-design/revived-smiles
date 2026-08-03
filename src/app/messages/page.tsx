@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./messages.module.css";
 import { BottomNav } from "@/app/components/BottomNav";
-import { ToothChart } from "@/app/components/ToothChart";
 import { useInsurance } from "@/app/hooks/useInsurance";
 import {
   useMessages,
@@ -69,14 +68,10 @@ export default function Messages() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
-  const [adjustOpen, setAdjustOpen] = useState(false);
-  const [adjustPhotos, setAdjustPhotos] = useState<string[]>([]);
-  const [markedTeeth, setMarkedTeeth] = useState<Set<number>>(new Set());
   const [kind, setKind] = useState<RequestKind | null>(null);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
-  const adjustFileRef = useRef<HTMLInputElement>(null);
   const hasScrolled = useRef(false);
 
   /* Opening the conversation clears the care team's unread replies. */
@@ -120,61 +115,10 @@ export default function Messages() {
   }
 
   function openForm(presetKind: RequestKind = "material") {
-    setAdjustOpen(false);
     setFormOpen(true);
     setKind(presetKind);
     setReason("");
     setNote("");
-  }
-
-  function openAdjust() {
-    setFormOpen(false);
-    setAdjustOpen(true);
-    setNote("");
-    setAdjustPhotos([]);
-    setMarkedTeeth(new Set());
-  }
-
-  function toggleMarked(num: number) {
-    setMarkedTeeth((prev) => {
-      const next = new Set(prev);
-      if (next.has(num)) next.delete(num);
-      else next.add(num);
-      return next;
-    });
-  }
-
-  function addAdjustPhotos(files: FileList | null) {
-    if (!files) return;
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => setAdjustPhotos((prev) => [...prev, reader.result as string]);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  /* An appliance-adjustment request is a plain message summarising what the
-     patient gathered (photos + marked teeth + description), not a supplies
-     request — the chat has no attachment model yet. */
-  async function submitAdjust() {
-    const desc = note.trim();
-    if (!desc || sending) return;
-    setSending(true);
-    try {
-      const teeth = [...markedTeeth].sort((a, b) => a - b);
-      await send(
-        `I need to adjust my appliance.\n\n${desc}\n\n` +
-          `Uncomfortable teeth: ${teeth.length ? teeth.join(", ") : "none marked"}.\n` +
-          `Photos ready to share: ${adjustPhotos.length}.`
-      );
-      setAdjustOpen(false);
-      setNote("");
-      setAdjustPhotos([]);
-      setMarkedTeeth(new Set());
-    } catch (err) {
-      console.error("Could not send the request:", err);
-    }
-    setSending(false);
   }
 
   /* Tray requests need a reason; material requests don't. */
@@ -301,80 +245,7 @@ export default function Messages() {
 
         {/* ── Docked: prompts and composer rest just above the nav pill ── */}
         <div className={styles.dock}>
-        {adjustOpen ? (
-          <div className={`${styles.requestForm} ${styles.adjustForm}`}>
-            <div className={styles.requestFormHead}>
-              <span className={styles.requestFormTitle}>Adjust my appliance</span>
-              <button type="button" className={styles.cancelBtn} onClick={() => setAdjustOpen(false)}>
-                Cancel
-              </button>
-            </div>
-
-            <span className={styles.fieldLabel}>Please include all of the following:</span>
-            <ul className={styles.checklist}>
-              <li>Photos of the partial denture in your mouth</li>
-              <li>Photos of the partial denture on the models we sent you</li>
-              <li>Mark any uncomfortable areas on the chart below (if applicable)</li>
-              <li>A detailed description of the issue</li>
-            </ul>
-
-            {/* Photos */}
-            <span className={styles.fieldLabel}>Photos</span>
-            <input
-              ref={adjustFileRef}
-              type="file"
-              accept="image/*"
-              multiple
-              style={{ display: "none" }}
-              onChange={(e) => { addAdjustPhotos(e.target.files); e.target.value = ""; }}
-            />
-            <div className={styles.photoGrid}>
-              {adjustPhotos.map((src, i) => (
-                <div key={i} className={styles.photoTile}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt={`Adjustment photo ${i + 1}`} />
-                  <button
-                    type="button"
-                    className={styles.photoRemove}
-                    aria-label="Remove photo"
-                    onClick={() => setAdjustPhotos((prev) => prev.filter((_, j) => j !== i))}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-              <button type="button" className={styles.photoAdd} onClick={() => adjustFileRef.current?.click()}>
-                <span aria-hidden="true">＋</span>
-                Add photos
-              </button>
-            </div>
-
-            {/* Mark discomfort */}
-            <span className={styles.fieldLabel}>
-              Mark uncomfortable areas <span className={styles.optional}>if applicable</span>
-            </span>
-            <ToothChart selected={markedTeeth} onToggle={toggleMarked} />
-
-            {/* Description */}
-            <span className={styles.fieldLabel}>Describe the issue</span>
-            <textarea
-              className={styles.note}
-              rows={3}
-              placeholder="Tell us what's uncomfortable or not fitting right…"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-
-            <button
-              type="button"
-              className={`${styles.submitBtn} ${!note.trim() || sending ? styles.submitBtnDisabled : ""}`}
-              disabled={!note.trim() || sending}
-              onClick={() => void submitAdjust()}
-            >
-              {sending ? "Sending…" : "Send to care team"}
-            </button>
-          </div>
-        ) : formOpen ? (
+        {formOpen ? (
           <div className={styles.requestForm}>
             <div className={styles.requestFormHead}>
               <span className={styles.requestFormTitle}>
@@ -444,9 +315,9 @@ export default function Messages() {
             <button type="button" className={styles.chip} onClick={() => openForm("trays")}>
               Trays
             </button>
-            <button type="button" className={styles.chip} onClick={openAdjust}>
+            <Link href="/adjust" className={styles.chip}>
               Need to adjust my appliance
-            </button>
+            </Link>
             {canClaim && (
               <Link href="/insurance-claim" className={styles.chip}>
                 File a protection claim

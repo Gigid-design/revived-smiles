@@ -13,6 +13,8 @@
  */
 
 import type {
+  AdjustmentDecision,
+  AdjustmentRequest,
   AdminUser,
   AdvisorContext,
   AdvisorMessage,
@@ -21,6 +23,7 @@ import type {
   AuthUser,
   BillingAddress,
   ChatMessage,
+  NewAdjustmentRequest,
   ImpressionPhoto,
   Insurance,
   Invoice,
@@ -442,6 +445,48 @@ export interface InsuranceApi {
 
 /* ------------------------------------------------------------------ */
 
+export interface AdjustmentsApi {
+  /**
+   * Raises an adjustment request from the six-screen flow and returns the
+   * saved record in `pending`.
+   *
+   * The request is tied to a real order (`input.submissionId`) so the product
+   * is traceable and cannot be invented — the server must verify the order
+   * belongs to the authenticated patient and that `input.product` is on it,
+   * exactly as `Submission.products` is protected. It assigns the id, the
+   * human-facing `requestNumber`, the status and the timestamps; the client
+   * supplies only what the patient answered.
+   *
+   * On creation it drops a plain-language recap into the order conversation —
+   * the same pattern as a submission and an insurance claim — so the patient
+   * has a record and the care team can reply against it.
+   */
+  create(input: NewAdjustmentRequest): Promise<AdjustmentRequest>;
+
+  /** Throws `not_found` for an unknown id. Scoped to the caller server-side. */
+  getById(id: string): Promise<AdjustmentRequest>;
+
+  /** The signed-in patient's requests, newest first. Scoped server-side. */
+  listMine(): Promise<AdjustmentRequest[]>;
+
+  /** Every request raised against one order, newest first. */
+  listForSubmission(submissionId: string): Promise<AdjustmentRequest[]>;
+
+  /**
+   * Records the team's decision (see `AdjustmentDecision`).
+   *
+   * ADMIN-ONLY in a real backend, which must reject this from a patient
+   * session. `changes_requested` and `rejected` require a note. On `approved`
+   * the three approval actions fire — prepaid return label, the "Adjusted
+   * Product" line item on the Shopify order, and the printable summary sheet
+   * (see the spec, "What happens on approval"). Those side effects belong to a
+   * later phase; this method must at minimum stamp the decision and reviewer.
+   */
+  decide(id: string, decision: AdjustmentDecision): Promise<AdjustmentRequest>;
+}
+
+/* ------------------------------------------------------------------ */
+
 export interface ShippingApi {
   /**
    * The return-shipping label PDF.
@@ -464,5 +509,6 @@ export interface ApiClient {
   prompts: PromptsApi;
   subscriptions: SubscriptionsApi;
   insurance: InsuranceApi;
+  adjustments: AdjustmentsApi;
   shipping: ShippingApi;
 }

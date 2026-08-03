@@ -1,110 +1,89 @@
-/* Standalone tooth chart — a self-contained copy of the intake (step 5) chart
-   so it can be reused (e.g. in the messages "adjust appliance" form) without
-   touching the intake flow. */
+/* Tooth chart — the exact order-form artwork as two stacked arch images, with
+   tap targets over each tooth and a yellow highlight behind the transparent
+   crowns. */
 
 .chartWrap {
-  background: #f7f9fc;
+  background: #ffffff;
   border-radius: 1em;
+  padding: 0.5em 0.5em 0.75em;
   overflow: hidden;
   flex-shrink: 0;
 }
 
-.chartLabels {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75em 0.75em 0;
-}
-
-.chartLabel {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 0.6875em;  /* 11px */
-  line-height: 1;
-  color: #8090a8;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-}
-
-/* Chart area. Its height comes from the arch geometry, set inline. */
-.chart {
+/* One arch: the image sizes the box; highlights sit behind, taps on top. */
+.arch {
   position: relative;
   width: 100%;
 }
-
-/* Horizontal centre divider, sitting in the gap between the two arches */
-.chartDivider {
-  position: absolute;
-  left: 8px; right: 8px;
-  top: 50%;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(220,228,240,0) 0%, rgb(220,228,240) 20%, rgb(220,228,240) 80%, rgba(220,228,240,0) 100%);
+.arch:last-child {
+  margin-top: 0.5em;
 }
 
-/* Jaw labels — centred in the empty middle of each arch, Left/Right in corners. */
-.upperLabel,
-.lowerLabel {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 0.6875em;
-  line-height: 1;
-  color: #8090a8;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+.archImg {
+  display: block;
+  width: 100%;
+  height: auto;
+  position: relative;
+  z-index: 2;
   pointer-events: none;
-  white-space: nowrap;
+  -webkit-user-drag: none;
+  user-select: none;
 }
-.upperLabel { top: 32%; }
-.lowerLabel { top: 64%; }
 
-/* Individual tooth button — positioned/rotated via inline style. */
-.tooth {
+/* Selected highlight — behind the art (z-index 1), glows through the crown. */
+.highlight {
   position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  background: #FDD33B;
+  border-radius: 42% 42% 46% 46% / 44%;
+}
+
+/* Transparent tap target — above the art (z-index 3). */
+.hit {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  background: transparent;
   border: none;
   padding: 0;
   cursor: pointer;
-  transform-origin: center;
+  border-radius: 50%;
+  -webkit-tap-highlight-color: transparent;
+}
+.hitDebug {
+  background: rgba(230, 60, 60, 0.28);
+  outline: 1px solid rgba(180, 0, 0, 0.6);
 }
 
-/* Tooth number — placed just outside the arch, always upright */
-.toothNum {
+/* Captions */
+.archLabel {
   position: absolute;
-  transform: translate(-50%, -50%);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
   font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 9px;  /* fixed px so it doesn't scale */
+  font-weight: 600;
+  font-size: 1em;
   line-height: 1;
-  color: #7c8a99;
-  white-space: nowrap;
+  color: #121723;
   pointer-events: none;
 }
+.archLabelUpper { top: 30%; }
+.archLabelLower { top: 62%; }
 
-/* Legend */
-.legend {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5em;
-  padding: 0.625em;
-  font-family: var(--font-body);
-  font-size: 0.75em;
-  color: #7a8ea8;
+.corner {
+  position: absolute;
+  z-index: 4;
+  transform: translateX(-50%);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8125em;
+  line-height: 1;
+  color: #121723;
+  pointer-events: none;
 }
-
-.legendDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.legendText {
-  margin-right: 0.75em;
-}
+.cornerTL { left: 8%; top: 2%; }
+.cornerTR { left: 92%; top: 2%; }
+.cornerBL { left: 8%; bottom: 2%; }
+.cornerBR { left: 92%; bottom: 2%; }

@@ -59,6 +59,44 @@ export const PRODUCTS: ProductConfig[] = [
     priceCents: 42000,
     image: "/assets/images/products/clear-partial.jpg",
   },
+  /* The four products below are named in the Adjustment Request Flow spec's
+     product list but were not yet in the purchase catalogue. Added so the
+     adjustment flow's product slugs resolve to a real label, price and image.
+     Prices are PLACEHOLDERS; images reuse the nearest existing product photo
+     until dedicated art is supplied. */
+  {
+    id: "clear-flexible-partial",
+    label: "Clear Flexible Partial Denture",
+    description:
+      "Flexible partial made from clear thermoplastic. The clarity of a clear partial with the flex of a flexible one.",
+    needsShade: false,
+    needsTeethChart: true,
+    category: "partial-denture",
+    priceCents: 45000,
+    image: "/assets/images/products/clear-partial.jpg",
+  },
+  {
+    id: "clear-unilateral-partial",
+    label: "Clear Unilateral Partial Denture",
+    description:
+      "Compact single-side clear partial that clips onto existing teeth. Replaces 1-3 teeth on one side with minimal visibility.",
+    needsShade: false,
+    needsTeethChart: true,
+    category: "partial-denture",
+    priceCents: 42000,
+    image: "/assets/images/products/unilateral-partial.jpg",
+  },
+  {
+    id: "essix-partial",
+    label: "Essix Partial Denture",
+    description:
+      "Temporary partial made from thin Essix material, with a tooth set into a clear retainer-style shell.",
+    needsShade: false,
+    needsTeethChart: true,
+    category: "partial-denture",
+    priceCents: 20000,
+    image: "/assets/images/products/retainer.jpg",
+  },
   {
     id: "full-denture",
     label: "Full Denture",
@@ -90,6 +128,19 @@ export const PRODUCTS: ProductConfig[] = [
     needsTeethChart: false,
     category: "guard",
     priceCents: 12000,
+    image: "/assets/images/products/nightguard.jpg",
+  },
+  {
+    // Named in the Adjustment Request Flow spec; see the note above. Categorised
+    // as a guard (a worn tray) so it inherits sensible catalogue grouping.
+    id: "whitening-tray",
+    label: "Whitening Tray",
+    description:
+      "Custom-fitted tray that holds whitening gel evenly against your teeth for at-home whitening.",
+    needsShade: false,
+    needsTeethChart: false,
+    category: "guard",
+    priceCents: 9900,
     image: "/assets/images/products/nightguard.jpg",
   },
   {

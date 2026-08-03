@@ -6,13 +6,12 @@ import type { FormKind } from "./ChatRequestForm";
 import styles from "./ChatPanel.module.css";
 
 /* Same shortcuts as the full /messages chat. The two questions send inline;
-   the form actions open the matching form (Materials, Trays, Adjust) via
-   onOpenForm — the host (the Care Team drawer) shows it in place. */
+   Materials/Trays open the matching form in place via onOpenForm; adjusting an
+   appliance is its own multi-screen flow, so that shortcut navigates there. */
 const QUICK_QUESTIONS = ["Where is my order?", "How do I take my impressions?"];
 const QUICK_FORMS: { label: string; kind: FormKind }[] = [
   { label: "Materials", kind: "material" },
   { label: "Trays", kind: "trays" },
-  { label: "Need to adjust my appliance", kind: "adjust" },
 ];
 
 /** Admin ↔ patient conversation, used by the admin submission console.
@@ -22,8 +21,10 @@ interface ChatPanelProps {
   submissionId: string | null;
   currentRole: "admin" | "patient";
   currentName: string;
-  /** Patient drawer only: open a Materials/Trays/Adjust form in the host. */
+  /** Patient drawer only: open a Materials/Trays form in the host. */
   onOpenForm?: (kind: FormKind) => void;
+  /** Patient drawer only: leave the chat for the adjustment flow. */
+  onAdjust?: () => void;
 }
 
 function formatTime(dateStr: string): string {
@@ -50,7 +51,7 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm }: ChatPanelProps) {
+export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, onAdjust }: ChatPanelProps) {
   const { messages, sendMessage, markAsRead, loading } = useChat(
     submissionId,
     currentRole,
@@ -187,6 +188,11 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm }
               {f.label}
             </button>
           ))}
+          {onAdjust && (
+            <button type="button" className={styles.quickChip} onClick={onAdjust}>
+              Need to adjust my appliance
+            </button>
+          )}
         </div>
       )}
 

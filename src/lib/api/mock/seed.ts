@@ -37,7 +37,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 15;
+export const SEED_VERSION = 16;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -588,6 +588,8 @@ export function buildSeed(): MockDb {
     billingAddress: buildBillingAddress(),
     invoices: buildInvoices(),
     insurances: buildInsurances(),
+    /* No adjustment requests seeded — the flow creates the first one. */
+    adjustmentRequests: [],
     messages: buildMessages(),
     notifications: buildNotifications(),
     promptConfigs: buildPromptConfigs(),

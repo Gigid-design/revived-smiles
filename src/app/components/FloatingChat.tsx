@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { ChatPanel } from "./ChatPanel";
 import { ChatBubbleIcon } from "./ChatBubbleIcon";
 import { ChatRequestForm, type FormKind } from "./ChatRequestForm";
@@ -15,9 +16,10 @@ interface FloatingChatProps {
 }
 
 export function FloatingChat({ submissionId, patientName, variant = "fab" }: FloatingChatProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [activeForm, setActiveForm] = useState<FormKind | null>(null);
-  const { unreadCount, sendMessage, sendRequest } = useChat(submissionId, "patient", patientName);
+  const { unreadCount, sendRequest } = useChat(submissionId, "patient", patientName);
 
   // Close on Escape key
   useEffect(() => {
@@ -103,7 +105,6 @@ export function FloatingChat({ submissionId, patientName, variant = "fab" }: Flo
                   kind={activeForm}
                   onCancel={() => setActiveForm(null)}
                   onDone={() => setActiveForm(null)}
-                  send={sendMessage}
                   sendRequest={sendRequest}
                 />
               ) : (
@@ -112,6 +113,10 @@ export function FloatingChat({ submissionId, patientName, variant = "fab" }: Flo
                   currentRole="patient"
                   currentName={patientName}
                   onOpenForm={setActiveForm}
+                  onAdjust={() => {
+                    setOpen(false);
+                    router.push("/adjust");
+                  }}
                 />
               )}
             </div>

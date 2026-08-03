@@ -550,6 +550,34 @@
 }
 .viewBtnLocked:hover { background: #eceef4; }
 
+/* Secondary action — the outline counterpart to .viewBtn, for the adjustment
+   entry that sits under the primary button. */
+.adjustBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 43px;
+  margin-top: 0.625rem;
+  border-radius: 100px;
+  background: #ffffff;
+  color: #121723;
+  border: 1.5px solid #d7dbe5;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.adjustBtn:hover {
+  border-color: #121723;
+  background: #f7f8fa;
+}
+
 /* ── Care Guide link — appears under "Delivered", aligned with the stage
    labels, once the order is delivered. ── */
 .careGuideLink {

@@ -7,6 +7,7 @@
  */
 
 import type { ApiClient } from "../contract";
+import { mockAdjustments } from "./adjustments";
 import { mockAuth } from "./auth";
 import { mockInsurance } from "./insurance";
 import { mockMessages } from "./messages";
@@ -26,6 +27,7 @@ export const mockApi: ApiClient = {
   prompts: mockPrompts,
   subscriptions: mockSubscriptions,
   insurance: mockInsurance,
+  adjustments: mockAdjustments,
   shipping: mockShipping,
 };
 

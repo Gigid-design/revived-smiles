@@ -9,6 +9,7 @@
  */
 
 import type {
+  AdjustmentRequest,
   AdminUser,
   AppNotification,
   AuthUser,
@@ -44,6 +45,8 @@ export interface MockDb {
   /** Past charges, most recent first. */
   invoices: Invoice[];
   insurances: Insurance[];
+  /** Adjustment requests raised from the six-screen flow. */
+  adjustmentRequests: AdjustmentRequest[];
   messages: ChatMessage[];
   notifications: AppNotification[];
   promptConfigs: PromptConfig[];

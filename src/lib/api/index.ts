@@ -41,11 +41,18 @@ export {
 } from "./mock";
 
 export type {
+  AdjustmentAnswers,
+  AdjustmentDecision,
+  AdjustmentIssueId,
+  AdjustmentPhotos,
+  AdjustmentRequest,
+  AdjustmentStatus,
   AdminUser,
   AdvisorContext,
   AdvisorMessage,
   AnalysisCheck,
   ApiErrorCode,
+  NewAdjustmentRequest,
   AppNotification,
   AuthEvent,
   AuthUser,
@@ -88,6 +95,7 @@ export type {
 } from "./types";
 
 export {
+  adjustmentRequiresNotes,
   ApiError,
   BRANCH_STATUSES,
   PHOTO_TYPE_LABELS,

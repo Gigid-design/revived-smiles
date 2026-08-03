@@ -339,6 +339,151 @@ export interface MessageRequest {
 }
 
 /* ------------------------------------------------------------------ */
+/* Adjustment requests                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The eight issues an adjustment request can be about.
+ *
+ * Canonical here in the domain model; the customer-facing copy, ordering and
+ * per-product applicability live in `adjustmentConfig.ts`, which imports this
+ * union. `fit` covers both "does not fit at all" and "too tight" — the button
+ * label varies by product, but the stored issue is one thing.
+ */
+export type AdjustmentIssueId =
+  | "sore-spots"
+  | "bite"
+  | "loose"
+  | "fit"
+  | "cracked"
+  | "aesthetics"
+  | "tooth-shade"
+  | "gum-shade";
+
+/**
+ * Where an adjustment request sits.
+ *
+ * The portal collects; the team decides. After submission there are exactly
+ * three outcomes (see the spec, "After they submit"): something missing
+ * (`changes_requested`, reopens with a note), not right for this flow
+ * (`rejected`, routed to customer service), or `approved`.
+ */
+export type AdjustmentStatus =
+  | "draft"
+  | "pending"
+  | "changes_requested"
+  | "approved"
+  | "rejected";
+
+/**
+ * The structured answers to the per-issue questions on Screen 5. Every field
+ * is optional because it is only present when its issue was selected — a
+ * request about a cracked nightguard carries none of the partial-denture
+ * fields.
+ */
+export interface AdjustmentAnswers {
+  /** Sore spots: the wear-period checkbox. */
+  woreForFiveDays?: boolean;
+  /** Sore spots: the hot-water activation checkbox (hot-water products only). */
+  completedHotWaterActivation?: boolean;
+  /** Loose: whether it was ever snug — one of `LOOSE.options`. */
+  looseSnug?: string;
+  /**
+   * Fit (hot-water partials): whether the hot-water reset fixed it. `true`
+   * closes the request out with nothing shipped, so a submitted request never
+   * carries `true` here — it exists only to gate the flow.
+   */
+  fitResolvedByHotWater?: boolean;
+  /** Fit (non-partials): which describes it — one of `FIT.describeOptions`. */
+  fitDescription?: string;
+  /** Cracked: whether they still have all the pieces. */
+  crackedHasAllPieces?: boolean;
+  /** Tooth shade: the requested new shade, e.g. "A2". */
+  newToothShade?: string;
+  /** Gum shade: the requested new shade, e.g. "G3". */
+  newGumShade?: string;
+}
+
+/**
+ * The photos an adjustment request collects. Keyed by role rather than by slot,
+ * since which photos are required depends on the selected issues (see
+ * `photoRequirements()`). Each value is a stored image URL.
+ */
+export interface AdjustmentPhotos {
+  /** Always collected in the last section. Optional in storage only for cracked. */
+  inMouth?: string;
+  /** Always collected in the last section. */
+  onModels?: string;
+  /** Only when Bite was selected. */
+  biteStrip?: string;
+  /** Sore spots, step 3: the marked dental models. */
+  markedModels?: string;
+  /** Cracked: a photo of the damage. */
+  damage?: string;
+}
+
+/**
+ * One patient's request to adjust an appliance, from the six-screen flow.
+ *
+ * Raised against a real order (`submissionId`) so the product is traceable and
+ * cannot be invented — the same discipline as `Submission.products`. The lab
+ * decides adjustment vs remake after the appliance arrives; this record is only
+ * the collected request.
+ */
+export interface AdjustmentRequest {
+  id: string;
+  /** Human-facing number for the summary sheet, e.g. "ADJ-1042-1". */
+  requestNumber: string;
+  userId: string | null;
+  /** The order this request is about. */
+  submissionId: string;
+  /** Denormalised from the order, so lists needn't join. */
+  orderNumber: string | null;
+  /** The single product slug — a `ProductConfig["id"]`. Render via `productLabel()`. */
+  product: string;
+  /** The issues selected on Screen 4, in the flow's display order. */
+  issues: AdjustmentIssueId[];
+  answers: AdjustmentAnswers;
+  photos: AdjustmentPhotos;
+  /** The single free-text box in the whole flow. Always required to submit. */
+  description: string;
+  status: AdjustmentStatus;
+  /** Set when the team asks for something missing or routes it to CS. */
+  reviewNotes: string | null;
+  reviewedBy: string | null;
+  reviewedAt: Timestamp | null;
+  approvedAt: Timestamp | null;
+  createdAt: Timestamp;
+  submittedAt: Timestamp | null;
+}
+
+/**
+ * What the client sends to raise a request. The server assigns id, number,
+ * status and timestamps; the patient supplies only what they answered.
+ */
+export interface NewAdjustmentRequest {
+  submissionId: string;
+  product: string;
+  issues: AdjustmentIssueId[];
+  answers: AdjustmentAnswers;
+  photos: AdjustmentPhotos;
+  description: string;
+}
+
+/** The team's decision on an adjustment request. */
+export interface AdjustmentDecision {
+  status: Extract<AdjustmentStatus, "approved" | "changes_requested" | "rejected">;
+  reviewedBy: string;
+  /** Required for `changes_requested` and `rejected`. */
+  reviewNotes?: string;
+}
+
+/** `changes_requested` and `rejected` require a note explaining why. */
+export function adjustmentRequiresNotes(status: AdjustmentStatus): boolean {
+  return status === "changes_requested" || status === "rejected";
+}
+
+/* ------------------------------------------------------------------ */
 /* Notifications                                                       */
 /* ------------------------------------------------------------------ */
 

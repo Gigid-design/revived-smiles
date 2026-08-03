@@ -405,6 +405,17 @@ export default function MyOrder() {
               </button>
             )}
 
+            {/* Adjustment — offered once they'd actually have the appliance in
+                hand. Deep-links into the flow with this order pre-selected. */}
+            {(order.status === "shipped" || order.status === "completed") && (
+              <Link href={`/adjust?order=${order.id}`} className={styles.adjustBtn}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M14.5 4.5l5 5M3 21l.7-3.3a2 2 0 0 1 .5-1L15 5.4a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L7.3 20.8a2 2 0 0 1-1 .5L3 21z" />
+                </svg>
+                Request an adjustment
+              </Link>
+            )}
+
           </section>
         )}
           </div>

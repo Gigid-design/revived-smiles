@@ -287,6 +287,74 @@ async function main() {
   }
   check("and Continue works afterwards", staleThrew === null, staleThrew ?? "");
 
+  console.log("\n10. The six-screen adjustment request flow");
+  const orderForAdj = await api.submissions.getMine();
+  check("there's an order to adjust", Boolean(orderForAdj), orderForAdj?.orderNumber ?? "");
+  const adjProduct = orderForAdj!.products[0];
+
+  let noIssues: string | null = null;
+  try {
+    await api.adjustments.create({
+      submissionId: orderForAdj!.id, product: adjProduct,
+      issues: [], answers: {}, photos: {}, description: "anything",
+    });
+  } catch (err) {
+    noIssues = err instanceof Error ? err.message : String(err);
+  }
+  check("a request with no issues is refused", noIssues !== null, noIssues ?? "it was allowed!");
+
+  let wrongProduct: string | null = null;
+  try {
+    await api.adjustments.create({
+      submissionId: orderForAdj!.id, product: "not-on-this-order",
+      issues: ["fit"], answers: {}, photos: {}, description: "anything",
+    });
+  } catch (err) {
+    wrongProduct = err instanceof Error ? err.message : String(err);
+  }
+  check("a product not on the order is refused", wrongProduct !== null, wrongProduct ?? "it was allowed!");
+
+  const createdAdj = await api.adjustments.create({
+    submissionId: orderForAdj!.id,
+    product: adjProduct,
+    issues: ["sore-spots", "tooth-shade"],
+    answers: { woreForFiveDays: true, completedHotWaterActivation: true, newToothShade: "A3" },
+    photos: { markedModels: "data:stub", onModels: "data:stub", inMouth: "data:stub" },
+    description: "It rubs on the lower-left gum after about an hour.",
+  });
+  check("a request is created in pending", createdAdj.status === "pending", createdAdj.requestNumber);
+  check("with a human request number", /^ADJ-/.test(createdAdj.requestNumber), createdAdj.requestNumber);
+
+  const adjConversation = await api.messages.list(orderForAdj!.id);
+  check(
+    "it drops a recap into the order conversation",
+    adjConversation.some((m) => m.body.includes(createdAdj.requestNumber)),
+  );
+
+  const forOrder = await api.adjustments.listForSubmission(orderForAdj!.id);
+  check("it's listed against the order", forOrder.some((r) => r.id === createdAdj.id), `${forOrder.length} for this order`);
+
+  const mineAdj = await api.adjustments.listMine();
+  check("and in the patient's own list", mineAdj.some((r) => r.id === createdAdj.id));
+
+  let reopenNoNote: string | null = null;
+  try {
+    await api.adjustments.decide(createdAdj.id, { status: "changes_requested", reviewedBy: "Admin User" });
+  } catch (err) {
+    reopenNoNote = err instanceof Error ? err.message : String(err);
+  }
+  check("reopening without a note is refused", reopenNoNote !== null, reopenNoNote ?? "it was allowed!");
+
+  const approvedAdj = await api.adjustments.decide(createdAdj.id, {
+    status: "approved",
+    reviewedBy: "Admin User",
+  });
+  check(
+    "approval sticks and stamps approvedAt",
+    approvedAdj.status === "approved" && approvedAdj.approvedAt !== null,
+    `status=${approvedAdj.status}`,
+  );
+
   console.log(
     failures === 0
       ? "\nAll checks passed.\n"

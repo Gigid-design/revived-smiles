@@ -1,0 +1,675 @@
+/* Shared styles for the adjustment flow.
+
+   These deliberately mirror the intake screens (step4/step5/intake) and the
+   Care Team request forms so the flow reads as one system with the rest of the
+   app: the same absolute progress header + scrolling white sheet, the same
+   fixed uppercase pill CTA, the same blue selection state, the same tooth-shape
+   shade swatches, textarea, and photo tiles. Values are copied from those
+   screens rather than re-invented. */
+
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  background: var(--surface);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The white sheet — pinned below the absolute IntakeHeader (which sits at
+   top:2.5rem), scrolling internally, exactly like the intake card. */
+.card {
+  position: absolute;
+  left: 1em;
+  right: 1em;
+  top: 8.5em;
+  bottom: 0;
+  background: #ffffff;
+  border-radius: 20px 20px 0 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2;
+  padding-inline: 1.25em; /* 20px */
+  padding-bottom: 7em;    /* room for the fixed button */
+  scrollbar-width: none;
+}
+.card::-webkit-scrollbar { display: none; }
+
+.title {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.75em;   /* 28px — matches intake cardTitle */
+  line-height: 1.1;
+  color: #121723;
+  padding-top: 1.286em;
+  padding-bottom: 0.4em;
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: 0.8125em; /* 13px */
+  line-height: 1.45;
+  color: #8a8a8a;
+  margin-bottom: 0.5em;
+}
+
+.sectionLabel {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.0625em; /* 17px */
+  line-height: 1;
+  color: #121723;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  margin: 1.5em 0 0.75em;
+}
+
+.helpText {
+  font-family: var(--font-body);
+  font-size: 0.8125em; /* 13px */
+  line-height: 1.5;
+  color: #6b7280;
+  margin-top: 0.5em;
+}
+
+/* ── Selectable option rows (orders, products, single-choice questions) ──
+   White card, 2px hairline; selected picks up the app's blue border + faint
+   blue tint, the same signal the shade swatches use. box-sizing keeps the row
+   from shifting when the border thickens. */
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625em;
+  margin-top: 1em;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.875em;
+  width: 100%;
+  text-align: left;
+  padding: 1em 1.125em;
+  background: #ffffff;
+  border: 2px solid #e8e8e4;
+  border-radius: 0.875em; /* 14px */
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.option:hover {
+  border-color: #d3d7de;
+}
+
+.optionSelected,
+.optionSelected:hover {
+  border-color: #121723;
+  background: #f7f8fa;
+}
+
+.optionBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.optionTitle {
+  display: block;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.9375em; /* 15px */
+  color: #121723;
+}
+
+.optionMeta {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.8125em;
+  color: #8a8a8a;
+  margin-top: 0.15em;
+}
+
+/* Leading radio/check indicator */
+.indicator {
+  flex: none;
+  width: 1.375em;
+  height: 1.375em;
+  border-radius: 50%;
+  border: 1.5px solid #c9ccd2;
+  display: grid;
+  place-items: center;
+  color: transparent;
+}
+
+.radioSquare {
+  border-radius: 0.4em;
+}
+
+.optionSelected .indicator {
+  border-color: #121723;
+  background: #121723;
+  color: #fff;
+}
+
+.optionThumb {
+  flex: none;
+  width: 2.75em;
+  height: 2.75em;
+  border-radius: 0.625em;
+  object-fit: cover;
+  background: #f0ede9;
+}
+
+/* ── Multi-select issues (Screen 4) — same option rows, stacked ── */
+.issueGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625em;
+  margin-top: 1em;
+}
+
+/* ── Step blocks (Screen 5) ── */
+.stepBlock {
+  border: 1px solid #ececec;
+  border-radius: 1em;
+  padding: 1.25em 1.25em 1.375em;
+  margin-top: 1.125em;
+}
+
+.stepBlock:first-of-type {
+  margin-top: 1.5em;
+}
+
+/* Block title — the issue name ("Sore spots…") or the last-section heading. */
+.stepHeading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.0625em;
+  color: #121723;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  margin-bottom: 0.25em;
+}
+
+/* Friendly section heading inside a block (e.g. "Almost done…"). */
+.sectionHeading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.0625em; /* 17px */
+  line-height: 1.3;
+  color: #121723;
+  margin-bottom: 1em;
+}
+
+/* A field label that isn't a sub-question — e.g. the description prompt after
+   the divider. Same weight as a sub-question but no top margin (the divider
+   already separates it). */
+.fieldHeading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.9375em; /* 15px */
+  color: #121723;
+  margin: 0 0 0.35em;
+}
+
+/* A distinct sub-question or field within a block ("Which shade…", "Did that
+   fix it?", the description prompt). Larger and better spaced than before so
+   the sequence of asks inside a block reads clearly. */
+.stepSubheading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.9375em; /* 15px */
+  line-height: 1.3;
+  color: #121723;
+  margin: 1.25em 0 0.5em;
+}
+
+.removeBtn {
+  flex: none;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.75em;
+  color: #9299a5;
+  background: none;
+  border: none;
+  border-radius: 999px;
+  padding: 0.3em 0.6em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.removeBtn:hover {
+  background: #f1f3f8;
+  color: #c0392b;
+}
+
+.emphasis {
+  font-family: var(--font-body);
+  font-size: 0.8125em;
+  line-height: 1.5;
+  color: #b25000;
+  background: #fff6ec;
+  border: 1px solid #ffe0bd;
+  border-radius: 0.75em;
+  padding: 0.75em 0.875em;
+  margin-top: 0.75em;
+}
+
+/* Hairline separator inside a block — e.g. photos ▸ description. */
+.blockDivider {
+  height: 1px;
+  background: #ececec;
+  margin: 1.5em 0 1.25em;
+}
+
+/* ── Checkbox row — the app's light selectable surface ── */
+.checkRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75em;
+  width: 100%;
+  text-align: left;
+  padding: 0.875em 1em;
+  margin-top: 0.75em;
+  background: #f7f9fd;
+  border: 2px solid #e7edf8;
+  border-radius: 0.75em;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.checkRowOn {
+  border-color: #121723;
+  background: #f7f8fa;
+}
+
+.checkBox {
+  flex: none;
+  width: 1.375em;
+  height: 1.375em;
+  border-radius: 0.4em;
+  border: 1.5px solid #c9ccd2;
+  display: grid;
+  place-items: center;
+  margin-top: 0.05em;
+  color: transparent;
+}
+
+.checkRowOn .checkBox {
+  border-color: #121723;
+  background: #121723;
+  color: #fff;
+}
+
+.checkLabel {
+  font-family: var(--font-body);
+  font-size: 0.875em;
+  line-height: 1.4;
+  color: #121723;
+}
+
+/* ── Inline link-style button (e.g. "How do I do this?") ── */
+.linkBtn {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.8125em;
+  color: #0e6c9c;
+  background: none;
+  border: none;
+  padding: 0.5em 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ── Photo uploads — the impression-photo card, exactly: a compact near-square
+   tile in a two-up grid, dark filled badge top-right, remove top-left. Smaller
+   tap target than a full-width tile, and consistent with intake. ── */
+.photoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625em;
+  margin-top: 0.5em;
+}
+
+.photoField {
+  min-width: 0;
+}
+
+.photoLabel {
+  display: block;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.8125em;
+  line-height: 1.3;
+  color: #121723;
+  margin-bottom: 0.4em;
+}
+
+.photoOptional {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.75em;
+  color: #6b7280;
+  margin-left: 0.4em;
+}
+
+.photoHint {
+  font-family: var(--font-body);
+  font-size: 0.75em;
+  line-height: 1.4;
+  color: #8a8a8a;
+  margin-top: 0.4em;
+}
+
+.photoTile {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 177 / 159.3;
+  border: 2px solid #eef0f5;
+  border-radius: 0.985em;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.photoTileFilled {
+  border-color: #d7dbe5;
+}
+
+.photoTile img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoAddText {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.75em;
+  color: #9299a5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.photoIcon {
+  display: grid;
+  place-items: center;
+  color: #b6bcc7;
+}
+
+/* Dark confirmation badge, top-right — matches the impression "filled" badge. */
+.photoBadge {
+  position: absolute;
+  top: 0.4em;
+  right: 0.4em;
+  width: 1.375em;
+  height: 1.375em;
+  border-radius: 0.5em;
+  background: #121723;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 1px 4px rgba(18, 23, 35, 0.28);
+  z-index: 1;
+}
+
+/* Remove (✕), top-left — matches the impression remove badge. */
+.photoRemove {
+  position: absolute;
+  top: 0.4em;
+  left: 0.4em;
+  width: 1.375em;
+  height: 1.375em;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  color: #121723;
+  font-size: 0.75em;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  z-index: 2;
+}
+
+/* ── Free-text — request-form textarea ── */
+.textarea {
+  width: 100%;
+  margin-top: 0.5em;
+  padding: 0.625em 0.75em;
+  border: 1px solid #e7edf8;
+  border-radius: 12px;
+  background: #f7f9fd;
+  font-family: var(--font-body);
+  font-size: 0.8125em;
+  line-height: 1.5;
+  color: #121723;
+  resize: none;
+  min-height: 5.5em;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.textarea:focus {
+  border-color: #c6dcfe;
+  background: #fff;
+}
+
+/* ── Shade swatches — copied from the intake shade selector (step4) so the
+   tooth/gum picker is visually identical to the order form, per the spec. ── */
+.shadeRow {
+  display: flex;
+  gap: 0.5em;
+  margin-top: 0.75em;
+}
+
+.shadeCard {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 6.5625em; /* 105px */
+  background: #ffffff;
+  border: 2px solid #e8e8e4;
+  border-radius: 0.875em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0.625em;
+  gap: 0.375em;
+  cursor: pointer;
+}
+
+.shadeCardActive {
+  border-color: #121723;
+}
+
+.shadeChip {
+  width: 2.25em;   /* 36px */
+  height: 2.75em;  /* 44px — tooth shape */
+  border-radius: 0.5em 0.5em 0.875em 0.875em;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  flex-shrink: 0;
+}
+
+.shadeChipClear {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(45deg, #e4e8ef 25%, transparent 25%, transparent 75%, #e4e8ef 75%),
+    linear-gradient(45deg, #e4e8ef 25%, transparent 25%, transparent 75%, #e4e8ef 75%);
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+}
+
+.shadeCode {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8125em;
+  line-height: 1;
+  color: #1a1a1a;
+}
+
+.shadeName {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.75em;
+  line-height: 1;
+  color: #8a8a8a;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.shadeCurrent {
+  font-family: var(--font-body);
+  font-size: 0.8125em;
+  color: #6b7280;
+  margin-top: 0.75em;
+}
+
+/* ── Docked CTA — the intake buttonWrapper + pill button, exactly ── */
+.ctaWrap {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2em), calc(var(--app-max) - 2em));
+  display: flex;
+  flex-direction: column;
+  padding: 0 1.3125em 2.1875em;
+  z-index: 20;
+}
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 43px;
+  background-color: #121723;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.875em;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cta:hover:not(:disabled) {
+  background-color: #26304a;
+}
+
+.cta:disabled {
+  background-color: #eef0f5;
+  color: #aab0be;
+  cursor: not-allowed;
+}
+
+.ctaCount {
+  display: block;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.75em;
+  color: #9299a5;
+  margin-top: 0.75em;
+}
+
+/* Secondary action under the pill on the message screens. */
+.secondaryBtn {
+  align-self: center;
+  margin-top: 0.875em;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.8125em;
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.secondaryBtn:hover {
+  color: #121723;
+}
+
+/* ── Terminal / message screens (customer service, closed-out, submitted) ── */
+.messageScreen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2em 1.75em;
+  gap: 0.75em;
+}
+
+.messageIcon {
+  width: 3.5em;
+  height: 3.5em;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  margin-bottom: 0.5em;
+}
+
+.messageIconSuccess { background: #22a06b; }
+.messageIconInfo { background: #0e6c9c; }
+
+.messageTitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.5em;
+  color: #121723;
+}
+
+.messageBody {
+  font-family: var(--font-body);
+  font-size: 0.9375em;
+  line-height: 1.55;
+  color: #6b7280;
+  max-width: 22em;
+}
+
+.messageNumber {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.875em;
+  color: #121723;
+  background: #f0f2f6;
+  border-radius: 0.5em;
+  padding: 0.4em 0.8em;
+  margin-top: 0.5em;
+}
+
+.loading {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: #8a8a8a;
+  font-family: var(--font-body);
+  padding: 3em 0;
+}
+
+.errorBanner {
+  font-family: var(--font-body);
+  font-size: 0.8125em;
+  color: #c0392b;
+  background: #fdecea;
+  border-radius: 0.5em;
+  padding: 0.6em 0.8em;
+  margin-top: 0.75em;
+  text-align: center;
+}
