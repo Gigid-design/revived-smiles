@@ -1,20 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import { FlowSupport } from "../components/FlowSupport";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
-import { getBackForTeethChart, getTotalSteps, getStepNumber } from "../context/productConfig";
+import {
+  DetailStop,
+  getDetailStops,
+  getOrderTotalSteps,
+  nextFromStop,
+  prevFromStop,
+  productLabel,
+  productNeedsDetails,
+} from "../context/productConfig";
 import { IntakeHeader } from "../components/IntakeHeader";
 import { ToothChart } from "../components/ToothChart";
+import { api } from "@/lib/api";
 
-export default function Step5() {
-  const { data, saveDraft } = useSubmission();
-  const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set(data.selectedTeeth));
-  const [notSure, setNotSure] = useState(data.teethNotSure);
-  const [notes, setNotes] = useState(data.notes ?? "");
+/**
+ * The tooth-chart form for one item on the order. Remounted per product (via
+ * `key`), so its marks always start from that product's own saved answers.
+ */
+function TeethForm({ product, stopIndex, stops }: { product: string; stopIndex: number; stops: DetailStop[] }) {
+  const { data, saveItemDetail } = useSubmission();
+  const detail = data.itemDetails[product];
   const { cardRef, navigate } = usePageTransition();
+
+  const productId = product;
+  const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set(detail?.selectedTeeth ?? []));
+  const [notSure, setNotSure] = useState(detail?.teethNotSure ?? false);
+  const [notes, setNotes] = useState(detail?.notes ?? "");
 
   const NOTES_MAX = 300;
 
@@ -53,18 +70,15 @@ export default function Step5() {
       <a href="#main-content" className="sr-only">Skip to main content</a>
 
       {(() => {
-        const productId = data.products[0] || '';
-        const total = getTotalSteps(productId);
-        // Teeth chart is always the last step; guard against direct navigation
-        // with no product selected (where the raw step number can exceed total).
-        const current = Math.min(getStepNumber('teeth-chart', productId), total);
+        const total = getOrderTotalSteps(data.products);
+        const current = Math.min(stopIndex + 2, total); // overview is step 1
         const pct = Math.min(100, Math.round((current / total) * 100));
         return (
           <IntakeHeader
             label="Your Details"
             pct={pct}
             counter={`Step ${current} of ${total}`}
-            onBack={() => navigate(getBackForTeethChart(productId), 'backward')}
+            onBack={() => navigate(prevFromStop(stops, stopIndex), 'backward')}
             onClose={() => navigate('/dashboard', 'backward')}
           />
         );
@@ -73,6 +87,18 @@ export default function Step5() {
       {/* White card */}
       <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Tooth Chart</h1>
+        {productId && (() => {
+          const chartedProducts = data.products.filter(productNeedsDetails);
+          const ordinal = chartedProducts.indexOf(productId) + 1;
+          return (
+            <p className={styles.itemContext}>
+              {productLabel(productId)}
+              {chartedProducts.length > 1 && (
+                <span className={styles.itemOrdinal}> · Item {ordinal} of {chartedProducts.length}</span>
+              )}
+            </p>
+          );
+        })()}
         <p className={styles.cardSubtitle}>
           Select missing teeth you would like to replace.
         </p>
@@ -124,12 +150,49 @@ export default function Step5() {
       <div className={styles.buttonWrapper}>
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
           onClick={async () => {
-          await saveDraft({ selectedTeeth: [...selectedTeeth], teethNotSure: notSure, notes: notes.trim() || null });
-          navigate('/photo-intro', 'forward');
+          await saveItemDetail(productId, { selectedTeeth: [...selectedTeeth], teethNotSure: notSure, notes: notes.trim() || null });
+          navigate(nextFromStop(stops, stopIndex), 'forward');
         }}
         >CONTINUE</button>
         <FlowSupport />
       </div>
     </main>
+  );
+}
+
+/** Resolves which item this stop is for, loading the order if a refresh lost it. */
+function Step5Loader() {
+  const { data, update, ensureSubmissionId } = useSubmission();
+  const searchParams = useSearchParams();
+  const stopIndex = Math.max(0, parseInt(searchParams.get("stop") ?? "0", 10) || 0);
+
+  useEffect(() => {
+    if (data.products.length) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const id = await ensureSubmissionId();
+        const s = await api.submissions.getById(id);
+        if (!cancelled) update({ products: s.products, itemDetails: s.itemDetails ?? data.itemDetails });
+      } catch (err) {
+        console.error("Could not load your order:", err);
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, []);
+
+  const stops = useMemo(() => getDetailStops(data.products), [data.products]);
+  const product = stops[stopIndex]?.product ?? data.products[0] ?? "";
+
+  if (!product) return <main className={styles.screen} />;
+  return <TeethForm key={product} product={product} stopIndex={stopIndex} stops={stops} />;
+}
+
+export default function Step5Page() {
+  return (
+    <Suspense fallback={<main className={styles.screen} />}>
+      <Step5Loader />
+    </Suspense>
   );
 }

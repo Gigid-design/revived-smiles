@@ -193,6 +193,7 @@ export const mockSubmissions: SubmissionsApi = {
         "gumShade",
         "selectedTeeth",
         "teethNotSure",
+        "itemDetails",
         "notes",
       ];
 

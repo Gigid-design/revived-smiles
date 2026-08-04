@@ -37,7 +37,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 16;
+export const SEED_VERSION = 17;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -78,7 +78,11 @@ export const DEMO_IMPRESSION_PHOTO = "/assets/images/impression-example-good.svg
  */
 export const DEMO_SHOPIFY_ORDER = {
   orderNumber: "#1042",
-  products: ["flexible-partial"],
+  /* A multi-item order: two partials that each need their own tooth chart and
+     shade (an upper and a lower, per Gitai's example) plus a nightguard that
+     needs neither — so the intake wizard demonstrates the per-item detail loop
+     and the "no extra details" pass-through in one order. */
+  products: ["acrylic-partial", "flexible-partial", "nightguard"],
 };
 
 /** Stand-in carrier reference. A real backend gets this from the carrier. */

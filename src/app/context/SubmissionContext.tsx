@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 
 import { api } from "@/lib/api";
-import type { ImpressionPhoto, SubmissionDraft } from "@/lib/api";
+import type { ImpressionPhoto, ItemDetail, SubmissionDraft } from "@/lib/api";
 
 /**
  * The intake in progress.
@@ -21,6 +21,9 @@ export interface SubmissionState {
   gumShade: string | null;
   selectedTeeth: number[];
   teethNotSure: boolean;
+  /* Per-product intake answers, keyed by product slug. The top-level shade /
+     teeth fields above mirror the first charted product for legacy screens. */
+  itemDetails: Record<string, ItemDetail>;
   /* Optional free-text note the patient can add during intake. */
   notes: string;
   /* Teeth photos — bite closed (front, side) and mouth open (front, side). */
@@ -34,6 +37,12 @@ interface SubmissionContextValue {
   data: SubmissionState;
   /** Local-only update. Use for anything not yet ready to persist. */
   update: (patch: Partial<SubmissionState>) => void;
+  /**
+   * Save one product's per-item answers (shade or teeth) and persist. Also
+   * mirrors the order's first charted product into the legacy top-level fields
+   * so screens that predate multi-item orders keep rendering.
+   */
+  saveItemDetail: (product: string, patch: Partial<ItemDetail>) => Promise<void>;
   /** Starts an order. Returns the new submission's id. */
   createDraft: (email: string, userId: string | null) => Promise<string>;
   /** Updates local state and persists the intake fields in one go. */
@@ -53,6 +62,14 @@ interface SubmissionContextValue {
 
 const SESSION_KEY = "rs_submission_id";
 
+const EMPTY_ITEM: ItemDetail = {
+  whiteShade: null,
+  gumShade: null,
+  selectedTeeth: [],
+  teethNotSure: false,
+  notes: null,
+};
+
 const defaults: SubmissionState = {
   email: "",
   name: "",
@@ -62,6 +79,7 @@ const defaults: SubmissionState = {
   gumShade: null,
   selectedTeeth: [],
   teethNotSure: false,
+  itemDetails: {},
   notes: "",
   closeBitePhotos: [],
   openBitePhotos: [],
@@ -130,6 +148,40 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
     [data.submissionId],
   );
 
+  const saveItemDetail = useCallback(
+    async (product: string, patch: Partial<ItemDetail>): Promise<void> => {
+      const prevItem = data.itemDetails[product] ?? EMPTY_ITEM;
+      const nextItem: ItemDetail = { ...prevItem, ...patch };
+      const itemDetails = { ...data.itemDetails, [product]: nextItem };
+
+      /* Legacy mirror: the first product on the order that carries answers is
+         the one older screens (documents, admin, receipts) read from. */
+      const primary = data.products.find((p) => itemDetails[p]) ?? product;
+      const pd = itemDetails[primary];
+
+      const persist: Partial<SubmissionDraft> = {
+        itemDetails,
+        whiteShade: pd.whiteShade,
+        gumShade: pd.gumShade,
+        selectedTeeth: pd.selectedTeeth,
+        teethNotSure: pd.teethNotSure,
+        notes: pd.notes,
+      };
+
+      setData((prev) => ({ ...prev, ...persist, notes: pd.notes ?? "" }));
+
+      const id = data.submissionId ?? readStoredId();
+      if (!id) return;
+      try {
+        await api.submissions.updateDraft(id, persist);
+      } catch (err) {
+        // A failed sync must not block intake; the local copy carries answers on.
+        console.error("Could not save intake answers:", err);
+      }
+    },
+    [data.itemDetails, data.products, data.submissionId],
+  );
+
   const ensureSubmissionId = useCallback(async (): Promise<string> => {
     const known = data.submissionId ?? readStoredId();
 
@@ -171,7 +223,7 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
 
   return (
     <SubmissionContext.Provider
-      value={{ data, update, createDraft, saveDraft, ensureSubmissionId, reset }}
+      value={{ data, update, saveItemDetail, createDraft, saveDraft, ensureSubmissionId, reset }}
     >
       {children}
     </SubmissionContext.Provider>

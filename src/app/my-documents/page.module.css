@@ -87,73 +87,119 @@
   gap: 0.75rem;
 }
 
-.orderRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
+/* One card per order — title + status tag, an items-count/date row, and the
+   order's items listed inside, mirroring the design reference. */
+.orderCard {
+  display: block;
+  padding: 18px;
   background: #ffffff;
-  border-radius: 16px;
-  box-shadow: var(--card-shadow);
+  border-radius: 20px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
   text-decoration: none;
   color: inherit;
 }
 
-.orderThumb {
+.orderCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.orderCardTitle {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.125rem;   /* 18px */
+  color: #121723;
+  line-height: 1.2;
+}
+
+/* Status tag — matches the badge language on My Orders & Messages. */
+.statusTag {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-heading);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.25rem;
+  white-space: nowrap;
+}
+.statusTagDone   { color: #1f6b46; background: #e2f6ec; }
+.statusTagActive { color: #8a6100; background: #fff5da; }
+.statusTagAlert  { color: #a03030; background: #fde8e8; }
+
+.orderCardMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* Item-count pill — black, matching the intake overview badge. */
+.countPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #000000;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.6875rem;  /* 11px */
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.orderCardDate {
+  font-family: var(--font-dm-sans);
+  font-size: 0.8125rem;  /* 13px */
+  color: #8a8f9a;
+}
+
+.docItemList {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.docItemRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px dashed #e6e8ee;
+}
+.docItemRow:first-child {
+  border-top: none;
+  padding-top: 4px;
+}
+.docItemRow:last-child {
+  padding-bottom: 0;
+}
+
+.docItemThumb {
   position: relative;
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 11px;
   overflow: hidden;
-  background: #f2f4f8;
-  border: 1px solid #eceef3;
+  background: #f5f0e8;
 }
 
-.orderMain {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.orderTitle {
+.docItemName {
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 0.9375rem;  /* 15px */
   color: #121723;
   line-height: 1.25;
-}
-
-.orderMeta {
-  font-size: 0.8125rem;
-  color: #8a8f9a;
-}
-
-.statusChip {
-  flex-shrink: 0;
-  font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 0.6875rem;
-  letter-spacing: 0.01em;
-  color: #7a8095;
-  background: #f1f2f6;
-  border-radius: 999px;
-  padding: 4px 9px;
-  white-space: nowrap;
-}
-.statusChipReady {
-  color: #1f7a4d;
-  background: #e6f6ec;
-}
-
-.orderChevron {
-  flex-shrink: 0;
-  color: #c2c7d2;
 }
 
 /* ── Documents (per-product downloads) ── */
@@ -166,18 +212,28 @@
 .downloads {
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 }
 
+/* Each download is a button — bordered, rounded, tappable as a whole. */
 .downloadRow {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  padding: 0.6rem 0;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid #e8e8e4;
+  border-radius: 12px;
+  background: #ffffff;
   text-decoration: none;
   color: #0e1b4d;
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 0.9375rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+.downloadRow:hover {
+  border-color: #d3d7de;
+  background: #fafbfc;
 }
 
 .downloadHint {
@@ -200,7 +256,7 @@
   padding-top: 0;
 }
 .productDocsName {
-  margin: 0 0 2px;
+  margin: 0 0 10px;
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 0.875rem;

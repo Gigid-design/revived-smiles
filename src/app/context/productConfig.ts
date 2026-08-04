@@ -285,6 +285,78 @@ export function getStepNumber(
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* Multi-item intake flow                                              */
+/*                                                                     */
+/* An order can hold several products. Intake shows them all on step 1 */
+/* (the overview), then walks a per-item detail loop: for each product */
+/* that needs a shade and/or a tooth chart, its own shade screen then  */
+/* its own chart screen. Products needing neither add no stops. The    */
+/* shared photo/impression steps follow once, after the loop.          */
+/* ------------------------------------------------------------------ */
+
+/** One per-item screen in the detail loop. */
+export interface DetailStop {
+  /** Index into the order's `products` array — which item this is for. */
+  productIndex: number;
+  product: string;
+  screen: "shade" | "teeth";
+}
+
+/** The route the detail loop hands off to once every item is done. */
+export const AFTER_DETAILS = "/photo-intro";
+
+/** Does a product contribute any per-item detail screens at all? */
+export function productNeedsDetails(slug: string): boolean {
+  return productNeedsShade(slug) || productNeedsTeethChart(slug);
+}
+
+/**
+ * The ordered per-item detail screens for a whole order. For each product, its
+ * shade screen (if it needs one) then its chart screen (if it needs one).
+ */
+export function getDetailStops(products: string[]): DetailStop[] {
+  const stops: DetailStop[] = [];
+  products.forEach((product, productIndex) => {
+    if (productNeedsShade(product)) stops.push({ productIndex, product, screen: "shade" });
+    if (productNeedsTeethChart(product)) stops.push({ productIndex, product, screen: "teeth" });
+  });
+  return stops;
+}
+
+/** Route for the detail stop at index `i` (its screen, carrying the index). */
+export function detailStopHref(i: number, screen: DetailStop["screen"]): string {
+  return `${screen === "shade" ? "/step4" : "/step5"}?stop=${i}`;
+}
+
+/** Where step 1 (overview) sends the patient — the first stop, or the photos
+ *  if nothing on the order needs details. */
+export function firstDetailHref(products: string[]): string {
+  const stops = getDetailStops(products);
+  return stops.length ? detailStopHref(0, stops[0].screen) : AFTER_DETAILS;
+}
+
+/** The stop after index `i`, or the shared photo flow when `i` is the last. */
+export function nextFromStop(stops: DetailStop[], i: number): string {
+  return i + 1 < stops.length ? detailStopHref(i + 1, stops[i + 1].screen) : AFTER_DETAILS;
+}
+
+/** The stop before index `i`, or back to the overview when `i` is the first. */
+export function prevFromStop(stops: DetailStop[], i: number): string {
+  return i > 0 ? detailStopHref(i - 1, stops[i - 1].screen) : "/intake";
+}
+
+/** Total numbered steps across the wizard: the overview plus every stop. */
+export function getOrderTotalSteps(products: string[]): number {
+  return 1 + getDetailStops(products).length;
+}
+
+/** How many of the order's products carry their own tooth chart — so a screen
+ *  can say "item 2 of 3" only when it's actually meaningful. */
+export function chartedProductCount(products: string[]): number {
+  return products.filter(productNeedsDetails).length;
+}
+
 /** Category display labels */
 export const CATEGORY_LABELS: Record<ProductConfig["category"], string> = {
   "partial-denture": "Partial Denture",

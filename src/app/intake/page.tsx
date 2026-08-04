@@ -9,30 +9,43 @@ import { FlowSupport } from "../components/FlowSupport";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
 import { useMessages } from "../context/MessagesContext";
-import { PRODUCTS, CATEGORY_LABELS, getNextAfterProduct, getTotalSteps, productLabel } from "../context/productConfig";
+import {
+  CATEGORY_LABELS,
+  PRODUCTS,
+  productLabel,
+  productImage,
+  firstDetailHref,
+  getOrderTotalSteps,
+} from "../context/productConfig";
 import { IntakeHeader } from "../components/IntakeHeader";
 import { WrongOrderSheet } from "../components/WrongOrderSheet";
 import { api } from "@/lib/api";
 
 /**
- * Step 1 — the product, carried over from the Shopify order.
+ * Step 1 — the order, carried over from Shopify.
  *
- * It is shown, not chosen. The order is what the patient paid for and what the
- * lab builds, so letting intake rewrite it would let someone be fabricated a
- * product nobody was charged for. If it looks wrong she flags it and the care
- * team resolves it; the submission is only ever corrected by staff.
+ * An order can hold several appliances, so this is an overview of every item on
+ * it, not a single product. It's shown, not chosen: the order is what the
+ * patient paid for and what the lab builds, so letting intake rewrite it would
+ * let someone be fabricated a product nobody was charged for. If it looks wrong
+ * she flags it and the care team resolves it.
+ *
+ * From here the wizard walks a per-item detail loop — each product that needs a
+ * tooth chart and/or shade gets its own screens (see `getDetailStops`) — then
+ * the shared photo steps run once for the whole order.
  */
-export default function ProductStep() {
+
+export default function OrderOverviewStep() {
   const { data, update, ensureSubmissionId } = useSubmission();
   const { requests, sendRequest } = useMessages();
   const { cardRef, navigate } = usePageTransition();
 
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
-  const [product, setProduct] = useState<string | null>(data.products[0] ?? null);
+  const [products, setProducts] = useState<string[]>(data.products);
   const [loading, setLoading] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  /* The product lives on the order, not in intake's local state, so read it
+  /* The products live on the order, not in intake's local state, so read them
      back rather than trusting whatever the context happens to be carrying. */
   useEffect(() => {
     let cancelled = false;
@@ -42,14 +55,17 @@ export default function ProductStep() {
         const id = await ensureSubmissionId();
         const submission = await api.submissions.getById(id);
         if (cancelled) return;
-        setProduct(submission.products[0] ?? null);
+        setProducts(submission.products);
         setOrderNumber(submission.orderNumber);
 
-        /* Mirror the product into the shared intake state. The shade and
-           tooth-chart screens read it from there to work out how many steps
-           they are of how many, and this is now the only screen that learns
-           it — nothing writes `products` any more, because nothing may. */
-        update({ products: submission.products });
+        /* Mirror the order into shared intake state. Every detail screen reads
+           its product and any answers already given from here — this is the
+           only screen that learns them; nothing writes `products`, because
+           nothing may. */
+        update({
+          products: submission.products,
+          itemDetails: submission.itemDetails ?? data.itemDetails,
+        });
       } catch (err) {
         console.error("Could not load your order:", err);
       } finally {
@@ -66,12 +82,8 @@ export default function ProductStep() {
      asking her to report the same problem twice. */
   const openFlag = requests.find((m) => m.request?.kind === "order" && m.request.status === "pending");
 
-  const config = product ? PRODUCTS.find((p) => p.id === product) : undefined;
-
-  /* How long the wizard is depends on the product. Until one is known there is
-     no honest total, and claiming one would show a full bar on a screen she
-     can't move past. */
-  const total = product ? getTotalSteps(product) : null;
+  const hasOrder = products.length > 0;
+  const total = getOrderTotalSteps(products);
 
   async function flagOrder(detail: string, note: string) {
     await sendRequest("order", detail, note);
@@ -83,20 +95,27 @@ export default function ProductStep() {
 
       <IntakeHeader
         label="Your Details"
-        pct={total ? Math.round((1 / total) * 100) : 0}
-        counter={total ? `Step 1 of ${total}` : "Step 1"}
+        pct={hasOrder ? Math.round((1 / total) * 100) : 0}
+        counter={hasOrder ? `Step 1 of ${total}` : "Step 1"}
         onBack={() => navigate('/dashboard', 'backward')}
         onClose={() => navigate('/dashboard', 'backward')}
       />
 
       <div className={styles.card} id="main-content" ref={cardRef}>
-        <h1 className={styles.cardTitle}>Your ordered product</h1>
+        <div className={styles.overviewHead}>
+          <h1 className={styles.cardTitle}>Your order</h1>
+          {hasOrder && (
+            <span className={styles.countBadge}>
+              {products.length} {products.length === 1 ? "Item" : "Items"}
+            </span>
+          )}
+        </div>
 
         <div className={styles.orderBody}>
           {loading && <div className={styles.orderSkeleton} aria-busy="true" />}
 
           {/* No matched order — she can't proceed, so send her to a human. */}
-          {!loading && !product && (
+          {!loading && !hasOrder && (
             <div className={styles.orderEmpty}>
               <p className={styles.orderEmptyTitle}>We couldn&apos;t find your order</p>
               <p className={styles.orderEmptyBody}>
@@ -109,27 +128,36 @@ export default function ProductStep() {
             </div>
           )}
 
-          {!loading && product && (
+          {!loading && hasOrder && (
             <>
-              {/* Read-only: this is a statement of what was ordered. */}
-              {/* Product hero — the ordered item, floating on a soft tint. */}
-              <div className={styles.productHero}>
-                <Image
-                  src="/assets/images/product-denture.jpg"
-                  alt={productLabel(product)}
-                  width={600}
-                  height={600}
-                  className={styles.productHeroImg}
-                  sizes="(max-width: 520px) 100vw, 520px"
-                  priority
-                />
-              </div>
-
-              <div className={styles.productInfo}>
-                {config && <span className={styles.productCategory}>{CATEGORY_LABELS[config.category]}</span>}
-                <h2 className={styles.productName}>{productLabel(product)}</h2>
-                {config && <p className={styles.productDesc}>{config.description}</p>}
-              </div>
+              {/* Read-only: a statement of what was ordered, one row per item. */}
+              <ul className={styles.itemList}>
+                {products.map((slug, i) => {
+                  const config = PRODUCTS.find((p) => p.id === slug);
+                  const img = productImage(slug);
+                  return (
+                    <li key={`${slug}-${i}`} className={styles.itemRow}>
+                      <span className={styles.itemThumb} aria-hidden>
+                        {img ? (
+                          <Image src={img} alt="" fill sizes="112px" style={{ objectFit: "cover" }} />
+                        ) : (
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8a93a3" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5" />
+                          </svg>
+                        )}
+                      </span>
+                      <span className={styles.itemMain}>
+                        {config && (
+                          <span className={`${styles.itemCategory} ${config.category === "partial-denture" ? styles.itemCategoryPartial : ""}`}>
+                            {CATEGORY_LABELS[config.category]}
+                          </span>
+                        )}
+                        <span className={styles.itemName}>{productLabel(slug)}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
 
               {orderNumber && (
                 <div className={styles.detailRow}>
@@ -175,10 +203,10 @@ export default function ProductStep() {
       <div className={styles.buttonWrapper}>
         <button
           type="button"
-          className={`${styles.btn} ${product ? styles.btnActive : ""}`}
-          disabled={!product}
+          className={`${styles.btn} ${hasOrder ? styles.btnActive : ""}`}
+          disabled={!hasOrder}
           onClick={() => {
-            if (product) navigate(getNextAfterProduct(product), 'forward');
+            if (hasOrder) navigate(firstDetailHref(products), 'forward');
           }}
         >
           CONTINUE
@@ -188,7 +216,7 @@ export default function ProductStep() {
 
       <WrongOrderSheet
         open={sheetOpen}
-        currentProduct={product ?? ""}
+        currentProduct={products[0] ?? ""}
         onClose={() => setSheetOpen(false)}
         onFlag={flagOrder}
       />
