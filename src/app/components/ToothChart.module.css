@@ -35,7 +35,7 @@
   position: absolute;
   z-index: 1;
   transform: translate(-50%, -50%);
-  background: #FDD33B;
+  background: #FDCD47;
   border-radius: 42% 42% 46% 46% / 44%;
 }
 
@@ -56,7 +56,7 @@
   outline: 1px solid rgba(180, 0, 0, 0.6);
 }
 
-/* Captions */
+/* Captions — small, uppercase, softly tracked for a refined look. */
 .archLabel {
   position: absolute;
   left: 50%;
@@ -64,26 +64,30 @@
   z-index: 4;
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 1em;
+  font-size: 0.75em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   line-height: 1;
-  color: #121723;
+  color: #9aa0a6;
   pointer-events: none;
 }
-.archLabelUpper { top: 30%; }
-.archLabelLower { top: 62%; }
+.archLabelUpper { top: 36%; }
+.archLabelLower { top: 34%; }
 
 .corner {
   position: absolute;
   z-index: 4;
   transform: translateX(-50%);
   font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 0.8125em;
+  font-weight: 600;
+  font-size: 0.625em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   line-height: 1;
-  color: #121723;
+  color: #b6bbc0;
   pointer-events: none;
 }
-.cornerTL { left: 8%; top: 2%; }
-.cornerTR { left: 92%; top: 2%; }
-.cornerBL { left: 8%; bottom: 2%; }
-.cornerBR { left: 92%; bottom: 2%; }
+.cornerTL { left: 9%; top: 4%; }
+.cornerTR { left: 91%; top: 4%; }
+.cornerBL { left: 9%; bottom: 4%; }
+.cornerBR { left: 91%; bottom: 4%; }
