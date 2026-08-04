@@ -39,21 +39,11 @@
 .colMain,
 .colSide { display: contents; }
 
-@media screen and (min-width: 1025px) {
-  .screen { --app-max: 960px; }
-  .content { padding-left: 1.5em; padding-right: 1.5em; }
-  .grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-    gap: 1.5em;
-    align-items: start;
-  }
-  .colMain,
-  .colSide { display: flex; flex-direction: column; }
-  /* Align both column tops — drop the first card's top margin. */
-  .colMain > :first-child,
-  .colSide > :first-child { margin-top: 0; }
-}
+/* Desktop keeps the single centered column (no 2-column split): with tasks
+   gone once intake is complete, the split left an empty half and pushed the
+   status/care cards off to one side. A centered column reads balanced in
+   every state. Cards still flow via the base `.grid` (flex column) and
+   `.colMain`/`.colSide { display: contents }`. */
 
 /* ── Top bar ── */
 .topBar {
