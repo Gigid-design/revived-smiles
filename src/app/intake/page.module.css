@@ -68,6 +68,97 @@
   .orderSkeleton { animation: none; }
 }
 
+/* ── Order overview — one row per item on the order ── */
+/* Title + item-count badge on one line, badge aligned to the title. */
+.overviewHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75em;
+  padding-right: 1.875em;   /* 30px — mirrors the title's left inset */
+}
+.overviewHead .cardTitle {
+  padding-bottom: 0.5em;
+}
+
+/* Item-count pill — black, white text, fully rounded (matches the reference). */
+.countBadge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3em 0.7em;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.8125em;      /* 13px */
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: #ffffff;
+  background: #000000;
+  border-radius: 999px;
+}
+
+.itemList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: 1.25em;             /* ~20px */
+  padding: 0.5em;          /* 8px — art nearly fills the card */
+  background: #ffffff;
+  border-radius: 1.25em;   /* 20px */
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+.itemThumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 7em;              /* 112px */
+  height: 7.3125em;        /* 117px */
+  border-radius: 1.25em;   /* 20px — matches the card */
+  overflow: hidden;
+  background: #f5f0e8;     /* warm cream behind the product photo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.itemMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+
+.itemCategory {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.875em;      /* 14px */
+  letter-spacing: 0;
+  color: #8a93a3;
+}
+
+/* Partial-denture rows get the brand amber eyebrow. */
+.itemCategoryPartial {
+  color: #CD8200;
+}
+
+.itemName {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.9375em;     /* 15px */
+  line-height: 1.25;
+  color: #121723;
+}
+
 /* ── Product hero — the ordered item floating on a soft tint, a product-detail
    layout rather than a tappable choice. The lock badge marks it read-only. */
 .productHero {
@@ -163,14 +254,11 @@
 
 .orderNote {
   font-family: var(--font-dm-sans);
-  font-size: 0.8125em;     /* 13px */
+  font-size: 0.75em;       /* 12px */
   line-height: 1.5;
-  color: #7b8494;
-  text-align: center;
-  background: #f4f6fa;
-  border-radius: 0.85em;
-  padding: 0.85em 1em;
-  margin: 1.25em 0 0;
+  color: #9aa1ad;
+  text-align: left;
+  margin: 1em 0 0;
 }
 
 /* ── The escape hatch ──

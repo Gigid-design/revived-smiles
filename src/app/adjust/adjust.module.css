@@ -84,6 +84,9 @@
   margin-top: 1em;
 }
 
+/* Selection card — the elevated, soft-shadow look from My Documents, with the
+   selector kept (it reads as tappable) but moved to the trailing edge. The
+   transparent border reserves room for the selected ring, so nothing shifts. */
 .option {
   display: flex;
   align-items: center;
@@ -92,20 +95,21 @@
   text-align: left;
   padding: 1em 1.125em;
   background: #ffffff;
-  border: 2px solid #e8e8e4;
-  border-radius: 0.875em; /* 14px */
+  border: 2px solid transparent;
+  border-radius: 1em; /* 16px */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .option:hover {
-  border-color: #d3d7de;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.10);
 }
 
 .optionSelected,
 .optionSelected:hover {
   border-color: #121723;
-  background: #f7f8fa;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.10);
 }
 
 .optionBody {
@@ -131,6 +135,8 @@
 
 /* Leading radio/check indicator */
 .indicator {
+  order: 1;           /* trailing — the selector sits at the card's right edge */
+  margin-left: auto;
   flex: none;
   width: 1.375em;
   height: 1.375em;
@@ -612,35 +618,47 @@
   justify-content: center;
   text-align: center;
   padding: 2em 1.75em;
-  gap: 0.75em;
+  gap: 0.6em;
 }
 
+/* Icon chip — gradient fill, a soft concentric halo and a coloured glow, so the
+   end states read as considered rather than a flat status dot. */
 .messageIcon {
-  width: 3.5em;
-  height: 3.5em;
+  width: 4em;
+  height: 4em;
   border-radius: 50%;
   display: grid;
   place-items: center;
   color: #fff;
-  margin-bottom: 0.5em;
+  margin-bottom: 1em;
 }
 
-.messageIconSuccess { background: #22a06b; }
-.messageIconInfo { background: #0e6c9c; }
+.messageIconSuccess {
+  background: linear-gradient(158deg, #2bbd7e 0%, #22a06b 100%);
+  box-shadow: 0 0 0 8px rgba(34, 160, 107, 0.10), 0 12px 26px rgba(34, 160, 107, 0.28);
+}
+.messageIconInfo {
+  background: linear-gradient(158deg, #1a86c4 0%, #0e6c9c 100%);
+  box-shadow: 0 0 0 8px rgba(14, 108, 156, 0.10), 0 12px 26px rgba(14, 108, 156, 0.28);
+}
 
 .messageTitle {
   font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 1.5em;
+  font-weight: 600;
+  font-size: 1.625em;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
   color: #121723;
+  margin: 0;
 }
 
 .messageBody {
   font-family: var(--font-body);
   font-size: 0.9375em;
-  line-height: 1.55;
+  line-height: 1.6;
   color: #6b7280;
-  max-width: 22em;
+  max-width: 20em;
+  margin: 0.15em 0 0;
 }
 
 .messageNumber {

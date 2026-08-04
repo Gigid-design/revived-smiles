@@ -65,6 +65,7 @@ export type {
   InsuranceStatus,
   Invoice,
   InvoiceStatus,
+  ItemDetail,
   MessageRole,
   PaymentMethod,
   NewPromptConfig,

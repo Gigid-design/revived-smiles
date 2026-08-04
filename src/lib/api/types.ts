@@ -151,6 +151,26 @@ export function requiresReviewNotes(status: SubmissionStatus): boolean {
   return status === "rejected" || status === "changes_requested";
 }
 
+/**
+ * One product's own intake answers within an order.
+ *
+ * An order can carry several appliances, and two of them may each need their
+ * own tooth chart and shade — e.g. an upper acrylic partial and a lower
+ * flexible partial replace different teeth. So the charted answers are kept
+ * per product here, keyed by product slug in `Submission.itemDetails`, rather
+ * than once for the whole order. Products that need neither a chart nor a shade
+ * (a retainer, a nightguard) contribute no entry.
+ */
+export interface ItemDetail {
+  whiteShade: string | null;
+  gumShade: string | null;
+  /** Universal tooth numbering, 1–32. */
+  selectedTeeth: number[];
+  teethNotSure: boolean;
+  /** Per-item free-text note ("only replace 2 of these"), optional. */
+  notes: string | null;
+}
+
 /** A patient's order, from first draft through delivery. */
 export interface Submission {
   id: string;
@@ -179,6 +199,14 @@ export interface Submission {
   /** Universal tooth numbering, 1–32. */
   selectedTeeth: number[];
   teethNotSure: boolean;
+  /**
+   * Per-product intake answers, keyed by product slug. Present on multi-item
+   * orders (and single-item ones filled through the current wizard); absent on
+   * legacy records. The top-level `whiteShade` / `gumShade` / `selectedTeeth` /
+   * `teethNotSure` fields mirror the order's first charted product, so screens
+   * that predate multi-item orders keep working.
+   */
+  itemDetails?: Record<string, ItemDetail>;
   /**
    * Optional free-text note from the patient (e.g. "only replace 2 of my 6
    * missing teeth", an address change). Character-limited in the UI. Optional
@@ -226,6 +254,7 @@ export type SubmissionDraft = Pick<
   | "gumShade"
   | "selectedTeeth"
   | "teethNotSure"
+  | "itemDetails"
   | "notes"
 >;
 

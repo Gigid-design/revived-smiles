@@ -47,6 +47,15 @@ function formatDate(dateStr: string | null): string {
   return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+/* The status tag colour, matching the badge language used on My Orders and in
+   Messages: green when done, amber while in progress, red when it needs the
+   patient. */
+function statusTone(status: SubmissionStatus): "statusTagDone" | "statusTagActive" | "statusTagAlert" {
+  if (status === "changes_requested" || status === "rejected") return "statusTagAlert";
+  if (REVIEWED_STATUSES.includes(status)) return "statusTagDone";
+  return "statusTagActive";
+}
+
 /* The four teeth photos + impression photos are captured once per order and
    shared by every product on it. Kept here so both record views agree. */
 function collectPhotos(order: Submission): PhotoItem[] {
@@ -178,10 +187,9 @@ function MyDocuments() {
         ].filter((r) => r.value)
     : [];
 
-  /* List view rows: one per ordered product across all the customer's orders. */
-  const productRows = orders.flatMap((o) =>
-    (o.products.length ? o.products : ["order"]).map((slug) => ({ order: o, slug }))
-  );
+  /* List view: one row per order — that's how the customer submits them, so it's
+     how they look for their paperwork. Each order's per-item invoices and
+     prescriptions live inside its detail view. */
 
   return (
     <main className={styles.screen}>
@@ -201,35 +209,39 @@ function MyDocuments() {
 
         {/* ───── List view: one entry per ordered product ───── */}
         {!loading && !isDetail && (
-          productRows.length > 0 ? (
-            <nav className={styles.orderList} aria-label="Your items">
-              {productRows.map(({ order: o, slug }) => {
-                const ready = REVIEWED_STATUSES.includes(o.status);
-                const href = slug === "order"
-                  ? `/my-documents?id=${o.id}`
-                  : `/my-documents?id=${o.id}&product=${slug}`;
-                const img = slug === "order" ? null : productImage(slug);
+          orders.length > 0 ? (
+            <nav className={styles.orderList} aria-label="Your orders">
+              {orders.map((o) => {
+                const items = o.products.length ? o.products : ["order"];
                 return (
-                  <Link key={`${o.id}-${slug}`} href={href} className={styles.orderRow}>
-                    <span className={styles.orderThumb} aria-hidden>
-                      {img ? (
-                        <Image src={img} alt="" fill sizes="44px" style={{ objectFit: "cover" }} />
-                      ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3559c7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5" /><path d="M9 13h6M9 17h4" />
-                        </svg>
-                      )}
-                    </span>
-                    <span className={styles.orderMain}>
-                      <span className={styles.orderTitle}>{slug === "order" ? "Order" : productLabel(slug)}</span>
-                      <span className={styles.orderMeta}>
-                        {o.orderNumber ? `${o.orderNumber} · ` : ""}{formatDate(o.createdAt)}
-                      </span>
-                    </span>
-                    <span className={`${styles.statusChip} ${ready ? styles.statusChipReady : ""}`}>{STATUS_LABELS[o.status]}</span>
-                    <svg className={styles.orderChevron} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
+                  <Link key={o.id} href={`/my-documents?id=${o.id}`} className={styles.orderCard}>
+                    <div className={styles.orderCardHead}>
+                      <span className={styles.orderCardTitle}>{o.orderNumber ? `Order ${o.orderNumber}` : "Order"}</span>
+                      <span className={`${styles.statusTag} ${styles[statusTone(o.status)]}`}>{STATUS_LABELS[o.status]}</span>
+                    </div>
+                    <div className={styles.orderCardMeta}>
+                      <span className={styles.countPill}>{items.length} {items.length === 1 ? "Item" : "Items"}</span>
+                      {o.createdAt && <span className={styles.orderCardDate}>{formatDate(o.createdAt)}</span>}
+                    </div>
+                    <ul className={styles.docItemList}>
+                      {items.map((slug, i) => {
+                        const img = slug === "order" ? null : productImage(slug);
+                        return (
+                          <li key={`${slug}-${i}`} className={styles.docItemRow}>
+                            <span className={styles.docItemThumb} aria-hidden>
+                              {img ? (
+                                <Image src={img} alt="" fill sizes="40px" style={{ objectFit: "cover" }} />
+                              ) : (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a93a3" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5" />
+                                </svg>
+                              )}
+                            </span>
+                            <span className={styles.docItemName}>{slug === "order" ? "Order" : productLabel(slug)}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </Link>
                 );
               })}

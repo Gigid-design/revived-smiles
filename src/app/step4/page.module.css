@@ -42,6 +42,21 @@
   flex-shrink: 0;
 }
 
+/* Which item on the order this shade is for — sits under the title. */
+.itemContext {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.9375em;   /* 15px */
+  line-height: 1.3;
+  color: #121723;
+  margin: 0 0 0.6em;
+  flex-shrink: 0;
+}
+.itemOrdinal {
+  font-weight: 500;
+  color: #8a93a3;
+}
+
 /* Disclaimer — sits directly under the title, before the shade selectors. */
 .disclaimer {
   font-family: var(--font-body);
@@ -139,10 +154,10 @@
   position: relative;
 }
 
-/* Active swatch — blue border */
+/* Active swatch — matches the product-selector selected state (2px #121723). */
 .swatchCardActive {
-  border-width: 3px;
-  border-color: #c6dcfe;
+  border-width: 2px;
+  border-color: #121723;
 }
 
 /* Tooth/gum chip inside swatch — 36×44px, tooth shape */

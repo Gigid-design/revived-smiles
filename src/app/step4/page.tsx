@@ -1,12 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import { FlowSupport } from "../components/FlowSupport";
 import { usePageTransition } from "../hooks/usePageTransition";
 import { useSubmission } from "../context/SubmissionContext";
-import { getNextAfterShade, getStepNumber, getTotalSteps } from "../context/productConfig";
+import {
+  DetailStop,
+  getDetailStops,
+  getOrderTotalSteps,
+  nextFromStop,
+  prevFromStop,
+  productLabel,
+  productNeedsDetails,
+} from "../context/productConfig";
 import { IntakeHeader } from "../components/IntakeHeader";
+import { api } from "@/lib/api";
 
 interface Shade {
   id: string;
@@ -62,19 +72,27 @@ function clearClass(shade: Shade | undefined, css: string): string {
   return shade?.clear ? ` ${css}` : "";
 }
 
-export default function Step4() {
-  const { data, saveDraft } = useSubmission();
-  const [whiteShade, setWhiteShade] = useState<string | null>(data.whiteShade);
-  const [gumShade,   setGumShade]   = useState<string | null>(data.gumShade);
+/**
+ * The shade form for one item on the order. Remounted per product (via `key`),
+ * so its picks always start from that product's own saved answers.
+ */
+function ShadeForm({ product, stopIndex, stops }: { product: string; stopIndex: number; stops: DetailStop[] }) {
+  const { data, saveItemDetail } = useSubmission();
+  const detail = data.itemDetails[product];
+  const [whiteShade, setWhiteShade] = useState<string | null>(detail?.whiteShade ?? null);
+  const [gumShade,   setGumShade]   = useState<string | null>(detail?.gumShade ?? null);
   const { cardRef, navigate } = usePageTransition();
 
   const selectedWhite = WHITE_SHADES.find(s => s.id === whiteShade);
   const selectedGum   = GUM_SHADES.find(s => s.id === gumShade);
 
+  const total = getOrderTotalSteps(data.products);
+  const current = Math.min(stopIndex + 2, total); // overview is step 1
 
-  const productId = data.products[0] || '';
-  const total = getTotalSteps(productId);
-  const current = Math.min(getStepNumber('shade', productId), total);
+  /* Only worth naming the item's position when several items carry a chart. */
+  const chartedProducts = data.products.filter(productNeedsDetails);
+  const itemOrdinal = chartedProducts.indexOf(product) + 1;
+  const showOrdinal = chartedProducts.length > 1;
 
   return (
     <main className={styles.screen}>
@@ -84,13 +102,17 @@ export default function Step4() {
         label="Your Details"
         pct={Math.min(100, Math.round((current / total) * 100))}
         counter={`Step ${current} of ${total}`}
-        onBack={() => navigate('/intake', 'backward')}
+        onBack={() => navigate(prevFromStop(stops, stopIndex), 'backward')}
         onClose={() => navigate('/dashboard', 'backward')}
       />
 
       {/* White card */}
       <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Tooth &amp; Gum shade</h1>
+        <p className={styles.itemContext}>
+          {productLabel(product)}
+          {showOrdinal && <span className={styles.itemOrdinal}> · Item {itemOrdinal} of {chartedProducts.length}</span>}
+        </p>
         <p className={styles.disclaimer}>
           Colors shown here are a guide only. Please refer to your order form for the
           accurate coloring and confirm your selection matches it.
@@ -179,13 +201,50 @@ export default function Step4() {
       <div className={styles.buttonWrapper}>
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
           onClick={async () => {
-            await saveDraft({ whiteShade, gumShade });
-            navigate(getNextAfterShade(productId), 'forward');
+            await saveItemDetail(product, { whiteShade, gumShade });
+            navigate(nextFromStop(stops, stopIndex), 'forward');
           }}>
           CONTINUE
         </button>
         <FlowSupport />
       </div>
     </main>
+  );
+}
+
+/** Resolves which item this stop is for, loading the order if a refresh lost it. */
+function Step4Loader() {
+  const { data, update, ensureSubmissionId } = useSubmission();
+  const searchParams = useSearchParams();
+  const stopIndex = Math.max(0, parseInt(searchParams.get("stop") ?? "0", 10) || 0);
+
+  useEffect(() => {
+    if (data.products.length) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const id = await ensureSubmissionId();
+        const s = await api.submissions.getById(id);
+        if (!cancelled) update({ products: s.products, itemDetails: s.itemDetails ?? data.itemDetails });
+      } catch (err) {
+        console.error("Could not load your order:", err);
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, []);
+
+  const stops = useMemo(() => getDetailStops(data.products), [data.products]);
+  const product = stops[stopIndex]?.product ?? data.products[0] ?? "";
+
+  if (!product) return <main className={styles.screen} />;
+  return <ShadeForm key={product} product={product} stopIndex={stopIndex} stops={stops} />;
+}
+
+export default function Step4Page() {
+  return (
+    <Suspense fallback={<main className={styles.screen} />}>
+      <Step4Loader />
+    </Suspense>
   );
 }
