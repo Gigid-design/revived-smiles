@@ -1,10 +1,16 @@
 /**
- * State for the six-screen adjustment flow.
+ * State for the adjustment flow.
  *
  * The whole flow is one sitting with branches, so it lives in a single route
- * driven by this reducer rather than six cross-linked pages. `screen` is where
- * we are; `terminal` marks the two dead-ends the spec defines (routed to
- * customer service, or closed out because the hot-water reset fixed the fit).
+ * driven by this reducer rather than cross-linked pages. `screen` is where we
+ * are; `terminal` marks the dead-ends the spec defines (routed to customer
+ * service, or closed out because the hot-water reset fixed the fit).
+ *
+ * Multiple products can be adjusted in one sitting (Gitai, Aug 4: "in case both
+ * of them have an issue"). Each product keeps its own steps and photos, so they
+ * are detailed one at a time — `products` is the selection, `productIndex` is
+ * the one on screen — and each finished product is submitted as its own request
+ * (the lab still needs to know which appliance has which problem).
  */
 
 import type {
@@ -33,17 +39,20 @@ export interface WizardState {
   orders: Submission[] | null;
   /** The chosen order. */
   submissionId: string | null;
-  /** The chosen product slug. */
-  product: string | null;
 
-  /** Screen 4 selection, kept in the flow's display order. */
+  /** The chosen product slugs, addressed one at a time (Screens 4–5). */
+  products: string[];
+  /** Which of `products` is currently being detailed. */
+  productIndex: number;
+
+  /** Working answers for the CURRENT product; reset between products. */
   issues: AdjustmentIssueId[];
   answers: AdjustmentAnswers;
   photos: AdjustmentPhotos;
   description: string;
 
-  /** Set after a successful submit, for Screen 6. */
-  requestNumber: string | null;
+  /** One request number per product submitted so far, for Screen 6. */
+  requestNumbers: string[];
   submitting: boolean;
   error: string | null;
 }
@@ -53,20 +62,29 @@ export const initialState: WizardState = {
   terminal: null,
   orders: null,
   submissionId: null,
-  product: null,
+  products: [],
+  productIndex: 0,
   issues: [],
   answers: {},
   photos: {},
   description: "",
-  requestNumber: null,
+  requestNumbers: [],
   submitting: false,
   error: null,
+};
+
+/** Blank working state, applied when moving on to the next product. */
+const CLEARED = {
+  issues: [] as AdjustmentIssueId[],
+  answers: {} as AdjustmentAnswers,
+  photos: {} as AdjustmentPhotos,
+  description: "",
 };
 
 export type WizardAction =
   | { type: "orders-loaded"; orders: Submission[] }
   | { type: "pick-order"; submissionId: string }
-  | { type: "pick-product"; product: string }
+  | { type: "pick-products"; products: string[] }
   | { type: "route-to-service"; terminal: Terminal }
   | { type: "confirm-has-models" }
   | { type: "set-issues"; issues: AdjustmentIssueId[] }
@@ -74,10 +92,17 @@ export type WizardAction =
   | { type: "patch-photos"; photos: Partial<AdjustmentPhotos> }
   | { type: "set-description"; description: string }
   | { type: "close-out" }
+  /** This product is done and submitted; move on to the next one's issues. */
+  | { type: "advance-product"; requestNumber: string }
+  /** This product needs no request (fit fixed); move on without submitting. */
+  | { type: "skip-product" }
   | { type: "go"; screen: WizardScreen }
   | { type: "back"; screen: WizardScreen }
   | { type: "submitting" }
+  /** Last product done — finish, recording its request number. */
   | { type: "submitted"; requestNumber: string }
+  /** Last product needed no request — finish on what's already submitted. */
+  | { type: "finish" }
   | { type: "error"; error: string | null };
 
 export function reducer(state: WizardState, action: WizardAction): WizardState {
@@ -88,8 +113,14 @@ export function reducer(state: WizardState, action: WizardAction): WizardState {
     case "pick-order":
       return { ...state, submissionId: action.submissionId, screen: "product" };
 
-    case "pick-product":
-      return { ...state, product: action.product, screen: "confirm" };
+    case "pick-products":
+      return {
+        ...state,
+        products: action.products,
+        productIndex: 0,
+        ...CLEARED,
+        screen: "confirm",
+      };
 
     case "route-to-service":
       return { ...state, terminal: action.terminal };
@@ -112,6 +143,25 @@ export function reducer(state: WizardState, action: WizardAction): WizardState {
     case "close-out":
       return { ...state, terminal: "closed-out" };
 
+    case "advance-product":
+      return {
+        ...state,
+        requestNumbers: [...state.requestNumbers, action.requestNumber],
+        productIndex: state.productIndex + 1,
+        ...CLEARED,
+        submitting: false,
+        error: null,
+        screen: "issues",
+      };
+
+    case "skip-product":
+      return {
+        ...state,
+        productIndex: state.productIndex + 1,
+        ...CLEARED,
+        screen: "issues",
+      };
+
     case "go":
     case "back":
       return { ...state, screen: action.screen, terminal: null };
@@ -123,9 +173,12 @@ export function reducer(state: WizardState, action: WizardAction): WizardState {
       return {
         ...state,
         submitting: false,
-        requestNumber: action.requestNumber,
+        requestNumbers: [...state.requestNumbers, action.requestNumber],
         screen: "submitted",
       };
+
+    case "finish":
+      return { ...state, submitting: false, screen: "submitted" };
 
     case "error":
       return { ...state, submitting: false, error: action.error };

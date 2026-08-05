@@ -17,10 +17,12 @@ import styles from "../adjust.module.css";
 interface IssuesScreenProps {
   product: AdjustmentProduct;
   initial: AdjustmentIssueId[];
+  /** "Appliance 2 of 2 · Flexible Partial Denture" when several were picked. */
+  context?: string;
   onContinue: (issues: AdjustmentIssueId[]) => void;
 }
 
-export function IssuesScreen({ product, initial, onContinue }: IssuesScreenProps) {
+export function IssuesScreen({ product, initial, context, onContinue }: IssuesScreenProps) {
   const [selected, setSelected] = useState<Set<AdjustmentIssueId>>(new Set(initial));
   const available = ISSUE_ORDER.filter((issue) => issueAppliesToProduct(issue, product));
 
@@ -36,6 +38,7 @@ export function IssuesScreen({ product, initial, onContinue }: IssuesScreenProps
   return (
     <>
       <div className={styles.card}>
+        {context && <p className={styles.flowContext}>{context}</p>}
         <h1 className={styles.title}>What&apos;s wrong?</h1>
         <p className={styles.subtitle}>Select everything that applies.</p>
 

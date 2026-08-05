@@ -46,6 +46,10 @@ interface StepsScreenProps {
   description: string;
   submitting: boolean;
   error: string | null;
+  /** "Appliance 2 of 2 · Flexible Partial Denture" when several were picked. */
+  context?: string;
+  /** CTA text — differs when more appliances follow this one. */
+  submitLabel?: string;
   onSubmit: (payload: Omit<NewAdjustmentRequest, "submissionId">) => void;
   onCloseOut: () => void;
 }
@@ -76,7 +80,7 @@ const GUM_NAMES: Record<string, string> = {
 };
 
 export function StepsScreen(props: StepsScreenProps) {
-  const { order, product, submitting, error, onSubmit, onCloseOut } = props;
+  const { order, product, submitting, error, context, submitLabel, onSubmit, onCloseOut } = props;
 
   const [active, setActive] = useState<AdjustmentIssueId[]>(props.issues);
   const [answers, setAnswers] = useState<AdjustmentAnswers>(props.answers);
@@ -269,6 +273,7 @@ export function StepsScreen(props: StepsScreenProps) {
   return (
     <>
       <div className={styles.card}>
+        {context && <p className={styles.flowContext}>{context}</p>}
         <h1 className={styles.title}>Complete these steps</h1>
         <p className={styles.subtitle}>
           A few things for the lab, then a couple of photos. We&apos;ll unlock submit once
@@ -496,7 +501,7 @@ export function StepsScreen(props: StepsScreenProps) {
           disabled={remaining > 0 || submitting}
           onClick={submit}
         >
-          {submitting ? "Submitting…" : "Submit request"}
+          {submitting ? "Submitting…" : submitLabel ?? "Submit request"}
         </button>
         {remaining > 0 && (
           <span className={styles.ctaCount}>

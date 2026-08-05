@@ -54,6 +54,34 @@
   margin-bottom: 0.5em;
 }
 
+/* Which appliance this step is for, when several were picked. Sits above the
+   title as a quiet marker so the patient always knows where they are. */
+.flowContext {
+  font-family: var(--font-heading);
+  font-size: 0.6875em; /* 11px */
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0f5c4d;
+  background: #e4f5ef;
+  align-self: flex-start;
+  display: inline-block;
+  padding: 0.3em 0.7em;
+  border-radius: 999px;
+  margin-top: 1.286em;
+}
+
+/* Keep the title tight to the context chip when both are shown. */
+.flowContext + .title {
+  padding-top: 0.4em;
+}
+
+.inlineLink {
+  color: #121723;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .sectionLabel {
   font-family: var(--font-heading);
   font-weight: 500;
@@ -110,6 +138,18 @@
 .optionSelected:hover {
   border-color: #121723;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.10);
+}
+
+/* An item the flow doesn't cover — shown so the order looks complete, but not
+   selectable; customer service handles it. */
+.optionDisabled,
+.optionDisabled:hover {
+  cursor: default;
+  opacity: 0.55;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+.optionDisabled .indicator {
+  visibility: hidden;
 }
 
 .optionBody {

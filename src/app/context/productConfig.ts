@@ -286,41 +286,40 @@ export function getStepNumber(
 }
 
 /* ------------------------------------------------------------------ */
-/* Multi-item intake flow                                              */
+/* Order intake flow                                                   */
 /*                                                                     */
-/* An order can hold several products. Intake shows them all on step 1 */
-/* (the overview), then walks a per-item detail loop: for each product */
-/* that needs a shade and/or a tooth chart, its own shade screen then  */
-/* its own chart screen. Products needing neither add no stops. The    */
-/* shared photo/impression steps follow once, after the loop.          */
+/* An order can hold several products, but the appliances on one order */
+/* share the same shade and the same missing-teeth chart (an upper and */
+/* a lower partial match), so those are asked ONCE for the whole order */
+/* — not per product (Gitai, Aug 4: "they'd be the same… have them in  */
+/* the same one so we don't do the flow twice"). Intake shows every    */
+/* item on step 1 (the overview), then a single shade screen and a     */
+/* single chart screen (each only if some product on the order needs   */
+/* it), then the shared photo/impression steps once.                   */
 /* ------------------------------------------------------------------ */
 
-/** One per-item screen in the detail loop. */
+/** One shared screen in the order's detail loop. */
 export interface DetailStop {
-  /** Index into the order's `products` array — which item this is for. */
-  productIndex: number;
-  product: string;
   screen: "shade" | "teeth";
 }
 
-/** The route the detail loop hands off to once every item is done. */
+/** The route the detail loop hands off to once the shared screens are done. */
 export const AFTER_DETAILS = "/photo-intro";
 
-/** Does a product contribute any per-item detail screens at all? */
+/** Does a product contribute any detail screens at all? */
 export function productNeedsDetails(slug: string): boolean {
   return productNeedsShade(slug) || productNeedsTeethChart(slug);
 }
 
 /**
- * The ordered per-item detail screens for a whole order. For each product, its
- * shade screen (if it needs one) then its chart screen (if it needs one).
+ * The order's detail screens: one shade screen if any product needs a shade,
+ * then one chart screen if any product needs a tooth chart. Both are shared
+ * across the order rather than repeated per product.
  */
 export function getDetailStops(products: string[]): DetailStop[] {
   const stops: DetailStop[] = [];
-  products.forEach((product, productIndex) => {
-    if (productNeedsShade(product)) stops.push({ productIndex, product, screen: "shade" });
-    if (productNeedsTeethChart(product)) stops.push({ productIndex, product, screen: "teeth" });
-  });
+  if (products.some(productNeedsShade)) stops.push({ screen: "shade" });
+  if (products.some(productNeedsTeethChart)) stops.push({ screen: "teeth" });
   return stops;
 }
 
@@ -374,4 +373,41 @@ export const CATEGORY_LABELS: Record<ProductConfig["category"], string> = {
  */
 export function isClaimProduct(slug: string): boolean {
   return PRODUCTS.find((p) => p.id === slug)?.category === "claim";
+}
+
+/* ------------------------------------------------------------------ */
+/* Arch (upper / lower)                                                */
+/*                                                                     */
+/* A partial or full denture is made for a specific arch, so orders    */
+/* need to say which one (Gitai, Aug 4: "acrylic partial denture — it's*/
+/* either going to be upper or lower depending on what they choose").  */
+/* The arch is read from the teeth the patient marked on the chart:    */
+/* in universal numbering 1–16 are the upper (maxillary) arch and      */
+/* 17–32 the lower (mandibular) arch.                                  */
+/* ------------------------------------------------------------------ */
+
+export type Arch = "upper" | "lower" | "both";
+
+export const ARCH_LABELS: Record<Arch, string> = {
+  upper: "Upper",
+  lower: "Lower",
+  both: "Upper & Lower",
+};
+
+/** The arch(es) a set of selected teeth fall on, or null if none are set. */
+export function archFromTeeth(selectedTeeth: number[]): Arch | null {
+  const hasUpper = selectedTeeth.some((n) => n >= 1 && n <= 16);
+  const hasLower = selectedTeeth.some((n) => n >= 17 && n <= 32);
+  if (hasUpper && hasLower) return "both";
+  if (hasUpper) return "upper";
+  if (hasLower) return "lower";
+  return null;
+}
+
+/** Only tooth-replacing appliances (partials, full dentures) have an arch. A
+ *  nightguard or retainer spans the whole arch, so an "Upper/Lower" tag would
+ *  be meaningless for them. */
+export function productHasArch(slug: string): boolean {
+  const category = PRODUCTS.find((p) => p.id === slug)?.category;
+  return category === "partial-denture" || category === "full-denture";
 }

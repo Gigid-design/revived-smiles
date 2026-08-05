@@ -43,6 +43,16 @@ interface SubmissionContextValue {
    * so screens that predate multi-item orders keep rendering.
    */
   saveItemDetail: (product: string, patch: Partial<ItemDetail>) => Promise<void>;
+  /**
+   * Save a shade or teeth answer once for the whole order. The appliances on an
+   * order share the same shade and missing-teeth chart, so the answer is written
+   * to the top-level fields and to every product it applies to (`appliesTo`),
+   * keeping per-product readers consistent without asking the patient twice.
+   */
+  saveSharedDetail: (
+    patch: Partial<ItemDetail>,
+    appliesTo: (slug: string) => boolean,
+  ) => Promise<void>;
   /** Starts an order. Returns the new submission's id. */
   createDraft: (email: string, userId: string | null) => Promise<string>;
   /** Updates local state and persists the intake fields in one go. */
@@ -182,6 +192,42 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
     [data.itemDetails, data.products, data.submissionId],
   );
 
+  const saveSharedDetail = useCallback(
+    async (patch: Partial<ItemDetail>, appliesTo: (slug: string) => boolean): Promise<void> => {
+      /* Apply the one answer to every product it covers, so per-product readers
+         (documents, admin) stay consistent with the shared top-level fields. */
+      const itemDetails = { ...data.itemDetails };
+      for (const slug of data.products) {
+        if (!appliesTo(slug)) continue;
+        itemDetails[slug] = { ...(itemDetails[slug] ?? EMPTY_ITEM), ...patch };
+      }
+
+      /* The top-level fields carry the same shared answer directly. */
+      const persist: Partial<SubmissionDraft> = { itemDetails };
+      if ("whiteShade" in patch) persist.whiteShade = patch.whiteShade ?? null;
+      if ("gumShade" in patch) persist.gumShade = patch.gumShade ?? null;
+      if ("selectedTeeth" in patch) persist.selectedTeeth = patch.selectedTeeth ?? [];
+      if ("teethNotSure" in patch) persist.teethNotSure = patch.teethNotSure ?? false;
+      if ("notes" in patch) persist.notes = patch.notes ?? null;
+
+      setData((prev) => ({
+        ...prev,
+        ...persist,
+        notes: "notes" in patch ? patch.notes ?? "" : prev.notes,
+      }));
+
+      const id = data.submissionId ?? readStoredId();
+      if (!id) return;
+      try {
+        await api.submissions.updateDraft(id, persist);
+      } catch (err) {
+        // A failed sync must not block intake; the local copy carries answers on.
+        console.error("Could not save intake answers:", err);
+      }
+    },
+    [data.itemDetails, data.products, data.submissionId],
+  );
+
   const ensureSubmissionId = useCallback(async (): Promise<string> => {
     const known = data.submissionId ?? readStoredId();
 
@@ -223,7 +269,7 @@ export function SubmissionProvider({ children }: { children: ReactNode }) {
 
   return (
     <SubmissionContext.Provider
-      value={{ data, update, saveItemDetail, createDraft, saveDraft, ensureSubmissionId, reset }}
+      value={{ data, update, saveItemDetail, saveSharedDetail, createDraft, saveDraft, ensureSubmissionId, reset }}
     >
       {children}
     </SubmissionContext.Provider>

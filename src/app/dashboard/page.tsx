@@ -11,20 +11,35 @@ import { BottomNav } from "@/app/components/BottomNav";
 import { ImpressionStepsModal } from "@/app/components/ImpressionStepsModal";
 import { useMessages } from "@/app/context/MessagesContext";
 import { useInsurance } from "@/app/hooks/useInsurance";
+import { getDetailStops, getOrderTotalSteps } from "@/app/context/productConfig";
 
-/* Intake ends once the teeth photos are taken — impression photos are a separate
-   task from "Start Here", not an intake step. Total tracks the steps counted
-   below; per-product step mapping is still to be wired (to-do #10). */
-const INTAKE_TOTAL_STEPS = 5;
+/* The "Continue My Intake" card mirrors the intake wizard exactly: its steps are
+   the overview plus the order's shared shade / tooth-chart screens (see
+   `getOrderTotalSteps`), so the fraction here always matches the "Step X of N"
+   the patient sees in the flow. Teeth photos are the separate step that follows
+   once the wizard is done; impression photos are a later task again. */
+interface IntakeProgress {
+  done: number;
+  total: number;
+  /** Teeth photos captured — intake (wizard + photos) is fully done. */
+  teethPhotosDone: boolean;
+}
 
-/* Rough completed-step count for the "Continue My Intake" progress. */
-function intakeDone(sub: Submission): number {
-  let done = 1; // intake started
-  if (sub.products?.length) done++;
-  if (sub.whiteShade || sub.gumShade) done++;
-  if (sub.closeBitePhotos?.length) done++;  // teeth photos — bite closed
-  if (sub.openBitePhotos?.length) done++;   // teeth photos — mouth open
-  return Math.min(done, INTAKE_TOTAL_STEPS);
+function intakeProgress(sub: Submission): IntakeProgress {
+  const products = sub.products ?? [];
+  const stops = getDetailStops(products);
+  const total = getOrderTotalSteps(products); // overview + shared detail screens
+  let done = 1; // the overview — reached as soon as intake starts
+  for (const stop of stops) {
+    if (stop.screen === "shade" && (sub.whiteShade || sub.gumShade)) done++;
+    else if (stop.screen === "teeth" && ((sub.selectedTeeth?.length ?? 0) > 0 || sub.teethNotSure)) done++;
+  }
+  done = Math.min(done, total);
+  return {
+    done,
+    total,
+    teethPhotosDone: !!(sub.closeBitePhotos?.length && sub.openBitePhotos?.length),
+  };
 }
 
 /* Stages after everything is submitted — mirrors the My Order tracker so the
@@ -122,7 +137,9 @@ function Landing() {
     };
   }, []);
 
-  const done = submission ? intakeDone(submission) : 0;
+  const intake = submission
+    ? intakeProgress(submission)
+    : { done: 0, total: 1, teethPhotosDone: false };
 
   /* `?preview=changes_requested|rejected` overlays a branch status so the
      denial/resubmit UI can be demoed without an admin flipping the order. */
@@ -141,7 +158,7 @@ function Landing() {
 
   /* A branch status only happens after the order was fully submitted, so both
      prior steps read as complete (intake green, impressions red-for-resubmit). */
-  const intakeComplete = branched || done === INTAKE_TOTAL_STEPS;
+  const intakeComplete = branched || intake.teethPhotosDone;
   const impressionsComplete = branched || (submission?.impressionPhotos?.length ?? 0) > 0;
   const onTrack = intakeComplete && impressionsComplete && !branched;
   const showTimeline = intakeComplete || impressionsComplete;
@@ -310,16 +327,16 @@ function Landing() {
             {/* ══ Continue My Intake — until it's done, then it becomes a
                    completed step on the timeline below ══ */}
             {!intakeComplete && (
-            <Link href={ROUTE_INTAKE} className={styles.intakeCard} aria-label={`Continue your intake, ${done} of ${INTAKE_TOTAL_STEPS} steps done`}>
+            <Link href={ROUTE_INTAKE} className={styles.intakeCard} aria-label={`Continue your intake, ${intake.done} of ${intake.total} steps done`}>
               <div className={styles.intakeHead}>
                 <h2 className={styles.cardTitle}>Continue My Intake</h2>
                 <svg className={styles.chevron} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c0c4ce" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               </div>
-              <span className={styles.intakeCount}>{done}/{INTAKE_TOTAL_STEPS}</span>
+              <span className={styles.intakeCount}>{intake.done}/{intake.total}</span>
               <div className={styles.progressTrack}>
-                <div className={styles.progressFill} style={{ width: `${(done / INTAKE_TOTAL_STEPS) * 100}%` }} />
+                <div className={styles.progressFill} style={{ width: `${(intake.done / intake.total) * 100}%` }} />
               </div>
             </Link>
             )}

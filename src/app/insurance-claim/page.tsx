@@ -49,10 +49,6 @@ export default function InsuranceClaim() {
   const [hasAppliance, setHasAppliance] = useState<boolean | null>(null);
   const [detail, setDetail] = useState("");
 
-  // Extra-info prompt shown after the customer taps "Submit claim".
-  const [showExtra, setShowExtra] = useState(false);
-  const [extraInfo, setExtraInfo] = useState("");
-
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,19 +89,12 @@ export default function InsuranceClaim() {
     if (!insurance || !reason || hasAppliance === null) return;
     setSubmitting(true);
     setError(null);
-    // Fold the step-2 note and the extra-info prompt into the single `detail`
-    // field the claim API accepts.
-    const extra = extraInfo.trim();
-    const combinedDetail = [detail.trim(), extra && `Additional information: ${extra}`]
-      .filter(Boolean)
-      .join("\n\n");
     try {
       await api.insurance.fileClaim(insurance.id, {
         reason: reason.label,
         hasAppliance,
-        detail: combinedDetail,
+        detail: detail.trim(),
       });
-      setShowExtra(false);
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
@@ -318,95 +307,14 @@ export default function InsuranceClaim() {
             type="button"
             className={`${styles.btn} ${styles.btnActive}`}
             disabled={submitting || !insurance}
-            onClick={() => { setError(null); setShowExtra(true); }}
+            onClick={submit}
           >
-            Submit claim
+            {submitting ? "Submitting…" : "Submit claim"}
           </button>
         )}
         <FlowSupport />
       </div>
-
-      {showExtra && (
-        <ExtraInfoModal
-          value={extraInfo}
-          onChange={setExtraInfo}
-          submitting={submitting}
-          error={error}
-          onCancel={() => { if (!submitting) { setShowExtra(false); setError(null); } }}
-          onConfirm={submit}
-        />
-      )}
     </main>
-  );
-}
-
-/* ── Additional-information prompt, shown after tapping "Submit claim" ── */
-const EXTRA_MAX = 300;
-
-function ExtraInfoModal({
-  value,
-  onChange,
-  submitting,
-  error,
-  onCancel,
-  onConfirm,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  submitting: boolean;
-  error: string | null;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel(); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onCancel]);
-
-  return (
-    <div
-      className={styles.overlay}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Add additional information"
-      onClick={onCancel}
-    >
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.modalTitle}>Add any additional information</h2>
-        <p className={styles.helpText}>
-          Optional — anything else that could help your care team review the claim.
-        </p>
-        <textarea
-          className={styles.textarea}
-          placeholder="Add more detail…"
-          maxLength={EXTRA_MAX}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          autoFocus
-        />
-        <p className={styles.counter}>{value.length} / {EXTRA_MAX}</p>
-        {error && <p className={styles.error}>{error}</p>}
-        <div className={styles.modalActions}>
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.btnGhost}`}
-            disabled={submitting}
-            onClick={onCancel}
-          >
-            Back
-          </button>
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.btnActive}`}
-            disabled={submitting}
-            onClick={onConfirm}
-          >
-            {submitting ? "Submitting…" : "Submit claim"}
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 

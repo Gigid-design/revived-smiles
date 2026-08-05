@@ -1,17 +1,20 @@
 "use client";
 
-/* The adjustment request flow — a single route running the six screens as a
-   state machine (see `state.ts`). Branches to customer service or a hot-water
-   close-out are dead-ends the shell renders as message screens. */
+/* The adjustment request flow — a single route running the screens as a state
+   machine (see `state.ts`). One or more products can be adjusted in a sitting;
+   after the shared order/confirm screens, each product is detailed (what's
+   wrong → steps) and submitted as its own request, in turn. Branches to
+   customer service or a hot-water close-out are dead-ends the shell renders as
+   message screens. */
 
 import { useEffect, useReducer, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { api, ApiError } from "@/lib/api";
+import { productLabel } from "../context/productConfig";
 import { IntakeHeader } from "../components/IntakeHeader";
 import {
   CONFIRM_MODELS,
-  OUT_OF_SCOPE_MESSAGE,
   getAdjustmentProduct,
 } from "../context/adjustmentConfig";
 import { ConfirmScreen } from "./screens/ConfirmScreen";
@@ -23,13 +26,6 @@ import { StepsScreen } from "./screens/StepsScreen";
 import { SUBMITTED } from "../context/adjustmentConfig";
 import { initialState, reducer, type WizardState } from "./state";
 import styles from "./adjust.module.css";
-
-/** The screens that count toward the progress bar, given whether Screen 1 shows. */
-function flowScreens(singleOrder: boolean): string[] {
-  return singleOrder
-    ? ["product", "confirm", "issues", "steps"]
-    : ["order", "product", "confirm", "issues", "steps"];
-}
 
 export default function AdjustFlow() {
   const router = useRouter();
@@ -74,7 +70,18 @@ export default function AdjustFlow() {
 
   const singleOrder = state.orders?.length === 1;
   const order = state.orders?.find((o) => o.id === state.submissionId) ?? null;
-  const product = state.product ? getAdjustmentProduct(state.product) : null;
+
+  /* The product currently being detailed on Screens 4–5. */
+  const currentSlug = state.products[state.productIndex] ?? null;
+  const product = currentSlug ? getAdjustmentProduct(currentSlug) : null;
+  const multi = state.products.length > 1;
+  const isLastProduct = state.productIndex >= state.products.length - 1;
+
+  /* "Appliance 2 of 3 · Flexible Partial Denture" — only when several were
+     picked, so a single-product request stays uncluttered. */
+  const productContext = multi
+    ? `Appliance ${state.productIndex + 1} of ${state.products.length} · ${productLabel(currentSlug ?? "")}`
+    : undefined;
 
   async function handleSubmit(payload: {
     product: string;
@@ -87,7 +94,8 @@ export default function AdjustFlow() {
     dispatch({ type: "submitting" });
     try {
       const req = await api.adjustments.create({ submissionId: state.submissionId, ...payload });
-      dispatch({ type: "submitted", requestNumber: req.requestNumber });
+      if (isLastProduct) dispatch({ type: "submitted", requestNumber: req.requestNumber });
+      else dispatch({ type: "advance-product", requestNumber: req.requestNumber });
     } catch (err) {
       dispatch({
         type: "error",
@@ -96,7 +104,42 @@ export default function AdjustFlow() {
     }
   }
 
-  /* Back moves one screen up the flow, or exits to the dashboard from the top. */
+  /* The hot-water reset fixed the fit, so this product ships nothing. Move on to
+     the next product, or finish — on what's already submitted, or as a plain
+     close-out when this was the only product. */
+  function handleCloseOut() {
+    if (!isLastProduct) {
+      dispatch({ type: "skip-product" });
+      return;
+    }
+    if (state.requestNumbers.length > 0) dispatch({ type: "finish" });
+    else dispatch({ type: "close-out" });
+  }
+
+  /* Progress chrome — the shared screens, then two per product (issues, steps). */
+  const base = (singleOrder ? 0 : 1) + 2; // order? + product + confirm
+  const total = base + state.products.length * 2;
+  const orderOffset = singleOrder ? 0 : 1;
+  function stepNumber(): number {
+    switch (state.screen) {
+      case "order":
+        return 1;
+      case "product":
+        return orderOffset + 1;
+      case "confirm":
+        return orderOffset + 2;
+      case "issues":
+        return orderOffset + 2 + state.productIndex * 2 + 1;
+      case "steps":
+        return orderOffset + 2 + state.productIndex * 2 + 2;
+      default:
+        return total;
+    }
+  }
+
+  /* Back moves one screen up the flow, or exits to the dashboard from the top.
+     Issues always steps back to the shared confirm screen — earlier products
+     are already submitted, so there's nothing to revisit past the current one. */
   function goBack() {
     const { screen } = state;
     if (screen === "product") {
@@ -119,14 +162,12 @@ export default function AdjustFlow() {
 
   /* ── Terminal / message states ── */
   if (state.terminal === "service-product" || state.terminal === "service-confirm") {
-    const body =
-      state.terminal === "service-confirm" ? CONFIRM_MODELS.noMessage : OUT_OF_SCOPE_MESSAGE;
     return (
       <main className={styles.screen}>
         <MessageScreen
           variant="info"
           title="Let's get you to the right place"
-          body={body}
+          body={CONFIRM_MODELS.noMessage}
           ctaLabel="Open chat"
           onCta={toChat}
           secondaryLabel="Back to dashboard"
@@ -151,13 +192,19 @@ export default function AdjustFlow() {
   }
 
   if (state.screen === "submitted") {
+    const numbers = state.requestNumbers;
+    const many = numbers.length > 1;
     return (
       <main className={styles.screen}>
         <MessageScreen
           variant="success"
           title={SUBMITTED.heading}
-          body={SUBMITTED.body}
-          number={state.requestNumber ?? undefined}
+          body={
+            many
+              ? `We've logged ${numbers.length} adjustment requests — one per appliance. ${SUBMITTED.body}`
+              : SUBMITTED.body
+          }
+          number={numbers.length ? numbers.join(" · ") : undefined}
           ctaLabel="Back to dashboard"
           onCta={exit}
           secondaryLabel="View my messages"
@@ -190,11 +237,7 @@ export default function AdjustFlow() {
     );
   }
 
-  /* ── Progress chrome ── */
-  const screens = flowScreens(singleOrder);
-  const idx = screens.indexOf(state.screen);
-  const total = screens.length;
-  const current = idx + 1;
+  const current = stepNumber();
   const pct = Math.round((current / total) * 100);
 
   return (
@@ -221,9 +264,8 @@ export default function AdjustFlow() {
         {state.screen === "product" && order && (
           <ProductScreen
             order={order}
-            initial={state.product}
-            onContinue={(p) => dispatch({ type: "pick-product", product: p })}
-            onOutOfScope={() => dispatch({ type: "route-to-service", terminal: "service-product" })}
+            initial={state.products}
+            onContinue={(products) => dispatch({ type: "pick-products", products })}
           />
         )}
 
@@ -236,14 +278,17 @@ export default function AdjustFlow() {
 
         {state.screen === "issues" && product && (
           <IssuesScreen
+            key={`issues-${state.productIndex}`}
             product={product}
             initial={state.issues}
+            context={productContext}
             onContinue={(issues) => dispatch({ type: "set-issues", issues })}
           />
         )}
 
         {state.screen === "steps" && order && product && (
           <StepsScreen
+            key={`steps-${state.productIndex}`}
             order={order}
             product={product}
             issues={state.issues}
@@ -252,8 +297,10 @@ export default function AdjustFlow() {
             description={state.description}
             submitting={state.submitting}
             error={state.error}
+            context={productContext}
+            submitLabel={isLastProduct ? undefined : "Submit & next appliance"}
             onSubmit={handleSubmit}
-            onCloseOut={() => dispatch({ type: "close-out" })}
+            onCloseOut={handleCloseOut}
           />
         )}
       </div>

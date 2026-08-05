@@ -9,12 +9,33 @@ import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { SubscriptionCard } from "@/app/components/SubscriptionCard";
 import { InsuranceCard } from "@/app/components/InsuranceCard";
-import { productLabels, productImage } from "@/app/context/productConfig";
+import {
+  productLabel,
+  productLabels,
+  productImage,
+  productHasArch,
+  archFromTeeth,
+  ARCH_LABELS,
+} from "@/app/context/productConfig";
 
 /* An order's thumbnail = its first product's photo, falling back to the
    generic hero image for an order with no recognised product. */
 function orderImage(products: string[]): string {
   return (products.length ? productImage(products[0]) : null) ?? "/assets/images/hero-product.png";
+}
+
+/* The arch label ("Upper" / "Lower") for one appliance on an order, or null
+   when it doesn't apply (a nightguard) or isn't known yet (teeth not chosen,
+   or "not sure"). Per-item answers live in `itemDetails`; older single-item
+   orders mirror them on the top-level fields, so fall back to those. */
+function productArch(order: Submission, slug: string): string | null {
+  if (!productHasArch(slug)) return null;
+  const detail = order.itemDetails?.[slug];
+  const teeth = detail?.selectedTeeth ?? order.selectedTeeth;
+  const notSure = detail?.teethNotSure ?? order.teethNotSure;
+  if (notSure) return null;
+  const arch = archFromTeeth(teeth ?? []);
+  return arch ? ARCH_LABELS[arch] : null;
 }
 import { useMessages, REQUEST_LABELS, RequestStatus } from "@/app/context/MessagesContext";
 
@@ -255,37 +276,23 @@ export default function MyOrder() {
           </div>
         ) : (
           <section className={styles.orderCard}>
-            {/* Order switcher — the header doubles as a dropdown when the
-                patient has more than one order. */}
+            {/* Order-level meta bar — reference, placed date and status. Doubles
+                as the order switcher (a dropdown) when there's more than one. */}
             <div className={styles.orderHeadWrap} ref={headRef}>
               <button
                 type="button"
-                className={`${styles.orderHead} ${styles.orderHeadTrigger} ${hasMultiple ? styles.orderHeadBox : ""}`}
+                className={`${styles.orderBar} ${hasMultiple ? styles.orderBarTrigger : ""}`}
                 onClick={() => hasMultiple && setMenuOpen((o) => !o)}
                 disabled={!hasMultiple}
                 aria-haspopup={hasMultiple ? "listbox" : undefined}
                 aria-expanded={hasMultiple ? menuOpen : undefined}
                 aria-label={hasMultiple ? "Switch order" : undefined}
               >
-                <div className={styles.orderThumb}>
-                  <Image
-                    src={orderImage(order.products)}
-                    alt=""
-                    width={120}
-                    height={120}
-                    sizes="72px"
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
-                <div className={styles.orderHeadText}>
-                  <h2 className={styles.orderProduct}>
-                    {order.products.length ? productLabels(order.products) : "Your order"}
-                  </h2>
-                  <p className={styles.orderMeta}>
-                    {orderReference(order.id)} · Placed {formatPlaced(order.createdAt)}
-                  </p>
-                  <span className={styles.orderStatus}>{ORDER_STATUS_COPY[effectiveStatus ?? order.status]}</span>
-                </div>
+                <span className={styles.orderBarText}>
+                  <span className={styles.orderRef}>{orderReference(order.id)}</span>
+                  <span className={styles.orderPlaced}>Placed {formatPlaced(order.createdAt)}</span>
+                </span>
+                <span className={styles.orderStatus}>{ORDER_STATUS_COPY[effectiveStatus ?? order.status]}</span>
                 {hasMultiple && (
                   <svg
                     className={`${styles.orderHeadChevron} ${menuOpen ? styles.orderHeadChevronOpen : ""}`}
@@ -331,6 +338,33 @@ export default function MyOrder() {
                 </div>
               )}
             </div>
+
+            {/* What's on the order — one row per appliance, each with its photo
+                and, for a partial or full denture, its arch (Upper / Lower) so
+                it's never ambiguous. Arch is hidden where it doesn't apply. */}
+            {order.products.length > 0 && (
+              <ul className={styles.itemsList}>
+                {order.products.map((slug, i) => {
+                  const arch = productArch(order, slug);
+                  const img = productImage(slug);
+                  return (
+                    <li key={`${slug}-${i}`} className={styles.itemRow}>
+                      <span className={styles.itemThumb} aria-hidden="true">
+                        {img && (
+                          <Image src={img} alt="" width={80} height={80} sizes="40px" style={{ objectFit: "cover" }} />
+                        )}
+                      </span>
+                      <span className={styles.itemName}>{productLabel(slug)}</span>
+                      {arch && <span className={styles.archPill}>{arch}</span>}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {/* Section divider so the fulfilment tracker reads as its own
+                block, not a continuation of the appliance list. */}
+            <p className={styles.progressLabel}>Order progress</p>
 
             {/* Fulfilment tracker — the completed run is drawn as one
                 continuous gradient rail (see .timeline::after). */}

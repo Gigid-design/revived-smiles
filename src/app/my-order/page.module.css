@@ -105,57 +105,45 @@
   padding: 1.125rem 1.25rem 1.25rem;
 }
 
-.orderHead {
+/* Order-level meta bar: reference + placed date on the left, status on the
+   right. Product identity lives in the appliance list below, not here. */
+.orderBar {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding-bottom: 1.125rem;
-  border-bottom: 1px solid #eef0f5;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
 }
 
-.orderThumb {
-  flex-shrink: 0;
-  width: 62px;
-  height: 62px;
-  border-radius: 14px;
-  background: #f2f4f8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.orderThumb img { width: 100%; height: 100%; object-fit: cover; }
-
-.orderHeadText {
+.orderBarText {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.3rem;
+  gap: 0.15rem;
 }
 
-.orderProduct {
+.orderRef {
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 1.125rem;   /* 18px */
+  font-size: 0.9375rem;   /* 15px */
   letter-spacing: -0.01em;
   color: #121723;
-  margin: 0;
   line-height: 1.2;
 }
 
-.orderMeta {
+.orderPlaced {
   font-size: 0.75rem;
   color: #6b7280;
-  margin: 0;
 }
 
-/* Status chip sits below the subtitle, so the title/subtitle get the full
-   width of the column instead of being squeezed beside it. */
 .orderStatus {
-  align-self: flex-start;
-  margin-top: 0.1rem;
+  flex-shrink: 0;
   font-family: var(--font-heading);
   font-size: 0.625rem;
   font-weight: 700;
@@ -167,38 +155,75 @@
   border-radius: 999px;
 }
 
+/* ── Appliances on the order — the card's product content, shown once ── */
+.itemsList {
+  list-style: none;
+  margin: 0.95rem 0 0;
+  padding: 0.95rem 0 0;
+  border-top: 1px solid #eef0f5;   /* ties the meta bar to the appliances */
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.itemThumb {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #f2f4f8;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.itemThumb :global(img) { width: 100%; height: 100%; object-fit: cover; }
+
+.itemName {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9375rem;   /* 15px */
+  font-weight: 600;
+  color: #232a37;
+  line-height: 1.3;
+}
+
+/* Arch tag — distinct from the indigo status chip so it reads as a property
+   of the appliance, not the order's fulfilment state. */
+.archPill {
+  flex-shrink: 0;
+  font-family: var(--font-heading);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #0f5c4d;
+  background: #e4f5ef;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+}
+
 /* ── Order switcher (dropdown) ── */
 .orderHeadWrap { position: relative; }
 
-/* The header used as a dropdown trigger — reset the button chrome but keep
-   the .orderHead layout and its divider. */
-.orderHeadTrigger {
-  width: 100%;
-  padding: 0 0 1.125rem;
-  background: none;
-  border: none;
-  border-bottom: 1px solid #eef0f5;
-  border-radius: 0;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.orderHeadTrigger:disabled { cursor: default; }
-
-/* When it's an active switcher, enclose the whole trigger (thumbnail, title,
-   subtitle, status pill and arrow) in a bordered box so it clearly reads as a
-   dropdown. Overrides the plain header's bottom divider. */
-.orderHeadBox {
-  padding: 0.7rem 0.8rem;
+/* When the patient has more than one order, the meta bar becomes a bordered,
+   tappable switcher so it clearly reads as a dropdown. */
+.orderBarTrigger {
+  padding: 0.6rem 0.75rem;
   border: 1.5px solid #dbe1ec;
-  border-bottom: 1.5px solid #dbe1ec;
   border-radius: 14px;
   background: #fbfcfe;
+  cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
-.orderHeadBox:hover { border-color: #bcc7db; background: #f5f8fd; }
-.orderHeadBox[aria-expanded="true"] {
+.orderBarTrigger:hover { border-color: #bcc7db; background: #f5f8fd; }
+.orderBarTrigger[aria-expanded="true"] {
   border-color: #0e1b4d;
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(14, 27, 77, 0.08);
@@ -274,11 +299,24 @@
 }
 .orderMenuCheck { flex-shrink: 0; color: #2563eb; }
 
+/* Divider + label separating the appliances from the progress tracker. */
+.progressLabel {
+  margin: 1.1rem 0 0;
+  padding: 0.9rem 0 0;
+  border-top: 1px solid #eef0f5;
+  font-family: var(--font-heading);
+  font-size: 0.6875rem;   /* 11px */
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a90a0;
+}
+
 /* ── Fulfilment tracker ── */
 .timeline {
   position: relative;
   list-style: none;
-  margin: 1rem 0 0;
+  margin: 0.9rem 0 0;
   padding: 0;
   /* Geometry the rail is built from: dot-to-dot pitch and the inset of the
      first/last dot centre. Rows are uniform, so these are constant. */

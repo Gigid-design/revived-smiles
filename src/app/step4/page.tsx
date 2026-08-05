@@ -12,8 +12,7 @@ import {
   getOrderTotalSteps,
   nextFromStop,
   prevFromStop,
-  productLabel,
-  productNeedsDetails,
+  productNeedsShade,
 } from "../context/productConfig";
 import { IntakeHeader } from "../components/IntakeHeader";
 import { api } from "@/lib/api";
@@ -73,14 +72,14 @@ function clearClass(shade: Shade | undefined, css: string): string {
 }
 
 /**
- * The shade form for one item on the order. Remounted per product (via `key`),
- * so its picks always start from that product's own saved answers.
+ * The shade form for the whole order. Asked once — every appliance on the order
+ * shares the same shade — so it reads from and writes to the order's shared
+ * fields, not a single product's.
  */
-function ShadeForm({ product, stopIndex, stops }: { product: string; stopIndex: number; stops: DetailStop[] }) {
-  const { data, saveItemDetail } = useSubmission();
-  const detail = data.itemDetails[product];
-  const [whiteShade, setWhiteShade] = useState<string | null>(detail?.whiteShade ?? null);
-  const [gumShade,   setGumShade]   = useState<string | null>(detail?.gumShade ?? null);
+function ShadeForm({ stopIndex, stops }: { stopIndex: number; stops: DetailStop[] }) {
+  const { data, saveSharedDetail } = useSubmission();
+  const [whiteShade, setWhiteShade] = useState<string | null>(data.whiteShade ?? null);
+  const [gumShade,   setGumShade]   = useState<string | null>(data.gumShade ?? null);
   const { cardRef, navigate } = usePageTransition();
 
   const selectedWhite = WHITE_SHADES.find(s => s.id === whiteShade);
@@ -88,11 +87,6 @@ function ShadeForm({ product, stopIndex, stops }: { product: string; stopIndex: 
 
   const total = getOrderTotalSteps(data.products);
   const current = Math.min(stopIndex + 2, total); // overview is step 1
-
-  /* Only worth naming the item's position when several items carry a chart. */
-  const chartedProducts = data.products.filter(productNeedsDetails);
-  const itemOrdinal = chartedProducts.indexOf(product) + 1;
-  const showOrdinal = chartedProducts.length > 1;
 
   return (
     <main className={styles.screen}>
@@ -109,10 +103,6 @@ function ShadeForm({ product, stopIndex, stops }: { product: string; stopIndex: 
       {/* White card */}
       <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Tooth &amp; Gum shade</h1>
-        <p className={styles.itemContext}>
-          {productLabel(product)}
-          {showOrdinal && <span className={styles.itemOrdinal}> · Item {itemOrdinal} of {chartedProducts.length}</span>}
-        </p>
         <p className={styles.disclaimer}>
           Colors shown here are a guide only. Please refer to your order form for the
           accurate coloring and confirm your selection matches it.
@@ -201,7 +191,7 @@ function ShadeForm({ product, stopIndex, stops }: { product: string; stopIndex: 
       <div className={styles.buttonWrapper}>
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
           onClick={async () => {
-            await saveItemDetail(product, { whiteShade, gumShade });
+            await saveSharedDetail({ whiteShade, gumShade }, productNeedsShade);
             navigate(nextFromStop(stops, stopIndex), 'forward');
           }}>
           CONTINUE
@@ -235,10 +225,9 @@ function Step4Loader() {
   }, []);
 
   const stops = useMemo(() => getDetailStops(data.products), [data.products]);
-  const product = stops[stopIndex]?.product ?? data.products[0] ?? "";
 
-  if (!product) return <main className={styles.screen} />;
-  return <ShadeForm key={product} product={product} stopIndex={stopIndex} stops={stops} />;
+  if (!data.products.length) return <main className={styles.screen} />;
+  return <ShadeForm stopIndex={stopIndex} stops={stops} />;
 }
 
 export default function Step4Page() {

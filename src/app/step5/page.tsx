@@ -12,26 +12,24 @@ import {
   getOrderTotalSteps,
   nextFromStop,
   prevFromStop,
-  productLabel,
-  productNeedsDetails,
+  productNeedsTeethChart,
 } from "../context/productConfig";
 import { IntakeHeader } from "../components/IntakeHeader";
 import { ToothChart } from "../components/ToothChart";
 import { api } from "@/lib/api";
 
 /**
- * The tooth-chart form for one item on the order. Remounted per product (via
- * `key`), so its marks always start from that product's own saved answers.
+ * The tooth-chart form for the whole order. Asked once — every appliance on the
+ * order shares the same missing-teeth chart — so it reads from and writes to the
+ * order's shared fields, not a single product's.
  */
-function TeethForm({ product, stopIndex, stops }: { product: string; stopIndex: number; stops: DetailStop[] }) {
-  const { data, saveItemDetail } = useSubmission();
-  const detail = data.itemDetails[product];
+function TeethForm({ stopIndex, stops }: { stopIndex: number; stops: DetailStop[] }) {
+  const { data, saveSharedDetail } = useSubmission();
   const { cardRef, navigate } = usePageTransition();
 
-  const productId = product;
-  const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set(detail?.selectedTeeth ?? []));
-  const [notSure, setNotSure] = useState(detail?.teethNotSure ?? false);
-  const [notes, setNotes] = useState(detail?.notes ?? "");
+  const [selectedTeeth, setSelectedTeeth] = useState<Set<number>>(new Set(data.selectedTeeth ?? []));
+  const [notSure, setNotSure] = useState(data.teethNotSure ?? false);
+  const [notes, setNotes] = useState(data.notes ?? "");
 
   const NOTES_MAX = 300;
 
@@ -87,18 +85,6 @@ function TeethForm({ product, stopIndex, stops }: { product: string; stopIndex: 
       {/* White card */}
       <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Tooth Chart</h1>
-        {productId && (() => {
-          const chartedProducts = data.products.filter(productNeedsDetails);
-          const ordinal = chartedProducts.indexOf(productId) + 1;
-          return (
-            <p className={styles.itemContext}>
-              {productLabel(productId)}
-              {chartedProducts.length > 1 && (
-                <span className={styles.itemOrdinal}> · Item {ordinal} of {chartedProducts.length}</span>
-              )}
-            </p>
-          );
-        })()}
         <p className={styles.cardSubtitle}>
           Select missing teeth you would like to replace.
         </p>
@@ -150,7 +136,10 @@ function TeethForm({ product, stopIndex, stops }: { product: string; stopIndex: 
       <div className={styles.buttonWrapper}>
         <button type="button" className={`${styles.btn} ${styles.btnActive}`}
           onClick={async () => {
-          await saveItemDetail(productId, { selectedTeeth: [...selectedTeeth], teethNotSure: notSure, notes: notes.trim() || null });
+          await saveSharedDetail(
+            { selectedTeeth: [...selectedTeeth], teethNotSure: notSure, notes: notes.trim() || null },
+            productNeedsTeethChart,
+          );
           navigate(nextFromStop(stops, stopIndex), 'forward');
         }}
         >CONTINUE</button>
@@ -183,10 +172,9 @@ function Step5Loader() {
   }, []);
 
   const stops = useMemo(() => getDetailStops(data.products), [data.products]);
-  const product = stops[stopIndex]?.product ?? data.products[0] ?? "";
 
-  if (!product) return <main className={styles.screen} />;
-  return <TeethForm key={product} product={product} stopIndex={stopIndex} stops={stops} />;
+  if (!data.products.length) return <main className={styles.screen} />;
+  return <TeethForm stopIndex={stopIndex} stops={stops} />;
 }
 
 export default function Step5Page() {

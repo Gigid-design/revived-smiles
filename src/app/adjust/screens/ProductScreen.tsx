@@ -1,75 +1,99 @@
 "use client";
 
-/* Screen 2 — pick the product. Only items on the selected order appear, so the
-   customer cannot pick something they never bought. Out-of-scope items still
-   show (so the order doesn't look incomplete) but route to customer service. */
+/* Screen 2 — pick the products to adjust. Multiple can be chosen (Gitai, Aug 4:
+   "in case both of them have an issue"), so this is a checkbox group, not a
+   radio. Only items on the selected order appear. In-scope items are selectable;
+   an item the flow doesn't cover is shown but disabled, with a pointer to
+   customer service so the order still looks complete. */
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Submission } from "@/lib/api";
 import { productImage, productLabel } from "../../context/productConfig";
-import { OUT_OF_SCOPE_MESSAGE, getAdjustmentProduct } from "../../context/adjustmentConfig";
+import { getAdjustmentProduct } from "../../context/adjustmentConfig";
 import { CheckIcon } from "../icons";
 import styles from "../adjust.module.css";
 
 interface ProductScreenProps {
   order: Submission;
-  initial: string | null;
-  onContinue: (product: string) => void;
-  onOutOfScope: () => void;
+  initial: string[];
+  onContinue: (products: string[]) => void;
 }
 
-export function ProductScreen({ order, initial, onContinue, onOutOfScope }: ProductScreenProps) {
-  const [selected, setSelected] = useState<string | null>(initial);
-  const inScope = selected ? getAdjustmentProduct(selected) !== null : false;
-  const showOutOfScope = selected !== null && !inScope;
+export function ProductScreen({ order, initial, onContinue }: ProductScreenProps) {
+  const [selected, setSelected] = useState<Set<string>>(new Set(initial));
+
+  /* Deduplicate the order's products by slug so a product bought twice on one
+     order doesn't render two rows that fight over the same selection. */
+  const slugs = Array.from(new Set(order.products));
+  const hasOutOfScope = slugs.some((slug) => getAdjustmentProduct(slug) === null);
+
+  function toggle(slug: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
+  }
 
   return (
     <>
       <div className={styles.card}>
-        <h1 className={styles.title}>Which product do you need help with?</h1>
-        <p className={styles.subtitle}>These are the items on {order.orderNumber ?? "your order"}.</p>
+        <h1 className={styles.title}>What do you need help with?</h1>
+        <p className={styles.subtitle}>
+          Choose every appliance you&apos;d like to adjust — you can pick more than one.
+        </p>
 
-        <div className={styles.optionList} role="radiogroup" aria-label="Products on this order">
-          {order.products.map((slug, i) => {
-            const active = slug === selected;
+        <div className={styles.optionList} role="group" aria-label="Products on this order">
+          {slugs.map((slug) => {
+            const inScope = getAdjustmentProduct(slug) !== null;
+            const active = selected.has(slug);
             const image = productImage(slug);
             return (
               <button
-                key={`${slug}-${i}`}
+                key={slug}
                 type="button"
-                role="radio"
+                role="checkbox"
                 aria-checked={active}
-                className={`${styles.option} ${active ? styles.optionSelected : ""}`}
-                onClick={() => setSelected(slug)}
+                disabled={!inScope}
+                className={`${styles.option} ${active ? styles.optionSelected : ""} ${!inScope ? styles.optionDisabled : ""}`}
+                onClick={() => inScope && toggle(slug)}
               >
-                <span className={styles.indicator}>{active && <CheckIcon />}</span>
+                <span className={`${styles.indicator} ${styles.radioSquare}`}>
+                  {active && <CheckIcon />}
+                </span>
                 {image && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img className={styles.optionThumb} src={image} alt="" />
                 )}
                 <span className={styles.optionBody}>
                   <span className={styles.optionTitle}>{productLabel(slug)}</span>
+                  {!inScope && (
+                    <span className={styles.optionMeta}>Adjusted through customer service</span>
+                  )}
                 </span>
               </button>
             );
           })}
         </div>
 
-        {showOutOfScope && <p className={styles.emphasis}>{OUT_OF_SCOPE_MESSAGE}</p>}
+        {hasOutOfScope && (
+          <p className={styles.subtitle}>
+            For an item handled by customer service,{" "}
+            <Link href="/messages" className={styles.inlineLink}>message the team</Link>.
+          </p>
+        )}
       </div>
 
       <div className={styles.ctaWrap}>
         <button
           type="button"
           className={styles.cta}
-          disabled={!selected}
-          onClick={() => {
-            if (!selected) return;
-            if (inScope) onContinue(selected);
-            else onOutOfScope();
-          }}
+          disabled={selected.size === 0}
+          onClick={() => selected.size > 0 && onContinue(slugs.filter((s) => selected.has(s)))}
         >
-          {showOutOfScope ? "Contact customer service" : "Continue"}
+          Continue{selected.size > 1 ? ` (${selected.size})` : ""}
         </button>
       </div>
     </>

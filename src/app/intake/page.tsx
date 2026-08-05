@@ -30,9 +30,9 @@ import { api } from "@/lib/api";
  * let someone be fabricated a product nobody was charged for. If it looks wrong
  * she flags it and the care team resolves it.
  *
- * From here the wizard walks a per-item detail loop — each product that needs a
- * tooth chart and/or shade gets its own screens (see `getDetailStops`) — then
- * the shared photo steps run once for the whole order.
+ * From here the wizard asks the order's shared details once — a shade screen and
+ * a tooth-chart screen (each only if some product needs it; see `getDetailStops`)
+ * — then the shared photo steps, all once for the whole order.
  */
 
 export default function OrderOverviewStep() {
