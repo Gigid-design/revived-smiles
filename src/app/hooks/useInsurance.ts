@@ -20,7 +20,6 @@ const INSURED_FIELDS = {
 /** A stand-in open claim for the "claim in review" preview. */
 const PREVIEW_CLAIM: InsuranceClaim = {
   reason: "Broke or cracked",
-  hasAppliance: true,
   detail: "The clasp on the left side snapped.",
   status: "in_review",
   submittedAt: new Date(Date.now() - DAY_MS).toISOString(),

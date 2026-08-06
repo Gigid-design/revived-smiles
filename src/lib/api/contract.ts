@@ -439,7 +439,7 @@ export interface InsuranceApi {
    */
   fileClaim(
     insuranceId: string,
-    claim: { reason: string; hasAppliance: boolean; detail: string },
+    claim: { reason: string; detail: string },
   ): Promise<Insurance>;
 }
 

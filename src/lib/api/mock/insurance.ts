@@ -66,7 +66,6 @@ function buildClaimSummary(insurance: Insurance): string {
     "",
     `• Appliance: ${insurance.productName}`,
     `• Reason: ${claim.reason}`,
-    `• Still have the appliance: ${claim.hasAppliance ? "Yes" : "No"}`,
     ...(claim.detail.trim() ? [`• Details: ${claim.detail.trim()}`] : []),
   ].join("\n");
 }
@@ -131,7 +130,6 @@ export const mockInsurance: InsuranceApi = {
       }
       record.claim = {
         reason: claim.reason.trim(),
-        hasAppliance: claim.hasAppliance,
         detail: claim.detail.trim(),
         status: "in_review",
         submittedAt: nowIso(),

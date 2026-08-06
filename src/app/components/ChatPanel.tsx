@@ -5,13 +5,14 @@ import { useChat } from "../hooks/useChat";
 import type { FormKind } from "./ChatRequestForm";
 import styles from "./ChatPanel.module.css";
 
-/* Same shortcuts as the full /messages chat. The two questions send inline;
-   Materials/Trays open the matching form in place via onOpenForm; adjusting an
-   appliance is its own multi-screen flow, so that shortcut navigates there. */
-const QUICK_QUESTIONS = ["Where is my order?", "How do I take my impressions?"];
+/* Same shortcuts as the full /messages chat. The question sends inline; the
+   materials/trays shortcuts open the matching form in place via onOpenForm;
+   adjusting an appliance is its own multi-screen flow, so that shortcut
+   navigates there. */
+const QUICK_QUESTIONS = ["Where is my order?"];
 const QUICK_FORMS: { label: string; kind: FormKind }[] = [
-  { label: "Materials", kind: "material" },
-  { label: "Trays", kind: "trays" },
+  { label: "Need more materials?", kind: "material" },
+  { label: "Need different trays?", kind: "trays" },
 ];
 
 /** Admin ↔ patient conversation, used by the admin submission console.

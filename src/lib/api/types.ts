@@ -338,7 +338,7 @@ export interface ChatMessage {
  * patient cannot correct that herself — `products` is not writable from intake
  * — so raising one of these is how the discrepancy reaches a human.
  */
-export type RequestKind = "material" | "trays" | "order";
+export type RequestKind = "material" | "trays" | "order" | "not-received" | "damaged";
 
 export type RequestStatus = "pending" | "accepted" | "rejected";
 
@@ -346,12 +346,16 @@ export const REQUEST_LABELS: Record<RequestKind, string> = {
   material: "More impression material",
   trays: "Different tray size",
   order: "Wrong product on my order",
+  "not-received": "Shipment not received",
+  damaged: "Shipment arrived damaged",
 };
 
 export const REQUEST_OUTCOMES: Record<RequestKind, string> = {
   material: "New impression material sent",
   trays: "New trays sent",
   order: "Order corrected",
+  "not-received": "Replacement shipment arranged",
+  damaged: "Replacement arranged",
 };
 
 /** Reasons offered for a tray request. Material requests need no reason. */
@@ -713,8 +717,6 @@ export type ClaimStatus = "in_review" | "approved" | "denied";
 export interface InsuranceClaim {
   /** Why they're claiming, e.g. "Broke or cracked". */
   reason: string;
-  /** Answer to "do you still have your appliance?". */
-  hasAppliance: boolean;
   /** Anything else they added, character-limited on the way in. */
   detail: string;
   status: ClaimStatus;

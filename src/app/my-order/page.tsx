@@ -9,6 +9,7 @@ import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { SubscriptionCard } from "@/app/components/SubscriptionCard";
 import { InsuranceCard } from "@/app/components/InsuranceCard";
+import { ReportIssueSheet } from "@/app/components/ReportIssueSheet";
 import {
   productLabel,
   productLabels,
@@ -150,11 +151,12 @@ function estimatedArrival(order: Submission): string | null {
 }
 
 export default function MyOrder() {
-  const { requests, unreadCount } = useMessages();
+  const { requests, unreadCount, sendRequest } = useMessages();
 
   const [orders, setOrders] = useState<Submission[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   /* Demo affordance: lets the tracker be viewed in its delivered state (and the
      Care Guide link that only appears then) without an admin advancing the
@@ -439,15 +441,20 @@ export default function MyOrder() {
               </button>
             )}
 
-            {/* Adjustment — offered once they'd actually have the appliance in
-                hand. Deep-links into the flow with this order pre-selected. */}
-            {(order.status === "shipped" || order.status === "completed") && (
-              <Link href={`/adjust?order=${order.id}`} className={styles.adjustBtn}>
+            {/* Report an issue — offered once they'd actually have the appliance
+                in hand. Opens a chooser: not received / arrived damaged (each
+                sends the care team a note) or an adjustment (its own flow). */}
+            {(effectiveStatus === "shipped" || effectiveStatus === "completed") && (
+              <button
+                type="button"
+                className={styles.adjustBtn}
+                onClick={() => setReportOpen(true)}
+              >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M14.5 4.5l5 5M3 21l.7-3.3a2 2 0 0 1 .5-1L15 5.4a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L7.3 20.8a2 2 0 0 1-1 .5L3 21z" />
+                  <path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
                 </svg>
-                Request an adjustment
-              </Link>
+                Report an issue
+              </button>
             )}
 
           </section>
@@ -532,6 +539,15 @@ export default function MyOrder() {
           </div>
         </div>
       </div>
+
+      {order && (
+        <ReportIssueSheet
+          open={reportOpen}
+          orderId={order.id}
+          onClose={() => setReportOpen(false)}
+          onReport={(kind, note) => sendRequest(kind, "", note)}
+        />
+      )}
 
       <BottomNav messagesBadge={unreadCount} />
     </main>

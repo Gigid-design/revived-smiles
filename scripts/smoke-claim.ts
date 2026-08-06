@@ -33,7 +33,6 @@ async function main() {
   console.log("\n1. The first claim of the year is accepted");
   const filed = await api.insurance.fileClaim(record.id, {
     reason: "Broke or cracked",
-    hasAppliance: true,
     detail: "The clasp snapped.",
   });
   check("the claim is recorded", filed.claim?.reason === "Broke or cracked");
@@ -66,7 +65,6 @@ async function main() {
   try {
     await api.insurance.fileClaim(record.id, {
       reason: "Lost or missing",
-      hasAppliance: false,
       detail: "Second attempt — should be blocked.",
     });
   } catch (err) {

@@ -33,7 +33,6 @@ const REASONS: Reason[] = [
 const DETAIL_MAX = 300;
 const STEP_TITLES = [
   "What happened?",
-  "Do you still have your appliance?",
   "Anything you'd like to add?",
   "Review your claim",
 ];
@@ -46,7 +45,6 @@ export default function InsuranceClaim() {
 
   const [step, setStep] = useState(0);
   const [reasonId, setReasonId] = useState<string | null>(null);
-  const [hasAppliance, setHasAppliance] = useState<boolean | null>(null);
   const [detail, setDetail] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
@@ -75,9 +73,8 @@ export default function InsuranceClaim() {
 
   const canAdvance =
     (step === 0 && reasonId !== null) ||
-    (step === 1 && hasAppliance !== null) ||
-    step === 2 ||
-    step === 3;
+    step === 1 ||
+    step === 2;
 
   function back() {
     setError(null);
@@ -86,13 +83,12 @@ export default function InsuranceClaim() {
   }
 
   async function submit() {
-    if (!insurance || !reason || hasAppliance === null) return;
+    if (!insurance || !reason) return;
     setSubmitting(true);
     setError(null);
     try {
       await api.insurance.fileClaim(insurance.id, {
         reason: reason.label,
-        hasAppliance,
         detail: detail.trim(),
       });
       setSubmitted(true);
@@ -228,40 +224,8 @@ export default function InsuranceClaim() {
           </div>
         )}
 
-        {/* Step 1 — still have the appliance */}
+        {/* Step 1 — free-text detail */}
         {step === 1 && (
-          <>
-            <p className={styles.helpText}>
-              This helps your care team decide whether to repair or replace it.
-            </p>
-            <div className={styles.options} role="radiogroup" aria-label="Do you still have your appliance?">
-              {[
-                { value: true, label: "Yes, I still have it" },
-                { value: false, label: "No, I don't have it" },
-              ].map((opt) => {
-                const active = hasAppliance === opt.value;
-                return (
-                  <button
-                    key={String(opt.value)}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    className={`${styles.option} ${active ? styles.optionActive : ""}`}
-                    onClick={() => setHasAppliance(opt.value)}
-                  >
-                    <span className={styles.optionText}>
-                      <span className={styles.optionLabel}>{opt.label}</span>
-                    </span>
-                    <span className={styles.radio} aria-hidden="true" />
-                  </button>
-                );
-              })}
-            </div>
-          </>
-        )}
-
-        {/* Step 2 — free-text detail */}
-        {step === 2 && (
           <>
             <p className={styles.helpText}>
               Optional — a sentence or two is plenty. Your care team can always ask for more.
@@ -277,12 +241,11 @@ export default function InsuranceClaim() {
           </>
         )}
 
-        {/* Step 3 — review */}
-        {step === 3 && (
+        {/* Step 2 — review */}
+        {step === 2 && (
           <div className={styles.review}>
             <ReviewRow label="Appliance" value={insurance?.productName ?? "—"} />
             <ReviewRow label="Reason" value={reason?.label ?? "—"} />
-            <ReviewRow label="Still have it" value={hasAppliance ? "Yes" : "No"} />
             <ReviewRow label="Details" value={detail.trim() || "None added"} />
             <p className={styles.reviewNote}>
               Submitting sends this to your care team and adds a copy to your messages.

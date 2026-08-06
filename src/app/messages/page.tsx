@@ -33,7 +33,6 @@ const STATUS_COPY: Record<RequestStatus, string> = {
 /* Fast paths, kept from the old "New message" screen. */
 const QUICK_PROMPTS = [
   "Where is my order?",
-  "How do I take my impressions?",
 ];
 
 function formatWhen(iso: string): string {
@@ -310,10 +309,10 @@ export default function Messages() {
               </button>
             ))}
             <button type="button" className={styles.chip} onClick={() => openForm("material")}>
-              Materials
+              Need more materials?
             </button>
             <button type="button" className={styles.chip} onClick={() => openForm("trays")}>
-              Trays
+              Need different trays?
             </button>
             <Link href="/adjust" className={styles.chip}>
               Need to adjust my appliance
