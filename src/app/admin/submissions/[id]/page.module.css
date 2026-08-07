@@ -495,6 +495,251 @@
   overflow: hidden;
 }
 
+/* ── Chat History list ── */
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.historyCard {
+  border: 1px solid var(--admin-card-border);
+  border-radius: 10px;
+  background: var(--admin-card-bg);
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.historyCard:hover {
+  border-color: var(--admin-primary);
+}
+
+.historyCardOpen {
+  border-color: var(--admin-primary);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+}
+
+.historyRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.historyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: 7px;
+  background: var(--admin-bg);
+  color: var(--admin-text-muted);
+  margin-top: 0.125rem;
+}
+
+.historyMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.historyTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.historyMetaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.historyStatus {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 5px;
+  background: rgba(25, 144, 198, 0.1);
+  color: var(--admin-primary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.historyAgent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+.historyAgentChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--admin-primary);
+  color: #fff;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.historyCount {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+.historyDate {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+/* ── Expanded ticket detail ── */
+.historyDetail {
+  border-top: 1px solid var(--admin-card-border);
+  padding: 1.125rem 1rem;
+  background: var(--admin-bg);
+}
+
+/* Read-only chat transcript */
+.transcript {
+  max-height: 420px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.25rem;
+}
+
+.transcriptEmpty {
+  text-align: center;
+  color: var(--admin-text-muted);
+  font-size: 0.8125rem;
+  padding: 1.5rem;
+}
+
+.msgWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  max-width: 78%;
+}
+
+.msgWrapOwn {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.msgWrapOther {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.msgSender {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+}
+
+.msgBubble {
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.msgBubbleOwn {
+  background: var(--admin-primary);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.msgBubbleOther {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  color: var(--admin-text);
+  border-bottom-left-radius: 4px;
+}
+
+.msgTime {
+  font-size: 0.625rem;
+  color: var(--admin-text-muted);
+}
+
+.historyDetailHead {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.historyDetailAgent {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.historyDetailDate {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  margin-left: auto;
+}
+
+.historyDetailTitle {
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin: 0 0 0.875rem;
+}
+
+.historyFields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0 0 1.25rem;
+}
+
+.historyField {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.historyField dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+}
+
+.historyField dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--admin-text);
+}
+
+.historyPhotos {
+  margin-top: 0.25rem;
+}
+
 /* ── Info Grid ── */
 .infoGrid {
   display: grid;

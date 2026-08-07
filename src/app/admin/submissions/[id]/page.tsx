@@ -11,8 +11,7 @@ import { AnalysisResults } from "../../components/AnalysisResults";
 import { useAdminUser } from "../../components/AdminAuthGuard";
 import { api, ApiError } from "@/lib/api";
 import type { PhotoType, Submission, SubmissionStatus } from "@/lib/api";
-import { PRODUCTS, CATEGORY_LABELS, productLabel, productLabels, type ProductConfig } from "@/app/context/productConfig";
-import { ChatPanel } from "@/app/components/ChatPanel";
+import { PRODUCTS, CATEGORY_LABELS, productLabel, productLabels, productsSubtotalCents, formatUsd, type ProductConfig } from "@/app/context/productConfig";
 import { useChat } from "@/app/hooks/useChat";
 import { ReviewCriteriaDrawer } from "../../components/ReviewCriteriaDrawer";
 
@@ -115,6 +114,15 @@ function formatDateShort(dateStr: string): string {
   });
 }
 
+function initialsOf(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w.charAt(0))
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 function stepIndex(status: string): number {
   return WORKFLOW_STEPS.findIndex((s) => s.key === status);
 }
@@ -137,13 +145,14 @@ export default function SubmissionDetailPage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [activeDetailTab, setActiveDetailTab] = useState<DetailTab>("patient");
+  const [openHistory, setOpenHistory] = useState<string | null>(null);
   const [reviewDrawer, setReviewDrawer] = useState<{
     photoUrl: string;
     photoLabel: string;
     photoType: PhotoType;
   } | null>(null);
 
-  const { unreadCount } = useChat(id, "admin", adminUser?.name ?? "Admin");
+  const { unreadCount, messages } = useChat(id, "admin", adminUser?.name ?? "Admin");
 
   /* ── Data fetch ── */
   useEffect(() => {
@@ -451,7 +460,7 @@ export default function SubmissionDetailPage() {
       <div className={styles.detailTabBar}>
         {([
           { key: "patient" as const, label: "Patient Info" },
-          { key: "chat" as const, label: "Chat" },
+          { key: "chat" as const, label: "Chat History" },
           { key: "photos" as const, label: "Photos & Analysis" },
         ]).map((tab) => (
           <button
@@ -573,16 +582,158 @@ export default function SubmissionDetailPage() {
           </div>
         )}
 
-        {/* Tab: Chat */}
-        {activeDetailTab === "chat" && (
-          <div className={styles.chatTabBody}>
-            <ChatPanel
-              submissionId={submission.id}
-              currentRole="admin"
-              currentName={adminUser?.name ?? "Admin"}
-            />
-          </div>
-        )}
+        {/* Tab: Chat History — threads for this order, each expands to detail */}
+        {activeDetailTab === "chat" && (() => {
+          const agentName = submission.reviewedBy || adminUser?.name || "Admin";
+          const orderLabel = submission.orderNumber || submission.id;
+          const ticketStatus = isReviewable ? "Open" : "Closed";
+          const amount = formatUsd(productsSubtotalCents(submission.products ?? []));
+          const created = formatDateShort(submission.createdAt);
+          const photoCount = impressionPhotos.length;
+
+          type HistoryItem = {
+            id: string;
+            kind: "chat" | "order";
+            title: string;
+            count: string;
+            product?: string;
+          };
+          const historyItems: HistoryItem[] = [
+            {
+              id: "chat",
+              kind: "chat",
+              title: `Chat with ${submission.name || submission.email}`,
+              count: `${messages.length} message${messages.length === 1 ? "" : "s"}`,
+            },
+            ...(submission.products ?? []).map((p, i) => ({
+              id: `order-${i}`,
+              kind: "order" as const,
+              product: p,
+              title: `Order ${orderLabel} — ${productLabel(p)}`,
+              count: `${photoCount} photo${photoCount === 1 ? "" : "s"}`,
+            })),
+          ];
+
+          return (
+            <div className={styles.detailTabInner}>
+              <div className={styles.historyList}>
+                {historyItems.map((item) => {
+                  const open = openHistory === item.id;
+                  return (
+                    <div key={item.id} className={`${styles.historyCard} ${open ? styles.historyCardOpen : ""}`}>
+                      <button
+                        type="button"
+                        className={styles.historyRow}
+                        aria-expanded={open}
+                        onClick={() => setOpenHistory(open ? null : item.id)}
+                      >
+                        <span className={styles.historyIcon} aria-hidden>
+                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                            <rect x="2.5" y="4.5" width="15" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+                            <path d="M3 6l7 5 7-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                        <span className={styles.historyMain}>
+                          <span className={styles.historyTitle}>{item.title}</span>
+                          <span className={styles.historyMetaRow}>
+                            <span className={styles.historyStatus}>{ticketStatus}</span>
+                            <span className={styles.historyAgent}>
+                              <span className={styles.historyAgentChip} aria-hidden>{initialsOf(agentName)}</span>
+                              {agentName}
+                            </span>
+                            <span className={styles.historyCount}>{item.count}</span>
+                          </span>
+                        </span>
+                        <span className={styles.historyDate}>{created}</span>
+                      </button>
+
+                      {open && (
+                        <div className={styles.historyDetail}>
+                          {item.kind === "chat" ? (
+                            /* Read-only transcript — history only, no composer. */
+                            <div className={styles.transcript}>
+                              {messages.length === 0 ? (
+                                <p className={styles.transcriptEmpty}>No messages in this conversation.</p>
+                              ) : (
+                                messages.map((m) => {
+                                  const isAdmin = m.senderRole === "admin";
+                                  return (
+                                    <div
+                                      key={m.id}
+                                      className={`${styles.msgWrap} ${isAdmin ? styles.msgWrapOwn : styles.msgWrapOther}`}
+                                    >
+                                      <span className={styles.msgSender}>
+                                        {m.senderName || (isAdmin ? "Care Team" : "Patient")}
+                                      </span>
+                                      <div className={`${styles.msgBubble} ${isAdmin ? styles.msgBubbleOwn : styles.msgBubbleOther}`}>
+                                        {m.body}
+                                      </div>
+                                      <span className={styles.msgTime}>{formatDateTime(m.createdAt)}</span>
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          ) : (
+                            <>
+                              <div className={styles.historyDetailHead}>
+                                <span className={styles.historyAgentChip} aria-hidden>{initialsOf(agentName)}</span>
+                                <span className={styles.historyDetailAgent}>{agentName}</span>
+                                <span className={styles.historyDetailDate}>{created}</span>
+                              </div>
+                              <h4 className={styles.historyDetailTitle}>Impression Kit Review</h4>
+                              <dl className={styles.historyFields}>
+                                <div className={styles.historyField}>
+                                  <dt>Order ID</dt>
+                                  <dd>{orderLabel}</dd>
+                                </div>
+                                <div className={styles.historyField}>
+                                  <dt>Product</dt>
+                                  <dd>{item.product ? productLabel(item.product) : "—"}</dd>
+                                </div>
+                                <div className={styles.historyField}>
+                                  <dt>Status</dt>
+                                  <dd><StatusBadge status={submission.status} /></dd>
+                                </div>
+                                <div className={styles.historyField}>
+                                  <dt>Amount</dt>
+                                  <dd>{amount}</dd>
+                                </div>
+                                <div className={styles.historyField}>
+                                  <dt>Created</dt>
+                                  <dd>{created}</dd>
+                                </div>
+                              </dl>
+
+                              {impressionPhotos.length > 0 && (
+                                <div className={styles.historyPhotos}>
+                                  <div className={styles.photoSectionTitle}>Impression Photos</div>
+                                  <div className={styles.photoGrid}>
+                                    {impressionPhotos.map((photo, idx) => (
+                                      <div
+                                        key={`${photo.url}-${idx}`}
+                                        className={styles.photoThumb}
+                                        onClick={() => openLightbox(impressionPhotos, idx)}
+                                      >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={photo.url} alt={photo.label} />
+                                        <div className={styles.photoThumbLabel}>{photo.label}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Tab: Photos & Analysis */}
         {activeDetailTab === "photos" && (

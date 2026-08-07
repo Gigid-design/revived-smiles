@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Fragment, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
 import { StatsCard } from "./components/StatsCard";
 import { StatusBadge } from "./components/StatusBadge";
 import { api } from "@/lib/api";
 import type { Submission, SubmissionStats } from "@/lib/api";
-import { productLabel } from "@/app/context/productConfig";
+import { productLabel, productLabels } from "@/app/context/productConfig";
 import { useAdminUser } from "./components/AdminAuthGuard";
 import { useRealtimeContext } from "./AdminShell";
 
@@ -30,6 +30,7 @@ export default function AdminDashboard() {
   const adminUser = useAdminUser();
   const { lastEvent } = useRealtimeContext();
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -116,10 +117,13 @@ export default function AdminDashboard() {
         />
       </section>
 
-      {/* Recent Submissions */}
+      {/* Recent Orders — expandable rows arranged by order */}
       <section className={styles.recentSection}>
         <div className={styles.recentHeader}>
-          <h2 className={styles.recentTitle}>Recent Submissions</h2>
+          <div>
+            <h2 className={styles.recentTitle}>Recent Orders</h2>
+            <p className={styles.recentSubtitle}>Each row is one order — expand to review it, or open the full record.</p>
+          </div>
           <Link href="/admin/submissions" className={styles.viewAllLink}>
             View all →
           </Link>
@@ -130,15 +134,15 @@ export default function AdminDashboard() {
             <div className={styles.emptyIcon}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </div>
-            <span>No submissions yet. They&apos;ll appear here as patients complete their intake.</span>
+            <span>No orders yet. They&apos;ll appear here as patients complete their intake.</span>
           </div>
         ) : (
           <table className={styles.table}>
             <thead>
               <tr>
+                <th className={styles.expandHead}></th>
                 <th>Patient</th>
-                <th>State</th>
-                <th>Products</th>
+                <th>Order</th>
                 <th>Status</th>
                 <th>Submitted</th>
                 <th>Msgs</th>
@@ -146,49 +150,141 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {submissions.map((sub) => (
-                <tr key={sub.id}>
-                  <td>
-                    <Link href={`/admin/submissions/${sub.id}`} className={styles.nameCell} style={{ textDecoration: "none" }}>
-                      <span className={styles.nameText}>{sub.name || "—"}</span>
-                      <span className={styles.emailText}>{sub.email}</span>
-                    </Link>
-                  </td>
-                  <td>{sub.state || "—"}</td>
-                  <td>
-                    {sub.products?.length
-                      ? sub.products.map((p) => (
-                          <span key={p} style={{ display: 'inline-block', padding: '0.125rem 0.5rem', background: 'var(--admin-bg)', borderRadius: 4, fontSize: '0.6875rem', fontWeight: 500, marginRight: '0.25rem', marginBottom: '0.125rem' }}>{productLabel(p)}</span>
-                        ))
-                      : "—"}
-                  </td>
-                  <td>
-                    <StatusBadge status={sub.status} />
-                  </td>
-                  <td>
-                    <span className={styles.dateText}>
-                      {sub.createdAt ? formatRelativeDate(sub.createdAt) : "—"}
-                    </span>
-                  </td>
-                  <td>
-                    {unreadCounts[sub.id] ? (
-                      <span style={{
-                        display: "inline-flex", alignItems: "center", justifyContent: "center",
-                        minWidth: "1.25rem", height: "1.25rem", borderRadius: "9999px",
-                        background: "#ef4444", color: "#fff", fontSize: "0.625rem",
-                        fontWeight: 700, padding: "0 0.25rem",
-                      }}>{unreadCounts[sub.id]}</span>
-                    ) : (
-                      <span style={{ color: "#94a3b8", fontSize: "0.75rem" }}>—</span>
+              {submissions.map((sub) => {
+                const open = expandedId === sub.id;
+                const photoCount =
+                  (sub.closeBitePhotos?.length ?? 0) +
+                  (sub.openBitePhotos?.length ?? 0) +
+                  (sub.impressionPhotos?.length ?? 0);
+                const teeth = sub.teethNotSure
+                  ? "Not sure"
+                  : sub.selectedTeeth?.length
+                    ? `${sub.selectedTeeth.length} selected`
+                    : "—";
+
+                return (
+                  <Fragment key={sub.id}>
+                    <tr
+                      className={styles.orderRow}
+                      data-open={open || undefined}
+                      onClick={() => setExpandedId(open ? null : sub.id)}
+                    >
+                      <td className={styles.expandCell}>
+                        <span className={styles.expandChevron} data-open={open || undefined} aria-hidden>
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </span>
+                      </td>
+                      <td>
+                        <Link
+                          href={`/admin/submissions/${sub.id}`}
+                          className={styles.nameCell}
+                          style={{ textDecoration: "none" }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className={styles.nameText}>{sub.name || "—"}</span>
+                          <span className={styles.emailText}>{sub.email}</span>
+                        </Link>
+                      </td>
+                      <td>
+                        {sub.products?.length ? (
+                          <span className={styles.orderCell}>
+                            {sub.products.map((p) => (
+                              <span key={p} className={styles.productPill}>{productLabel(p)}</span>
+                            ))}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td>
+                        <StatusBadge status={sub.status} />
+                      </td>
+                      <td>
+                        <span className={styles.dateText}>
+                          {sub.createdAt ? formatRelativeDate(sub.createdAt) : "—"}
+                        </span>
+                      </td>
+                      <td>
+                        {unreadCounts[sub.id] ? (
+                          <span className={styles.msgBadge}>{unreadCounts[sub.id]}</span>
+                        ) : (
+                          <span className={styles.msgDash}>—</span>
+                        )}
+                      </td>
+                      <td>
+                        <Link
+                          href={`/admin/submissions/${sub.id}`}
+                          className={styles.viewBtn}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+
+                    {open && (
+                      <tr className={styles.detailRow}>
+                        <td colSpan={7}>
+                          <div className={styles.detailPanel}>
+                            <div className={styles.detailGrid}>
+                              <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Order #</span>
+                                <span className={styles.detailValue}>{sub.orderNumber || "—"}</span>
+                              </div>
+                              <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Products</span>
+                                <span className={styles.detailValue}>{productLabels(sub.products ?? []) || "—"}</span>
+                              </div>
+                              <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>State</span>
+                                <span className={styles.detailValue}>{sub.state || "—"}</span>
+                              </div>
+                              <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Tooth shade</span>
+                                <span className={styles.detailValue}>{sub.whiteShade || "—"}</span>
+                              </div>
+                              <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Gum shade</span>
+                                <span className={styles.detailValue}>{sub.gumShade || "—"}</span>
+                              </div>
+                              <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Teeth</span>
+                                <span className={styles.detailValue}>{teeth}</span>
+                              </div>
+                              <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Photos</span>
+                                <span className={styles.detailValue}>{photoCount || 0} uploaded</span>
+                              </div>
+                            </div>
+
+                            {sub.notes && (
+                              <p className={styles.detailNotes}>
+                                <span className={styles.detailLabel}>Patient note</span>
+                                {sub.notes}
+                              </p>
+                            )}
+
+                            {sub.reviewedAt && sub.reviewNotes && (
+                              <p className={styles.reviewedNote}>
+                                <span className={styles.detailLabel}>
+                                  Review notes{sub.reviewedBy ? ` · ${sub.reviewedBy}` : ""}
+                                </span>
+                                {sub.reviewNotes}
+                              </p>
+                            )}
+
+                            <div className={styles.detailFooter}>
+                              <Link href={`/admin/submissions/${sub.id}`} className={styles.detailViewLink}>
+                                Open full review →
+                              </Link>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
                     )}
-                  </td>
-                  <td>
-                    <Link href={`/admin/submissions/${sub.id}`} className={styles.viewBtn}>
-                      View
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
         )}

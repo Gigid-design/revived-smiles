@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, createContext, useContext } from "react";
+import styles from "./layout.module.css";
 import { AdminAuthGuard } from "./components/AdminAuthGuard";
 import { AdminSidebar } from "./components/AdminSidebar";
 import { AdminTopbar } from "./components/AdminTopbar";
@@ -25,13 +26,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
     <AdminAuthGuard>
       <RealtimeContext.Provider value={{ lastEvent, refresh }}>
         <AdminSidebar />
-        <div className="admin-main-column">
+        <div className={styles.mainColumn}>
           <AdminTopbar
             onRefresh={refresh}
             newSubmission={newSubmission}
             onDismissNewSubmission={dismissNewSubmission}
           />
-          <main className="admin-content">{children}</main>
+          <main className={styles.content}>{children}</main>
         </div>
       </RealtimeContext.Provider>
     </AdminAuthGuard>

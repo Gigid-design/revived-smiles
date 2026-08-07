@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "../hooks/useChat";
 import type { FormKind } from "./ChatRequestForm";
+import { MacroPicker } from "./MacroPicker";
 import styles from "./ChatPanel.module.css";
 
 /* Same shortcuts as the full /messages chat. The question sends inline; the
@@ -195,6 +196,13 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
             </button>
           )}
         </div>
+      )}
+
+      {/* Macros — admin only: search → select → apply a canned reply */}
+      {currentRole === "admin" && (
+        <MacroPicker
+          onApply={(body) => setDraft((prev) => (prev.trim() ? `${prev}\n${body}` : body))}
+        />
       )}
 
       {/* Input */}

@@ -29,6 +29,16 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "Chat",
+    href: "/admin/chat",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 4.5h14a1 1 0 011 1V13a1 1 0 01-1 1H8l-4 3.5V14H3a1 1 0 01-1-1V5.5a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M6 8h8M6 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
     label: "AI Prompts",
     href: "/admin/prompts",
     icon: (
