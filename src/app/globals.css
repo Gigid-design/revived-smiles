@@ -256,19 +256,30 @@ body:has(.adminRoot) > * {
 }
 
 :root {
-  /* Admin Design Tokens */
-  --admin-bg: #f3f5f9;
-  --admin-sidebar-bg: #0e184d;
-  --admin-sidebar-text: #c6dbfe;
-  --admin-sidebar-active: #1990c6;
-  --admin-card-bg: #ffffff;
-  --admin-card-border: #e8e8e4;
-  --admin-primary: #1990c6;
-  --admin-accent: #136f99;
-  --admin-text: #0e184d;
-  --admin-text-muted: #6b7280;
-  --admin-success: #22c55e;
-  --admin-warning: #ebbf20;
-  --admin-danger: #ef4444;
-  --admin-info: #1990c6;
+  /* Admin Design Tokens — Pillow Light (better-design: pillow-light)
+     Light, friendly, pillowed system: white surfaces, Inter, 14px radius,
+     soft shadows. Cobalt (#1E66FF) kept as the accent for links/focus/info so
+     the theme still reads as Pillow Light; the PRIMARY (buttons + active nav)
+     is overridden to pure black (#000) per request. */
+  --admin-bg: #F4F5F7;              /* muted page surface */
+  --admin-sidebar-bg: #FFFFFF;      /* light sidebar (was dark slab) */
+  --admin-sidebar-text: #5B6573;    /* muted-foreground — inactive nav */
+  --admin-sidebar-active: #000000;  /* black active pill */
+  --admin-card-bg: #FFFFFF;         /* white cards */
+  --admin-card-border: #E5E7EB;     /* border */
+  --admin-primary: #000000;         /* PRIMARY BUTTON — black per request */
+  --admin-accent: #1E66FF;          /* Pillow cobalt — links / focus ring */
+  --admin-text: #0F172A;            /* slate foreground */
+  --admin-text-muted: #5B6573;      /* muted foreground */
+  --admin-success: #22c55e;         /* functional status — kept */
+  --admin-warning: #ebbf20;         /* functional status — kept */
+  --admin-danger: #E11D48;          /* Pillow destructive */
+  --admin-info: #1E66FF;            /* cobalt info */
+
+  /* Pillow signature 3D button/pill shadow, tuned for the black primary. */
+  --admin-shadow-pillow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.18),
+    inset 0 -2px 0 0 rgba(0, 0, 0, 0.22),
+    0 1px 1px 0 rgba(15, 23, 42, 0.10),
+    0 4px 12px -2px rgba(15, 23, 42, 0.28);
 }

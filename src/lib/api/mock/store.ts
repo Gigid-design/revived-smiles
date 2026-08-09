@@ -105,6 +105,8 @@ export function mutate<T>(fn: (db: MockDb) => T): T {
   const current = load();
   const result = fn(current);
   persist();
+  /* Mirror the new state to other open tabs (demo cross-tab sync). */
+  post({ kind: "db", db: current });
   return result;
 }
 
@@ -151,6 +153,7 @@ export function emitSubmissionChange(change: SubmissionChange): void {
       /* a broken listener must not stop the others */
     }
   });
+  post({ kind: "submission", change });
 }
 
 export function subscribeToMessages(submissionId: string, handler: MessageHandler): () => void {
@@ -177,4 +180,73 @@ export function emitMessage(message: ChatMessage): void {
       /* as above */
     }
   });
+  post({ kind: "message", message });
+}
+
+/* ------------------------------------------------------------------ */
+/* Cross-tab sync — mirrors mutations between open tabs so a patient   */
+/* window and an admin window stay live in one demo. Demo scaffolding  */
+/* only; a real backend replaces this with its own change feed.        */
+/* ------------------------------------------------------------------ */
+
+type SyncMessage =
+  | { kind: "db"; db: MockDb }
+  | { kind: "submission"; change: SubmissionChange }
+  | { kind: "message"; message: ChatMessage }
+  | { kind: "sync-request" };
+
+const SYNC_CHANNEL = "rs_mock_sync";
+let channel: BroadcastChannel | null = null;
+/* True while applying a change received from another tab, so our own
+   emit/mutate paths don't echo it back and create a loop. */
+let applyingRemote = false;
+
+function post(msg: SyncMessage): void {
+  if (applyingRemote) return;
+  channel?.postMessage(msg);
+}
+
+function initChannel(): void {
+  if (
+    channel ||
+    typeof window === "undefined" ||
+    typeof BroadcastChannel === "undefined"
+  ) {
+    return;
+  }
+  channel = new BroadcastChannel(SYNC_CHANNEL);
+  channel.onmessage = (event: MessageEvent<SyncMessage>) => {
+    const msg = event.data;
+
+    // A newly-opened tab asked for the current state — hand ours over.
+    if (msg.kind === "sync-request") {
+      if (db) channel?.postMessage({ kind: "db", db });
+      return;
+    }
+
+    applyingRemote = true;
+    try {
+      switch (msg.kind) {
+        case "db":
+          db = msg.db;
+          persist();
+          break;
+        case "submission":
+          emitSubmissionChange(msg.change);
+          break;
+        case "message":
+          emitMessage(msg.message);
+          break;
+      }
+    } finally {
+      applyingRemote = false;
+    }
+  };
+
+  // Pull the latest state from any tab that's already open.
+  channel.postMessage({ kind: "sync-request" });
+}
+
+if (typeof window !== "undefined") {
+  initChannel();
 }

@@ -203,11 +203,6 @@ export default function AdminChatPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Chat</h1>
-        <p className={styles.subtitle}>Conversations with patients about their orders.</p>
-      </div>
-
       <div className={styles.shell} data-has-order={active ? "" : undefined}>
         {/* ── Conversation list ── */}
         <aside className={styles.list}>

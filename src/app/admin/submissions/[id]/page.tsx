@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState, type CSSProperties } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
@@ -8,6 +8,7 @@ import { StatusBadge } from "../../components/StatusBadge";
 import { PhotoViewer } from "../../components/PhotoViewer";
 import { CompletenessCheck } from "../../components/CompletenessCheck";
 import { AnalysisResults } from "../../components/AnalysisResults";
+import { ChatPanel } from "@/app/components/ChatPanel";
 import { useAdminUser } from "../../components/AdminAuthGuard";
 import { api, ApiError } from "@/lib/api";
 import type { ItemDetail, PhotoType, Submission, SubmissionStatus } from "@/lib/api";
@@ -278,6 +279,11 @@ export default function SubmissionDetailPage() {
     return currentStepIdx === idx;
   }
 
+  /* Fraction of the tracker to fill with the brand gradient (0–1): how many
+     stage-to-stage segments are cleared, up to the current stage. */
+  const filledSegments = isBranchStatus ? 1 : Math.max(0, currentStepIdx);
+  const stepProgress = filledSegments / (WORKFLOW_STEPS.length - 1);
+
   /* ═══════════════════════════════════════════════════════════════════════
      Render
      ═══════════════════════════════════════════════════════════════════════ */
@@ -314,13 +320,14 @@ export default function SubmissionDetailPage() {
       {/* ── Workflow ── */}
       <div className={styles.workflowCard}>
 
-        {/* Stepper — minimal dots */}
-        <div className={styles.stepper}>
+        {/* Stepper — brand gradient fill */}
+        <div
+          className={styles.stepper}
+          style={{ "--progress": stepProgress } as CSSProperties}
+        >
           {WORKFLOW_STEPS.map((step, i) => (
             <Fragment key={step.key}>
-              {i > 0 && (
-                <div className={`${styles.stepConnector} ${isStepCompleted(i) ? styles.stepConnectorCompleted : ""}`} />
-              )}
+              {i > 0 && <div className={styles.stepConnector} />}
               <div className={styles.stepItem}>
                 <div
                   className={`${styles.stepDot} ${
@@ -521,7 +528,9 @@ export default function SubmissionDetailPage() {
                     ? productConfigs.map((c) => (
                         <span key={c.id} className={styles.productPill}>
                           {c.label}
-                          <span className={styles.categoryTag}>{CATEGORY_LABELS[c.category]}</span>
+                          {CATEGORY_LABELS[c.category] !== c.label && (
+                            <span className={styles.categoryTag}>{CATEGORY_LABELS[c.category]}</span>
+                          )}
                         </span>
                       ))
                     : (submission.products ?? []).length > 0
@@ -629,155 +638,123 @@ export default function SubmissionDetailPage() {
           </div>
         )}
 
-        {/* Tab: Chat History — threads for this order, each expands to detail */}
+        {/* Tab: Chat History — live conversation (read + reply) + order context */}
         {activeDetailTab === "chat" && (() => {
           const agentName = submission.reviewedBy || adminUser?.name || "Admin";
           const orderLabel = submission.orderNumber || submission.id;
-          const ticketStatus = isReviewable ? "Open" : "Closed";
           const amount = formatUsd(productsSubtotalCents(submission.products ?? []));
           const created = formatDateShort(submission.createdAt);
           const photoCount = impressionPhotos.length;
-
-          type HistoryItem = {
-            id: string;
-            kind: "chat" | "order";
-            title: string;
-            count: string;
-            product?: string;
-          };
-          const historyItems: HistoryItem[] = [
-            {
-              id: "chat",
-              kind: "chat",
-              title: `Chat with ${submission.name || submission.email}`,
-              count: `${messages.length} message${messages.length === 1 ? "" : "s"}`,
-            },
-            ...(submission.products ?? []).map((p, i) => ({
-              id: `order-${i}`,
-              kind: "order" as const,
-              product: p,
-              title: `Order ${orderLabel} — ${productLabel(p)}`,
-              count: `${photoCount} photo${photoCount === 1 ? "" : "s"}`,
-            })),
-          ];
+          const chatStatus =
+            unreadCount > 0
+              ? `${unreadCount} new message${unreadCount === 1 ? "" : "s"}`
+              : messages.length > 0
+                ? "Active"
+                : "No messages yet";
 
           return (
             <div className={styles.detailTabInner}>
-              <div className={styles.historyList}>
-                {historyItems.map((item) => {
-                  const open = openHistory === item.id;
-                  return (
-                    <div key={item.id} className={`${styles.historyCard} ${open ? styles.historyCardOpen : ""}`}>
-                      <button
-                        type="button"
-                        className={styles.historyRow}
-                        aria-expanded={open}
-                        onClick={() => setOpenHistory(open ? null : item.id)}
-                      >
-                        <span className={styles.historyIcon} aria-hidden>
-                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                            <rect x="2.5" y="4.5" width="15" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-                            <path d="M3 6l7 5 7-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </span>
-                        <span className={styles.historyMain}>
-                          <span className={styles.historyTitle}>{item.title}</span>
-                          <span className={styles.historyMetaRow}>
-                            <span className={styles.historyStatus}>{ticketStatus}</span>
-                            <span className={styles.historyAgent}>
-                              <span className={styles.historyAgentChip} aria-hidden>{initialsOf(agentName)}</span>
-                              {agentName}
-                            </span>
-                            <span className={styles.historyCount}>{item.count}</span>
+              {/* Live conversation — read and reply without leaving this screen */}
+              <section className={styles.liveChat}>
+                <header className={styles.liveChatHead}>
+                  <div className={styles.liveChatTitleWrap}>
+                    <span className={styles.liveChatTitle}>
+                      Conversation with {submission.name || submission.email}
+                    </span>
+                    <span
+                      className={`${styles.liveChatStatus} ${unreadCount > 0 ? styles.liveChatStatusNew : ""}`}
+                    >
+                      {chatStatus}
+                    </span>
+                  </div>
+                  <Link href={`/admin/chat?id=${submission.id}`} className={styles.liveChatOpen}>
+                    Open in inbox →
+                  </Link>
+                </header>
+                <div className={styles.liveChatBody}>
+                  <ChatPanel
+                    submissionId={submission.id}
+                    currentRole="admin"
+                    currentName={adminUser?.name ?? "Admin User"}
+                  />
+                </div>
+              </section>
+
+              {/* Order context — expand for order details and impression photos */}
+              {(submission.products ?? []).length > 0 && (
+                <div className={styles.historyList}>
+                  {(submission.products ?? []).map((product, i) => {
+                    const itemId = `order-${i}`;
+                    const open = openHistory === itemId;
+                    return (
+                      <div key={itemId} className={`${styles.historyCard} ${open ? styles.historyCardOpen : ""}`}>
+                        <button
+                          type="button"
+                          className={styles.historyRow}
+                          aria-expanded={open}
+                          onClick={() => setOpenHistory(open ? null : itemId)}
+                        >
+                          <span className={styles.historyIcon} aria-hidden>
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                              <rect x="2.5" y="4.5" width="15" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+                              <path d="M3 6l7 5 7-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
                           </span>
-                        </span>
-                        <span className={styles.historyDate}>{created}</span>
-                      </button>
-
-                      {open && (
-                        <div className={styles.historyDetail}>
-                          {item.kind === "chat" ? (
-                            /* Read-only transcript — history only, no composer. */
-                            <div className={styles.transcript}>
-                              {messages.length === 0 ? (
-                                <p className={styles.transcriptEmpty}>No messages in this conversation.</p>
-                              ) : (
-                                messages.map((m) => {
-                                  const isAdmin = m.senderRole === "admin";
-                                  return (
-                                    <div
-                                      key={m.id}
-                                      className={`${styles.msgWrap} ${isAdmin ? styles.msgWrapOwn : styles.msgWrapOther}`}
-                                    >
-                                      <span className={styles.msgSender}>
-                                        {m.senderName || (isAdmin ? "Care Team" : "Patient")}
-                                      </span>
-                                      <div className={`${styles.msgBubble} ${isAdmin ? styles.msgBubbleOwn : styles.msgBubbleOther}`}>
-                                        {m.body}
-                                      </div>
-                                      <span className={styles.msgTime}>{formatDateTime(m.createdAt)}</span>
-                                    </div>
-                                  );
-                                })
-                              )}
-                            </div>
-                          ) : (
-                            <>
-                              <div className={styles.historyDetailHead}>
+                          <span className={styles.historyMain}>
+                            <span className={styles.historyTitle}>Order {orderLabel} — {productLabel(product)}</span>
+                            <span className={styles.historyMetaRow}>
+                              <StatusBadge status={submission.status} />
+                              <span className={styles.historyAgent}>
                                 <span className={styles.historyAgentChip} aria-hidden>{initialsOf(agentName)}</span>
-                                <span className={styles.historyDetailAgent}>{agentName}</span>
-                                <span className={styles.historyDetailDate}>{created}</span>
-                              </div>
-                              <h4 className={styles.historyDetailTitle}>Impression Kit Review</h4>
-                              <dl className={styles.historyFields}>
-                                <div className={styles.historyField}>
-                                  <dt>Order ID</dt>
-                                  <dd>{orderLabel}</dd>
-                                </div>
-                                <div className={styles.historyField}>
-                                  <dt>Product</dt>
-                                  <dd>{item.product ? productLabel(item.product) : "—"}</dd>
-                                </div>
-                                <div className={styles.historyField}>
-                                  <dt>Status</dt>
-                                  <dd><StatusBadge status={submission.status} /></dd>
-                                </div>
-                                <div className={styles.historyField}>
-                                  <dt>Amount</dt>
-                                  <dd>{amount}</dd>
-                                </div>
-                                <div className={styles.historyField}>
-                                  <dt>Created</dt>
-                                  <dd>{created}</dd>
-                                </div>
-                              </dl>
+                                {agentName}
+                              </span>
+                              <span className={styles.historyCount}>{photoCount} photo{photoCount === 1 ? "" : "s"}</span>
+                            </span>
+                          </span>
+                          <span className={styles.historyDate}>{created}</span>
+                        </button>
 
-                              {impressionPhotos.length > 0 && (
-                                <div className={styles.historyPhotos}>
-                                  <div className={styles.photoSectionTitle}>Impression Photos</div>
-                                  <div className={styles.photoGrid}>
-                                    {impressionPhotos.map((photo, idx) => (
-                                      <div
-                                        key={`${photo.url}-${idx}`}
-                                        className={styles.photoThumb}
-                                        onClick={() => openLightbox(impressionPhotos, idx)}
-                                      >
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={photo.url} alt={photo.label} />
-                                        <div className={styles.photoThumbLabel}>{photo.label}</div>
-                                      </div>
-                                    ))}
-                                  </div>
+                        {open && (
+                          <div className={styles.historyDetail}>
+                            <div className={styles.historyDetailHead}>
+                              <span className={styles.historyAgentChip} aria-hidden>{initialsOf(agentName)}</span>
+                              <span className={styles.historyDetailAgent}>{agentName}</span>
+                              <span className={styles.historyDetailDate}>{created}</span>
+                            </div>
+                            <h4 className={styles.historyDetailTitle}>Impression Kit Review</h4>
+                            <dl className={styles.historyFields}>
+                              <div className={styles.historyField}><dt>Order ID</dt><dd>{orderLabel}</dd></div>
+                              <div className={styles.historyField}><dt>Product</dt><dd>{productLabel(product)}</dd></div>
+                              <div className={styles.historyField}><dt>Status</dt><dd><StatusBadge status={submission.status} /></dd></div>
+                              <div className={styles.historyField}><dt>Amount</dt><dd>{amount}</dd></div>
+                              <div className={styles.historyField}><dt>Created</dt><dd>{created}</dd></div>
+                            </dl>
+
+                            {impressionPhotos.length > 0 && (
+                              <div className={styles.historyPhotos}>
+                                <div className={styles.photoSectionTitle}>Impression Photos</div>
+                                <div className={styles.photoGrid}>
+                                  {impressionPhotos.map((photo, idx) => (
+                                    <div
+                                      key={`${photo.url}-${idx}`}
+                                      className={styles.photoThumb}
+                                      onClick={() => openLightbox(impressionPhotos, idx)}
+                                    >
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img src={photo.url} alt={photo.label} />
+                                      <div className={styles.photoThumbLabel}>{photo.label}</div>
+                                    </div>
+                                  ))}
                                 </div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })()}

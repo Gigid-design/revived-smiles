@@ -7,6 +7,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/admin": "Dashboard",
   "/admin/submissions": "Submissions",
   "/admin/adjustments": "Adjustment Requests",
+  "/admin/chat": "Chat",
+  "/admin/prompts": "AI Prompts",
 };
 
 interface AdminTopbarProps {

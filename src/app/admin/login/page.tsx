@@ -34,10 +34,10 @@ export default function AdminLoginPage() {
       <div className={styles.card}>
         <div className={styles.logoWrap}>
           <Image
-            src="/assets/images/logo-revived-smiles.png"
+            src="/assets/images/logo-revived-smiles-dark.png"
             alt="Revived Smiles"
-            width={160}
-            height={48}
+            width={200}
+            height={47}
             style={{ objectFit: "contain" }}
             priority
           />

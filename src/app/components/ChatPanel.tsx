@@ -76,6 +76,7 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
   const [sending, setSending] = useState(false);
   const [deciding, setDeciding] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   /* Keep the newest message in view. The message list is the scroll
      container (bubbles + composer are docked), so scroll it directly. */
@@ -83,6 +84,15 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
     const list = listRef.current;
     if (list) list.scrollTop = list.scrollHeight;
   }, [messages.length]);
+
+  /* Grow the composer with its content (up to the CSS max-height), so
+     multi-line drafts stay fully visible instead of scrolling in one line. */
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [draft]);
 
   /* Mark messages as read when panel is visible */
   useEffect(() => {
@@ -308,6 +318,7 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
       {/* Input */}
       <div className={styles.inputBar}>
         <textarea
+          ref={inputRef}
           className={styles.input}
           placeholder="Type a message…"
           value={draft}

@@ -5,16 +5,30 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAdminUser, signOut } from "./AdminAuthGuard";
 
+/* Icons share one optical grid: 24×24 viewBox, ~18px content extent,
+   1.8 stroke, round caps/joins — so every glyph renders the same size. */
+const ICON_PROPS = {
+  width: 20,
+  height: 20,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.8,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  xmlns: "http://www.w3.org/2000/svg",
+};
+
 const NAV_ITEMS = [
   {
     label: "Dashboard",
     href: "/admin",
     icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="2" width="7" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-        <rect x="2" y="12" width="7" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-        <rect x="11" y="2" width="7" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-        <rect x="11" y="10" width="7" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <svg {...ICON_PROPS}>
+        <rect x="3" y="3" width="7.5" height="7.5" rx="1.6" />
+        <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6" />
+        <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6" />
+        <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" />
       </svg>
     ),
   },
@@ -22,9 +36,10 @@ const NAV_ITEMS = [
     label: "Submissions",
     href: "/admin/submissions",
     icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 3h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M6 7h8M6 10h8M6 13h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <svg {...ICON_PROPS}>
+        <rect x="8.5" y="2.5" width="7" height="4" rx="1.2" />
+        <path d="M15.5 4.5H19A1.5 1.5 0 0 1 20.5 6v13.5A1.5 1.5 0 0 1 19 21H5A1.5 1.5 0 0 1 3.5 19.5V6A1.5 1.5 0 0 1 5 4.5h3.5" />
+        <path d="M8 12h8M8 15.5h8" />
       </svg>
     ),
   },
@@ -32,9 +47,11 @@ const NAV_ITEMS = [
     label: "Adjustments",
     href: "/admin/adjustments",
     icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M11.5 3.5l2.5-1 2 2-1 2.5 1 1.5-2 .5-1.5 3.5-2 0-1.5-3.5-2-.5 1-1.5-1-2.5 2-2 2.5 1" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" strokeLinecap="round" />
-        <circle cx="8.5" cy="9.5" r="2" stroke="currentColor" strokeWidth="1.3" />
+      <svg {...ICON_PROPS}>
+        <path d="M3.5 6h9.5M16.5 6h4M3.5 12h4M11 12h9.5M3.5 18h9.5M16.5 18h4" />
+        <circle cx="14.5" cy="6" r="2" />
+        <circle cx="9" cy="12" r="2" />
+        <circle cx="14.5" cy="18" r="2" />
       </svg>
     ),
   },
@@ -42,9 +59,9 @@ const NAV_ITEMS = [
     label: "Chat",
     href: "/admin/chat",
     icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 4.5h14a1 1 0 011 1V13a1 1 0 01-1 1H8l-4 3.5V14H3a1 1 0 01-1-1V5.5a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M6 8h8M6 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <svg {...ICON_PROPS}>
+        <path d="M20.5 15.5A1.5 1.5 0 0 1 19 17H8l-4.5 3.8V5.5A1.5 1.5 0 0 1 5 4h14a1.5 1.5 0 0 1 1.5 1.5z" />
+        <path d="M8 9h8M8 12.5h5.5" />
       </svg>
     ),
   },
@@ -52,12 +69,11 @@ const NAV_ITEMS = [
     label: "AI Prompts",
     href: "/admin/prompts",
     icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 2l2.35 4.76 5.25.77-3.8 3.7.9 5.24L10 14.27l-4.7 2.2.9-5.24-3.8-3.7 5.25-.77L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <svg {...ICON_PROPS}>
+        <polygon points="12,3.5 14.63,8.82 20.5,9.68 16.25,13.82 17.25,19.67 12,16.9 6.75,19.67 7.75,13.82 3.5,9.68 9.37,8.82" />
       </svg>
     ),
   },
-
 ];
 
 export function AdminSidebar() {
@@ -75,16 +91,18 @@ export function AdminSidebar() {
 
   return (
     <aside className="admin-sidebar">
-      {/* Logo */}
-      <div className="admin-sidebar__logo">
-        <Image
-          src="/assets/images/logo-revived-smiles.png"
-          alt="Revived Smiles"
-          width={140}
-          height={40}
-          style={{ objectFit: "contain", filter: "brightness(0) invert(1)" }}
-          priority
-        />
+      {/* Brand mark */}
+      <div className="admin-sidebar__brand">
+        <Link href="/admin" className="admin-sidebar__brandBadge" aria-label="Revived Smiles — Dashboard">
+          <Image
+            className="admin-sidebar__brandMark"
+            src="/assets/images/logo-tooth-mark.png"
+            alt="Revived Smiles"
+            width={38}
+            height={38}
+            priority
+          />
+        </Link>
       </div>
 
       {/* Navigation */}
@@ -93,28 +111,25 @@ export function AdminSidebar() {
           <Link
             key={item.href}
             href={item.href}
+            title={item.label}
             className={`admin-sidebar__link ${isActive(item.href) ? "admin-sidebar__link--active" : ""}`}
           >
             <span className="admin-sidebar__icon">{item.icon}</span>
-            <span>{item.label}</span>
+            <span className="admin-sidebar__label">{item.label}</span>
           </Link>
         ))}
       </nav>
 
       {/* Bottom user area */}
       <div className="admin-sidebar__footer">
-        <div className="admin-sidebar__avatar">{initials}</div>
-        <div className="admin-sidebar__user">
-          <span className="admin-sidebar__username">{user?.name ?? "Admin User"}</span>
-          <span className="admin-sidebar__role">{user?.role ?? "Representative"}</span>
-        </div>
+        <div className="admin-sidebar__avatar" title={user?.name ?? "Admin User"}>{initials}</div>
         <button
           className="admin-sidebar__signout"
           onClick={signOut}
           title="Sign out"
           aria-label="Sign out"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
             <path d="M6 2H4a2 2 0 00-2 2v8a2 2 0 002 2h2M10.5 11.5L14 8l-3.5-3.5M14 8H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
@@ -122,58 +137,79 @@ export function AdminSidebar() {
 
       <style jsx global>{`
         .admin-sidebar {
-          width: 240px;
-          min-width: 240px;
+          width: 96px;
+          min-width: 96px;
           background: var(--admin-sidebar-bg);
+          border-right: 1px solid var(--admin-card-border);
           display: flex;
           flex-direction: column;
+          align-items: center;
           height: 100vh;
           position: sticky;
           top: 0;
         }
-        .admin-sidebar__logo {
-          padding: 1.5rem 1.25rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        .admin-sidebar__brand {
+          padding: 1rem 0;
+          display: flex;
+          justify-content: center;
+        }
+        .admin-sidebar__brandBadge {
+          width: 44px;
+          height: 44px;
+          background: transparent;
+          color: var(--admin-primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          transition: transform 0.15s;
+        }
+        .admin-sidebar__brandBadge:hover {
+          transform: translateY(-1px);
+        }
+        .admin-sidebar__brandMark {
+          width: 38px;
+          height: 38px;
         }
         .admin-sidebar__nav {
           flex: 1;
-          padding: 1rem 0.75rem;
+          width: 100%;
+          padding: 0.75rem 0.625rem;
           display: flex;
           flex-direction: column;
-          gap: 0.25rem;
+          gap: 0.625rem;
         }
         .admin-sidebar__link {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 0.75rem;
-          padding: 0.625rem 0.75rem;
-          border-radius: 8px;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.9375rem 0.375rem;
+          border-radius: 16px;
           color: var(--admin-sidebar-text);
-          font-size: 0.875rem;
-          font-weight: 500;
-          font-family: var(--font-body);
           text-decoration: none;
           transition: background 0.15s, color 0.15s;
         }
+        .admin-sidebar__label {
+          font-size: 0.625rem;
+          font-weight: 500;
+          font-family: var(--font-body);
+          letter-spacing: 0.02em;
+          line-height: 1.2;
+          text-align: center;
+        }
         .admin-sidebar__link:hover {
-          background: rgba(255, 255, 255, 0.06);
-          color: #ffffff;
+          background: rgba(0, 0, 0, 0.055);
+          color: var(--admin-text);
         }
         .admin-sidebar__link--active {
-          background: rgba(25, 144, 198, 0.15);
-          color: #ffffff;
-          position: relative;
+          background: rgba(0, 0, 0, 0.055);
+          color: var(--admin-text);
         }
-        .admin-sidebar__link--active::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 3px;
-          height: 60%;
-          background: var(--admin-sidebar-active);
-          border-radius: 0 3px 3px 0;
+        .admin-sidebar__link--active:hover {
+          background: rgba(0, 0, 0, 0.085);
+          color: var(--admin-text);
         }
         .admin-sidebar__icon {
           display: flex;
@@ -181,18 +217,25 @@ export function AdminSidebar() {
           justify-content: center;
           flex-shrink: 0;
         }
+        .admin-sidebar__icon svg {
+          width: 22px;
+          height: 22px;
+          display: block;
+        }
         .admin-sidebar__footer {
-          padding: 1rem 1.25rem;
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          width: 100%;
+          padding: 0.75rem 0.5rem 1rem;
+          border-top: 1px solid var(--admin-card-border);
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 0.75rem;
+          gap: 0.5rem;
         }
         .admin-sidebar__avatar {
-          width: 32px;
-          height: 32px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
-          background: var(--admin-sidebar-active);
+          background: var(--admin-primary);
           color: #ffffff;
           display: flex;
           align-items: center;
@@ -202,30 +245,13 @@ export function AdminSidebar() {
           font-family: var(--font-heading);
           flex-shrink: 0;
         }
-        .admin-sidebar__user {
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-          flex: 1;
-        }
-        .admin-sidebar__username {
-          color: #ffffff;
-          font-size: 0.8125rem;
-          font-weight: 500;
-          line-height: 1.2;
-        }
-        .admin-sidebar__role {
-          color: var(--admin-sidebar-text);
-          font-size: 0.6875rem;
-          line-height: 1.2;
-        }
         .admin-sidebar__signout {
           background: none;
           border: none;
           color: var(--admin-sidebar-text);
           cursor: pointer;
-          padding: 0.375rem;
-          border-radius: 6px;
+          padding: 0.5rem;
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -233,8 +259,8 @@ export function AdminSidebar() {
           flex-shrink: 0;
         }
         .admin-sidebar__signout:hover {
-          color: #ffffff;
-          background: rgba(255, 255, 255, 0.08);
+          color: var(--admin-text);
+          background: var(--admin-bg);
         }
         @media (max-width: 768px) {
           .admin-sidebar {

@@ -66,12 +66,39 @@
   gap: 1.25rem;
 }
 
-/* ── Horizontal Stepper — minimal dots ── */
+/* ── Horizontal Stepper — brand gradient fill (ported from the customer
+   portal fulfilment tracker) ── */
 .stepper {
+  position: relative;
   display: flex;
   align-items: flex-start;
   width: 100%;
   padding: 0.25rem 0;
+  --item-w: 56px; /* width of each step column; half of it is the dot inset */
+}
+
+/* Grey track + completed gradient both run between the first and last dot
+   centres, so they line up with the dots at any width. */
+.stepper::before,
+.stepper::after {
+  content: "";
+  position: absolute;
+  top: 7px; /* vertical centre of the 10px dots (accounts for the 4px line) */
+  height: 4px;
+  border-radius: 4px;
+  left: calc(var(--item-w) / 2);
+  z-index: 0;
+}
+.stepper::before {
+  right: calc(var(--item-w) / 2);
+  background: #e5e7eb;
+}
+/* Completed progress, drawn as ONE continuous gradient — the same brand ramp
+   used by the customer order tracker, rotated to run left→right. Width tracks
+   how many stages are cleared (--progress: 0–1). */
+.stepper::after {
+  width: calc((100% - var(--item-w)) * var(--progress, 0));
+  background: linear-gradient(to right, #fdd33b 0%, #c6dcfe 49%, #121723 100%);
 }
 
 .stepItem {
@@ -96,16 +123,16 @@
 }
 
 .stepDotCompleted {
-  background: var(--admin-text);
-  border-color: var(--admin-text);
+  background: #0e1b4d;
+  border-color: #0e1b4d;
 }
 
 .stepDotActive {
   width: 12px;
   height: 12px;
-  background: var(--admin-primary);
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(25, 144, 198, 0.15);
+  background: #0e1b4d;
+  border-color: #0e1b4d;
+  box-shadow: 0 0 0 4px rgba(14, 27, 77, 0.12);
 }
 
 .stepLabel {
@@ -127,16 +154,10 @@
   color: var(--admin-text-muted);
 }
 
+/* Spacer only — the visible line + gradient are drawn by .stepper::before/after. */
 .stepConnector {
   flex: 1;
-  height: 1px;
-  background: #e5e7eb;
-  margin-top: 5px;
   min-width: 8px;
-}
-
-.stepConnectorCompleted {
-  background: var(--admin-text);
 }
 
 /* Branch banner for Changes Requested / Rejected */
@@ -343,9 +364,9 @@
 }
 
 .btn {
-  padding: 0.4375rem 0.875rem;
+  padding: 0.625rem 1.375rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   font-family: var(--font-heading);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -353,6 +374,7 @@
   transition: opacity 0.15s, transform 0.1s;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.375rem;
 }
 
@@ -362,9 +384,16 @@
 
 .btnApprove {
   composes: btn;
-  background: var(--admin-text);
+  background: var(--admin-primary);
   color: #ffffff;
+  /* Size to content and left-align instead of stretching full-width inside
+     the column action card. */
+  align-self: flex-start;
+  min-width: 160px;
+  box-shadow: var(--admin-shadow-pillow);
 }
+
+.btnApprove:hover { transform: translateY(-1px); }
 
 .btnChanges {
   composes: btn;
@@ -390,10 +419,10 @@
 
 .trackingInput {
   width: 100%;
-  height: 36px;
-  padding: 0 0.75rem;
+  height: 40px;
+  padding: 0 0.875rem;
   border: 1px solid var(--admin-card-border);
-  border-radius: 6px;
+  border-radius: 10px;
   font-family: var(--font-body);
   font-size: 0.8125rem;
   color: var(--admin-text);
@@ -409,35 +438,39 @@
 /* ── Detail Tabs ── */
 .detailTabBar {
   display: flex;
-  border-bottom: 1px solid var(--admin-card-border);
-  gap: 0;
+  gap: 0.25rem;
+  padding: 0.375rem;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 12px 12px 0 0;
 }
 
 .detailTab {
-  padding: 0.625rem 1rem;
+  padding: 0.5rem 0.875rem;
   font-family: var(--font-heading);
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--admin-text-muted);
   background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-radius: 9px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color 0.15s, background 0.15s;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  margin-bottom: -1px;
 }
 
 .detailTab:hover {
   color: var(--admin-text);
+  background: rgba(0, 0, 0, 0.035);
 }
 
-.detailTabActive {
+.detailTabActive,
+.detailTabActive:hover {
   color: var(--admin-text);
-  border-bottom-color: var(--admin-text);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .tabBadge {
@@ -461,10 +494,88 @@
   border-top: none;
   border-radius: 0 0 12px 12px;
   min-height: 200px;
+  /* Cancel the .page column gap so the content docks flush under the
+     tab header, reading as one connected card. */
+  margin-top: -1.5rem;
 }
 
 .detailTabInner {
   padding: 1.25rem;
+}
+
+/* ── Live conversation (embedded ChatPanel) ── */
+.liveChat {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--admin-card-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--admin-card-bg);
+  margin-bottom: 1.25rem;
+}
+
+.liveChatHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--admin-card-border);
+  background: var(--admin-bg);
+}
+
+.liveChatTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.liveChatTitle {
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.liveChatStatus {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.liveChatStatusNew {
+  color: #fff;
+  background: var(--admin-danger);
+}
+
+.liveChatOpen {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.liveChatOpen:hover {
+  text-decoration: underline;
+}
+
+/* The ChatPanel fills this bounded height; its message list scrolls
+   internally and the composer stays pinned at the bottom. */
+.liveChatBody {
+  display: flex;
+  flex-direction: column;
+  height: 460px;
+  min-height: 0;
 }
 
 /* Section divider */
@@ -948,6 +1059,7 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
+  .stepper { --item-w: 40px; }
   .stepItem { width: 40px; }
   .stepLabel { font-size: 0.5rem; max-width: 40px; }
   .detailTabBar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
