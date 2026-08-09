@@ -59,7 +59,6 @@ export default function Messages() {
     send,
     sendRequest,
     markRead,
-    setRequestStatus,
   } = useMessages();
 
   const { canClaim } = useInsurance();
@@ -176,20 +175,6 @@ export default function Messages() {
 
             {status === "rejected" && (
               <p className={styles.rejectedNote}>Your care team has explained why below.</p>
-            )}
-
-            {/* Stands in for the support console until an admin decides these
-                — see MessagesApi.setRequestStatus. */}
-            {status === "pending" && (
-              <div className={styles.simulateRow}>
-                <span className={styles.simulateLabel}>Preview:</span>
-                <button type="button" className={styles.simulateBtn} onClick={() => void setRequestStatus(msg.id, "accepted")}>
-                  Accept
-                </button>
-                <button type="button" className={styles.simulateBtn} onClick={() => void setRequestStatus(msg.id, "rejected")}>
-                  Decline
-                </button>
-              </div>
             )}
           </div>
           <div className={styles.timestamp}>{formatWhen(msg.createdAt)}</div>

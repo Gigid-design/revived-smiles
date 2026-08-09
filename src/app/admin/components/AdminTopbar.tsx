@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const PAGE_TITLES: Record<string, string> = {
   "/admin": "Dashboard",
   "/admin/submissions": "Submissions",
+  "/admin/adjustments": "Adjustment Requests",
 };
 
 interface AdminTopbarProps {
@@ -20,7 +21,11 @@ export function AdminTopbar({ onRefresh, newSubmission, onDismissNewSubmission }
   /* Derive page title from route */
   const title =
     PAGE_TITLES[pathname] ??
-    (pathname.startsWith("/admin/submissions/") ? "Submission Detail" : "Admin");
+    (pathname.startsWith("/admin/submissions/")
+      ? "Submission Detail"
+      : pathname.startsWith("/admin/adjustments/")
+        ? "Adjustment Detail"
+        : "Admin");
 
   return (
     <header className="admin-topbar">

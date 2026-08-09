@@ -29,6 +29,16 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "Adjustments",
+    href: "/admin/adjustments",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.5 3.5l2.5-1 2 2-1 2.5 1 1.5-2 .5-1.5 3.5-2 0-1.5-3.5-2-.5 1-1.5-1-2.5 2-2 2.5 1" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" strokeLinecap="round" />
+        <circle cx="8.5" cy="9.5" r="2" stroke="currentColor" strokeWidth="1.3" />
+      </svg>
+    ),
+  },
+  {
     label: "Chat",
     href: "/admin/chat",
     icon: (

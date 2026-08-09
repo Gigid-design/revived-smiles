@@ -5,6 +5,19 @@ import { useChat } from "../hooks/useChat";
 import type { FormKind } from "./ChatRequestForm";
 import { MacroPicker } from "./MacroPicker";
 import styles from "./ChatPanel.module.css";
+import { REQUEST_LABELS, type ChatMessage, type RequestStatus } from "@/lib/api";
+
+const REQUEST_STATUS_COPY: Record<RequestStatus, string> = {
+  pending: "Awaiting review",
+  accepted: "Accepted",
+  rejected: "Declined",
+};
+
+/** The free-text the patient typed, which follows the headline in the body. */
+function requestNote(body: string): string {
+  const [, ...rest] = body.split("\n\n");
+  return rest.join("\n\n").trim();
+}
 
 /* Same shortcuts as the full /messages chat. The question sends inline; the
    materials/trays shortcuts open the matching form in place via onOpenForm;
@@ -54,13 +67,14 @@ function getInitials(name: string): string {
 }
 
 export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, onAdjust }: ChatPanelProps) {
-  const { messages, sendMessage, markAsRead, loading } = useChat(
+  const { messages, sendMessage, setRequestStatus, markAsRead, loading } = useChat(
     submissionId,
     currentRole,
     currentName
   );
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [deciding, setDeciding] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   /* Keep the newest message in view. The message list is the scroll
@@ -89,6 +103,91 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
     setSending(true);
     await sendMessage(text);
     setSending(false);
+  }
+
+  async function decideRequest(messageId: string, status: RequestStatus) {
+    if (deciding) return;
+    setDeciding(messageId);
+    await setRequestStatus(messageId, status);
+    setDeciding(null);
+  }
+
+  /** A supplies request renders as a status card the care team can action,
+      rather than a plain bubble — so its outcome sits on what was asked. */
+  function renderRequestCard(msg: ChatMessage) {
+    const request = msg.request!;
+    const { kind, detail, status, outcome, trackingNumber } = request;
+    const typed = requestNote(msg.body);
+    const isAdmin = currentRole === "admin";
+    const busy = deciding === msg.id;
+
+    return (
+      <div
+        key={msg.id}
+        className={`${styles.messageBubbleWrap} ${styles.messageBubbleOther}`}
+        style={{ maxWidth: "100%", alignSelf: "stretch" }}
+      >
+        <div className={styles.requestCard}>
+          <div className={styles.requestHead}>
+            <span className={styles.requestKind}>{REQUEST_LABELS[kind]}</span>
+            <span
+              className={`${styles.statusBadge} ${
+                status === "accepted"
+                  ? styles.statusAccepted
+                  : status === "rejected"
+                    ? styles.statusRejected
+                    : styles.statusPending
+              }`}
+            >
+              {REQUEST_STATUS_COPY[status]}
+            </span>
+          </div>
+
+          {detail && <p className={styles.requestDetail}>{detail}</p>}
+          {typed && <p className={styles.requestNote}>{typed}</p>}
+
+          {status === "accepted" && outcome && (
+            <div className={styles.outcomeRow}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M4 12.5L9.5 18L20 6.5" />
+              </svg>
+              <span>{outcome}</span>
+            </div>
+          )}
+          {status === "accepted" && trackingNumber && (
+            <p className={styles.requestDetail}>Tracking: {trackingNumber}</p>
+          )}
+          {status === "rejected" && (
+            <p className={styles.rejectedNote}>
+              Declined — the care team&apos;s reply explains why below.
+            </p>
+          )}
+
+          {/* The care team decides a pending request right here. */}
+          {isAdmin && status === "pending" && (
+            <div className={styles.decisionRow}>
+              <button
+                type="button"
+                className={styles.acceptBtn}
+                disabled={busy}
+                onClick={() => void decideRequest(msg.id, "accepted")}
+              >
+                {busy ? "Saving…" : "Accept & send"}
+              </button>
+              <button
+                type="button"
+                className={styles.declineBtn}
+                disabled={busy}
+                onClick={() => void decideRequest(msg.id, "rejected")}
+              >
+                Decline
+              </button>
+            </div>
+          )}
+        </div>
+        <div className={styles.timestamp}>{formatTime(msg.createdAt)}</div>
+      </div>
+    );
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -131,6 +230,7 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
           </div>
         ) : (
           messages.map((msg) => {
+            if (msg.request) return renderRequestCard(msg);
             const isOwn = msg.senderRole === currentRole;
             return (
               <div

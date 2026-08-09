@@ -15,6 +15,7 @@
 import type {
   AdjustmentDecision,
   AdjustmentRequest,
+  AdjustmentStatus,
   AdminUser,
   AdvisorContext,
   AdvisorMessage,
@@ -471,6 +472,15 @@ export interface AdjustmentsApi {
 
   /** Every request raised against one order, newest first. */
   listForSubmission(submissionId: string): Promise<AdjustmentRequest[]>;
+
+  /**
+   * Admin queue: every request across all patients, newest first, optionally
+   * narrowed to one status. ADMIN-ONLY in a real backend, which must reject
+   * this from a patient session and compute the filter server-side rather than
+   * returning every row for the client to sift. Mirrors `SubmissionsApi.list`,
+   * which is how the admin submissions queue is fed.
+   */
+  list(status?: AdjustmentStatus | ""): Promise<AdjustmentRequest[]>;
 
   /**
    * Records the team's decision (see `AdjustmentDecision`).

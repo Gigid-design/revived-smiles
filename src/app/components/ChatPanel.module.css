@@ -205,6 +205,44 @@
 }
 .trackLink:hover { text-decoration: underline; }
 
+/* Admin decision controls — accept/decline a pending supplies request */
+.decisionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.625rem;
+  border-top: 1px dashed #eef0f5;
+}
+
+.acceptBtn,
+.declineBtn {
+  padding: 0.375rem 0.75rem;
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.acceptBtn {
+  background: #16a34a;
+  color: #ffffff;
+  border: 1px solid #16a34a;
+}
+.acceptBtn:hover:not(:disabled) { opacity: 0.85; }
+
+.declineBtn {
+  background: #ffffff;
+  color: #a03030;
+  border: 1px solid #fca5a5;
+}
+.declineBtn:hover:not(:disabled) { background: #fef2f2; }
+
+.acceptBtn:disabled,
+.declineBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* Design-mode only — stands in for the support console */
 .simulateRow {
   display: flex;

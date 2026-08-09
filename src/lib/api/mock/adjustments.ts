@@ -142,6 +142,14 @@ export const mockAdjustments: AdjustmentsApi = {
     );
   },
 
+  async list(status) {
+    await delay();
+    const rows = getDb()
+      .adjustmentRequests.filter((r) => !status || r.status === status)
+      .sort(byNewest);
+    return clone(rows);
+  },
+
   async decide(id, decision: AdjustmentDecision) {
     await delay();
 

@@ -7,6 +7,7 @@
  */
 
 import type {
+  AdjustmentRequest,
   AppNotification,
   AuthUser,
   BillingAddress,
@@ -37,7 +38,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 17;
+export const SEED_VERSION = 20;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -360,6 +361,53 @@ function buildMessages(): ChatMessage[] {
   }));
 }
 
+/**
+ * A short conversation on a queue order (Dolores Hunt, `sub-004`) that ends on
+ * an *unresolved* supplies request — so the admin chat has a pending request to
+ * accept or decline, demonstrating the care-team console. Without this, every
+ * request in the demo is already resolved and the accept/decline controls never
+ * appear for staff.
+ */
+function buildInboxRequests(): ChatMessage[] {
+  const submissionId = "sub-004";
+  const patientName = "Dolores Hunt";
+
+  const script: Array<{
+    role: ChatMessage["senderRole"];
+    body: string;
+    mins: number;
+    request?: ChatMessage["request"];
+  }> = [
+    {
+      role: "patient",
+      body: "Hi — one of my lower trays cracked when I was boiling it. Could I get a replacement?",
+      mins: 240,
+    },
+    {
+      role: "admin",
+      body: "So sorry to hear that, Dolores. Send a request through and we'll get fresh material out to you.",
+      mins: 220,
+    },
+    {
+      role: "patient",
+      body: `${REQUEST_LABELS.material}\n\nThe lower tray split down the middle — I don't think I can take an impression with it.`,
+      mins: 90,
+      request: { kind: "material", detail: "", status: "pending", outcome: null, trackingNumber: null },
+    },
+  ];
+
+  return script.map((m, i) => ({
+    id: `inbox-msg-${i + 1}`,
+    submissionId,
+    senderRole: m.role,
+    senderName: m.role === "admin" ? CARE_TEAM_NAME : patientName,
+    body: m.body,
+    createdAt: minutesAgo(m.mins),
+    readAt: m.role === "patient" ? null : minutesAgo(Math.max(m.mins - 2, 0)),
+    ...(m.request ? { request: m.request } : {}),
+  }));
+}
+
 function buildNotifications(): AppNotification[] {
   return [
     {
@@ -499,6 +547,99 @@ function buildInsurances(): Insurance[] {
   ];
 }
 
+/* ------------------------------------------------------------------ */
+/* Adjustment requests — the admin review queue                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A few adjustment requests so the admin queue renders every state without
+ * anyone having to walk the six-screen flow first. One belongs to the demo
+ * patient (so it also appears in her portal's request history), the rest to
+ * queue patients. Photos reuse existing stand-in imagery — a real backend
+ * stores the customer's uploads.
+ */
+function buildAdjustmentRequests(): AdjustmentRequest[] {
+  const inMouth = "/assets/images/close-bite-front.png";
+  const onModels = "/assets/images/impression-photo.svg";
+  const biteStrip = "/assets/images/close-bite-right.png";
+  const markedModels = "/assets/images/open-bite-front.png";
+
+  return [
+    /* Demo patient — a nightguard that's too tight. Newest, still pending. */
+    {
+      id: "adj-seed-1",
+      requestNumber: "ADJ-0987-1",
+      userId: DEMO_PATIENT.id,
+      submissionId: "demo-2",
+      orderNumber: "#0987",
+      product: "nightguard",
+      issues: ["fit"],
+      answers: { fitDescription: "It goes in, but it's too tight" },
+      photos: { inMouth, onModels },
+      description:
+        "It fits over my front teeth but I have to force it onto the back molars, " +
+        "and it aches after a few minutes. Feels about a size too tight across the arch.",
+      status: "pending",
+      reviewNotes: null,
+      reviewedBy: null,
+      reviewedAt: null,
+      approvedAt: null,
+      createdAt: minutesAgo(90),
+      submittedAt: minutesAgo(90),
+    },
+    /* Queue patient — sore spots + loose on a flexible partial, pending. */
+    {
+      id: "adj-seed-2",
+      requestNumber: "ADJ-sub-014-1",
+      userId: null,
+      submissionId: "sub-014",
+      orderNumber: null,
+      product: "flexible-partial",
+      issues: ["sore-spots", "loose"],
+      answers: {
+        woreForFiveDays: true,
+        completedHotWaterActivation: true,
+        looseSnug: "It was snug at first and loosened over time",
+      },
+      photos: { inMouth, onModels, markedModels },
+      description:
+        "Rubs raw on the left gum near the clasp, and over the last two weeks it's " +
+        "started to lift when I eat. I've marked the sore spot on the models.",
+      status: "pending",
+      reviewNotes: null,
+      reviewedBy: null,
+      reviewedAt: null,
+      approvedAt: null,
+      createdAt: daysAgo(1),
+      submittedAt: daysAgo(1),
+    },
+    /* Queue patient — a shade change already sent back for more info. */
+    {
+      id: "adj-seed-3",
+      requestNumber: "ADJ-sub-004-1",
+      userId: null,
+      submissionId: "sub-004",
+      orderNumber: null,
+      product: "flexible-partial",
+      issues: ["tooth-shade", "bite"],
+      answers: { newToothShade: "A2" },
+      photos: { inMouth, onModels, biteStrip },
+      description:
+        "The teeth came out noticeably darker than my natural ones. I'd like them a " +
+        "shade lighter, and the bite feels high on the right.",
+      status: "changes_requested",
+      reviewNotes:
+        "Thanks for the photos. The in-mouth shot is a little dark to judge shade — " +
+        "could you retake it in daylight with your lips held back? Then we'll get this moving.",
+      reviewedBy: CARE_TEAM_NAME,
+      reviewedAt: daysAgo(1),
+      approvedAt: null,
+      createdAt: daysAgo(3),
+      submittedAt: daysAgo(3),
+    },
+  ];
+}
+
 export function buildSeed(): MockDb {
   const demo = submission({
     id: DEMO_SUBMISSION_ID,
@@ -559,6 +700,20 @@ export function buildSeed(): MockDb {
     whiteShade: "A2",
     gumShade: "G3",
     selectedTeeth: [12, 13, 14],
+    /* A free-text note from the patient, and per-product intake answers: the
+       acrylic partial carries its own tooth chart and shades (distinct from the
+       top-level mirror), while the retainer needs neither and contributes no
+       entry — the shape the multi-item intake wizard produces. */
+    notes: "Please match the shade to my upper front teeth — the last set came out a touch too white for me.",
+    itemDetails: {
+      "acrylic-partial": {
+        whiteShade: "A3",
+        gumShade: "G2",
+        selectedTeeth: [8, 9, 10, 11],
+        teethNotSure: false,
+        notes: "Only the four front teeth on this piece.",
+      },
+    },
     /* The four teeth photos the intake flow actually captures:
        [Front — teeth closed, Mouth open] then [Left side, Right side].
        Clean shots only — no captions or badges burned into the image. */
@@ -592,9 +747,8 @@ export function buildSeed(): MockDb {
     billingAddress: buildBillingAddress(),
     invoices: buildInvoices(),
     insurances: buildInsurances(),
-    /* No adjustment requests seeded — the flow creates the first one. */
-    adjustmentRequests: [],
-    messages: buildMessages(),
+    adjustmentRequests: buildAdjustmentRequests(),
+    messages: [...buildMessages(), ...buildInboxRequests()],
     notifications: buildNotifications(),
     promptConfigs: buildPromptConfigs(),
     /* The demo starts signed in as the patient, so opening any URL directly

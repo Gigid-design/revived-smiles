@@ -10,7 +10,7 @@ import { CompletenessCheck } from "../../components/CompletenessCheck";
 import { AnalysisResults } from "../../components/AnalysisResults";
 import { useAdminUser } from "../../components/AdminAuthGuard";
 import { api, ApiError } from "@/lib/api";
-import type { PhotoType, Submission, SubmissionStatus } from "@/lib/api";
+import type { ItemDetail, PhotoType, Submission, SubmissionStatus } from "@/lib/api";
 import { PRODUCTS, CATEGORY_LABELS, productLabel, productLabels, productsSubtotalCents, formatUsd, type ProductConfig } from "@/app/context/productConfig";
 import { useChat } from "@/app/hooks/useChat";
 import { ReviewCriteriaDrawer } from "../../components/ReviewCriteriaDrawer";
@@ -247,6 +247,11 @@ export default function SubmissionDetailPage() {
   const needsShade = productConfigs.some((c) => c.needsShade);
   const needsTeethChart = productConfigs.some((c) => c.needsTeethChart);
   const primaryProductLabel = productLabels(submission.products ?? []) || "—";
+
+  /* Per-product intake answers, present on multi-item orders. Each charted
+     product carries its own tooth selection and shades; the top-level fields
+     only mirror the first, so the lab needs these to build the rest. */
+  const itemDetailEntries = Object.entries(submission.itemDetails ?? {}) as [string, ItemDetail][];
 
   const closeBitePhotos = (submission.closeBitePhotos ?? []).map((url, i) => ({
     url, label: CLOSE_BITE_LABELS[i] || `Close Bite ${i + 1}`,
@@ -526,6 +531,13 @@ export default function SubmissionDetailPage() {
                 </div>
               </div>
 
+              {submission.notes && submission.notes.trim() && (
+                <div className={styles.infoItemFull}>
+                  <span className={styles.infoLabel}>Patient note</span>
+                  <span className={styles.patientNote}>{submission.notes}</span>
+                </div>
+              )}
+
               {needsShade && (
                 <>
                   <div className={styles.infoItem}>
@@ -557,6 +569,41 @@ export default function SubmissionDetailPage() {
                       {submission.teethNotSure ? "Not sure (requested help)" : <span className={styles.missingField}>Not provided</span>}
                     </span>
                   )}
+                </div>
+              )}
+
+              {itemDetailEntries.length > 0 && (
+                <div className={styles.infoItemFull}>
+                  <span className={styles.infoLabel}>Per-item details</span>
+                  <div className={styles.itemCards}>
+                    {itemDetailEntries.map(([slug, detail]) => (
+                      <div key={slug} className={styles.itemCard}>
+                        <span className={styles.itemCardTitle}>{productLabel(slug)}</span>
+                        <div className={styles.itemCardMeta}>
+                          <span>
+                            White shade: <strong>{detail.whiteShade || "—"}</strong>
+                          </span>
+                          <span>
+                            Gum shade: <strong>{detail.gumShade || "—"}</strong>
+                          </span>
+                        </div>
+                        {detail.selectedTeeth.length > 0 ? (
+                          <div className={styles.teethList}>
+                            {detail.selectedTeeth.map((tooth) => (
+                              <span key={tooth} className={styles.toothBadge}>{tooth}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className={styles.infoValue}>
+                            {detail.teethNotSure ? "Not sure (requested help)" : "No teeth charted"}
+                          </span>
+                        )}
+                        {detail.notes && detail.notes.trim() && (
+                          <span className={styles.patientNote}>{detail.notes}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
