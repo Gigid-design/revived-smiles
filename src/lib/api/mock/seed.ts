@@ -22,7 +22,7 @@ import type {
   Subscription,
   SubscriptionPlan,
 } from "../types";
-import { REQUEST_LABELS, REQUEST_OUTCOMES } from "../types";
+import { REQUEST_LABELS, REQUEST_OUTCOMES, SUBMISSION_STATUS_LABELS } from "../types";
 import type { MockDb } from "./store";
 
 /* ------------------------------------------------------------------ */
@@ -38,7 +38,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 20;
+export const SEED_VERSION = 22;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -297,12 +297,26 @@ function buildPromptConfigs(): PromptConfig[] {
 function buildMessages(): ChatMessage[] {
   const patientName = DEMO_PATIENT.name ?? "Angela Carter";
 
+  /* The impression + teeth photos Angela submitted, labelled the way the
+     submission event attaches them — so her admin conversation shows the same
+     expandable photo strip as a real submission. */
+  const submittedPhotos: ChatMessage["attachments"] = [
+    { url: DEMO_PHOTOS["close-bite-front"], label: "Close Bite — Front" },
+    { url: DEMO_PHOTOS["close-bite-side"], label: "Close Bite — Side" },
+    { url: DEMO_PHOTOS["open-bite-front"], label: "Open Bite — Front" },
+    { url: DEMO_PHOTOS["open-bite-side"], label: "Open Bite — Side" },
+    { url: DEMO_IMPRESSION_PHOTO, label: "Impression 1" },
+    { url: DEMO_IMPRESSION_PHOTO, label: "Impression 2" },
+  ];
+
   const script: Array<{
     role: ChatMessage["senderRole"];
     body: string;
     mins: number;
     unread?: boolean;
     request?: ChatMessage["request"];
+    event?: ChatMessage["event"];
+    attachments?: ChatMessage["attachments"];
   }> = [
     {
       role: "admin",
@@ -342,9 +356,42 @@ function buildMessages(): ChatMessage[] {
       mins: 180,
     },
     {
+      role: "patient",
+      body: "Here's a summary of what I submitted:\n\n• Product: Acrylic Partial Flipper, Flexible Partial Denture, Nightguard (Order #1042)\n• Tooth shade: A2\n• Gum shade: Pink\n• Teeth to replace: #12, #13, #14\n• Photos: 4 teeth photos + 2 impression photos attached",
+      mins: 120,
+      event: {
+        kind: "submission",
+        title: "Impression & intake submitted",
+        facts: [
+          { label: "Product", value: "Acrylic Partial Flipper, Flexible Partial Denture, Nightguard (Order #1042)" },
+          { label: "Tooth shade", value: "A2" },
+          { label: "Gum shade", value: "Pink" },
+          { label: "Teeth to replace", value: "#12, #13, #14" },
+        ],
+      },
+      attachments: submittedPhotos,
+    },
+    {
       role: "admin",
-      body: "Wonderful. Send the photos over whenever you're ready and we'll take a look the same day.",
-      mins: 45,
+      body: "Got it — everything's come through. We're reviewing your impressions now and will be in touch shortly.",
+      mins: 90,
+    },
+    {
+      role: "admin",
+      body: `Status changed from ${SUBMISSION_STATUS_LABELS.pending} to ${SUBMISSION_STATUS_LABELS.in_review}.`,
+      mins: 88,
+      event: {
+        kind: "status_change",
+        title: "Status updated",
+        fromStatus: "pending",
+        toStatus: "in_review",
+        actor: "Admin User",
+      },
+    },
+    {
+      role: "admin",
+      body: "Quick note — your upper impression looks great. We're just checking the lower arch now.",
+      mins: 30,
       unread: true,
     },
   ];
@@ -358,6 +405,8 @@ function buildMessages(): ChatMessage[] {
     createdAt: minutesAgo(m.mins),
     readAt: m.unread ? null : minutesAgo(Math.max(m.mins - 2, 0)),
     ...(m.request ? { request: m.request } : {}),
+    ...(m.event ? { event: m.event } : {}),
+    ...(m.attachments ? { attachments: m.attachments } : {}),
   }));
 }
 
@@ -372,12 +421,56 @@ function buildInboxRequests(): ChatMessage[] {
   const submissionId = "sub-004";
   const patientName = "Dolores Hunt";
 
+  /* The impression + teeth photos this order submitted, labelled the way the
+     submission event attaches them — so the admin chat shows a real, expandable
+     photo strip without anyone walking the intake flow first. */
+  const submittedPhotos: ChatMessage["attachments"] = [
+    { url: DEMO_PHOTOS["close-bite-front"], label: "Close Bite — Front" },
+    { url: DEMO_PHOTOS["close-bite-side"], label: "Close Bite — Side" },
+    { url: DEMO_PHOTOS["open-bite-front"], label: "Open Bite — Front" },
+    { url: DEMO_PHOTOS["open-bite-side"], label: "Open Bite — Side" },
+    { url: DEMO_IMPRESSION_PHOTO, label: "Impression 1" },
+    { url: DEMO_IMPRESSION_PHOTO, label: "Impression 2" },
+  ];
+
   const script: Array<{
     role: ChatMessage["senderRole"];
     body: string;
     mins: number;
+    read?: boolean;
     request?: ChatMessage["request"];
+    event?: ChatMessage["event"];
+    attachments?: ChatMessage["attachments"];
   }> = [
+    {
+      role: "patient",
+      body: "Here's a summary of what I submitted:\n\n• Product: Flexible Partial Denture\n• Tooth shade: A2\n• Gum shade: Pink\n• Teeth to replace: #12, #13, #14\n• Photos: 4 teeth photos + 2 impression photos attached",
+      mins: 2880,
+      read: true,
+      event: {
+        kind: "submission",
+        title: "Impression & intake submitted",
+        facts: [
+          { label: "Product", value: "Flexible Partial Denture" },
+          { label: "Tooth shade", value: "A2" },
+          { label: "Gum shade", value: "Pink" },
+          { label: "Teeth to replace", value: "#12, #13, #14" },
+        ],
+      },
+      attachments: submittedPhotos,
+    },
+    {
+      role: "admin",
+      body: `Status changed from ${SUBMISSION_STATUS_LABELS.pending} to ${SUBMISSION_STATUS_LABELS.in_review}.`,
+      mins: 2820,
+      event: {
+        kind: "status_change",
+        title: "Status updated",
+        fromStatus: "pending",
+        toStatus: "in_review",
+        actor: "Admin User",
+      },
+    },
     {
       role: "patient",
       body: "Hi — one of my lower trays cracked when I was boiling it. Could I get a replacement?",
@@ -403,8 +496,10 @@ function buildInboxRequests(): ChatMessage[] {
     senderName: m.role === "admin" ? CARE_TEAM_NAME : patientName,
     body: m.body,
     createdAt: minutesAgo(m.mins),
-    readAt: m.role === "patient" ? null : minutesAgo(Math.max(m.mins - 2, 0)),
+    readAt: m.read || m.role === "admin" ? minutesAgo(Math.max(m.mins - 2, 0)) : null,
     ...(m.request ? { request: m.request } : {}),
+    ...(m.event ? { event: m.event } : {}),
+    ...(m.attachments ? { attachments: m.attachments } : {}),
   }));
 }
 
@@ -653,7 +748,18 @@ export function buildSeed(): MockDb {
     gumShade: "G2",
     selectedTeeth: [12, 13, 14],
     teethNotSure: false,
-    status: "draft",
+    /* Angela's current order sits mid-review, so the two portals share one live
+       conversation: it surfaces in the admin inbox, and her Messages view — which
+       binds to her newest order (getMine) — converse on the same non-draft order.
+       That makes the patient↔admin side-by-side demo work in both directions
+       without anyone walking the intake flow first. The impression + teeth photos
+       let the admin chat show the expandable photo strip on her order too. */
+    status: "in_review",
+    reviewedBy: "Admin User",
+    reviewedAt: minutesAgo(35),
+    closeBitePhotos: [DEMO_PHOTOS["close-bite-front"], DEMO_PHOTOS["close-bite-side"]],
+    openBitePhotos: [DEMO_PHOTOS["open-bite-front"], DEMO_PHOTOS["open-bite-side"]],
+    impressionPhotos: [DEMO_IMPRESSION_PHOTO, DEMO_IMPRESSION_PHOTO],
     createdAt: daysAgo(5),
   });
 

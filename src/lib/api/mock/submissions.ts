@@ -13,13 +13,15 @@ import type { SubmissionsApi } from "../contract";
 import type {
   ChatMessage,
   ImpressionPhoto,
+  MessageEventFact,
+  MessagePhoto,
   Paged,
   Submission,
   SubmissionDraft,
   SubmissionQuery,
   SubmissionStats,
 } from "../types";
-import { ApiError, requiresReviewNotes } from "../types";
+import { ApiError, SUBMISSION_STATUS_LABELS, requiresReviewNotes } from "../types";
 import { DEMO_SHOPIFY_ORDER } from "./seed";
 import {
   clone,
@@ -47,27 +49,61 @@ const GUM_SHADE_LABELS: Record<string, string> = { G1: "Dark", G2: "Pink", G3: "
 function buildSubmissionSummary(row: Submission): string {
   const lines: string[] = ["Here's a summary of what I submitted:", ""];
 
-  const order = row.orderNumber ? ` (Order ${row.orderNumber})` : "";
-  if (row.products.length) lines.push(`• Product: ${productLabels(row.products)}${order}`);
-  if (row.whiteShade) lines.push(`• Tooth shade: ${row.whiteShade}`);
-  if (row.gumShade) lines.push(`• Gum shade: ${GUM_SHADE_LABELS[row.gumShade] ?? row.gumShade}`);
+  for (const fact of submissionFacts(row)) lines.push(`• ${fact.label}: ${fact.value}`);
 
-  if (row.teethNotSure) {
-    lines.push("• Teeth to replace: Not sure — please advise");
-  } else if (row.selectedTeeth.length) {
-    lines.push(`• Teeth to replace: ${row.selectedTeeth.map((n) => `#${n}`).join(", ")}`);
-  }
-
-  const teethPhotos = row.closeBitePhotos.filter(Boolean).length + row.openBitePhotos.filter(Boolean).length;
-  const impressionPhotos = row.impressionPhotos.filter(Boolean).length;
+  const attachments = submissionAttachments(row);
+  const teeth = attachments.filter((p) => !p.label?.startsWith("Impression")).length;
+  const impressions = attachments.length - teeth;
   const photoParts: string[] = [];
-  if (teethPhotos) photoParts.push(`${teethPhotos} teeth photo${teethPhotos === 1 ? "" : "s"}`);
-  if (impressionPhotos) photoParts.push(`${impressionPhotos} impression photo${impressionPhotos === 1 ? "" : "s"}`);
+  if (teeth) photoParts.push(`${teeth} teeth photo${teeth === 1 ? "" : "s"}`);
+  if (impressions) photoParts.push(`${impressions} impression photo${impressions === 1 ? "" : "s"}`);
   if (photoParts.length) lines.push(`• Photos: ${photoParts.join(" + ")} attached`);
 
-  if (row.notes?.trim()) lines.push(`• Notes: ${row.notes.trim()}`);
-
   return lines.join("\n");
+}
+
+/**
+ * The recap facts a submission event shows on its card — the same details the
+ * text summary lists, but structured so the chat can lay them out as rows.
+ */
+function submissionFacts(row: Submission): MessageEventFact[] {
+  const facts: MessageEventFact[] = [];
+
+  const order = row.orderNumber ? ` (Order ${row.orderNumber})` : "";
+  if (row.products.length) facts.push({ label: "Product", value: `${productLabels(row.products)}${order}` });
+  if (row.whiteShade) facts.push({ label: "Tooth shade", value: row.whiteShade });
+  if (row.gumShade) facts.push({ label: "Gum shade", value: GUM_SHADE_LABELS[row.gumShade] ?? row.gumShade });
+
+  if (row.teethNotSure) {
+    facts.push({ label: "Teeth to replace", value: "Not sure — please advise" });
+  } else if (row.selectedTeeth.length) {
+    facts.push({ label: "Teeth to replace", value: row.selectedTeeth.map((n) => `#${n}`).join(", ") });
+  }
+
+  if (row.notes?.trim()) facts.push({ label: "Notes", value: row.notes.trim() });
+
+  return facts;
+}
+
+/**
+ * The photos a submission event carries into the chat, labelled by pose and
+ * slot so the support team can tell them apart in the thumbnail strip and the
+ * expanded lightbox. Teeth photos first (in capture order), then the
+ * impression trays.
+ */
+function submissionAttachments(row: Submission): MessagePhoto[] {
+  const teeth: MessagePhoto[] = [
+    { url: row.closeBitePhotos[0], label: "Close Bite — Front" },
+    { url: row.closeBitePhotos[1], label: "Close Bite — Side" },
+    { url: row.openBitePhotos[0], label: "Open Bite — Front" },
+    { url: row.openBitePhotos[1], label: "Open Bite — Side" },
+  ].filter((p) => Boolean(p.url));
+
+  const impressions: MessagePhoto[] = row.impressionPhotos
+    .filter(Boolean)
+    .map((url, i) => ({ url, label: `Impression ${i + 1}` }));
+
+  return [...teeth, ...impressions];
 }
 
 function byNewest(a: Submission, b: Submission): number {
@@ -243,6 +279,12 @@ export const mockSubmissions: SubmissionsApi = {
           body: buildSubmissionSummary(row),
           createdAt: nowIso(),
           readAt: null,
+          event: {
+            kind: "submission",
+            title: "Impression & intake submitted",
+            facts: submissionFacts(row),
+          },
+          attachments: submissionAttachments(row),
         };
         db.messages.push(summary);
       }
@@ -304,10 +346,11 @@ export const mockSubmissions: SubmissionsApi = {
       throw new ApiError("validation", "Add a note explaining what the patient needs to do.");
     }
 
-    return mutate((db) => {
+    const { row, statusEvent } = mutate((db) => {
       const row = db.submissions.find((s) => s.id === id);
       if (!row) throw new ApiError("not_found", "That order could not be found.");
 
+      const from = row.status;
       const at = nowIso();
       row.status = update.status;
       row.reviewedBy = update.reviewedBy;
@@ -320,14 +363,42 @@ export const mockSubmissions: SubmissionsApi = {
       }
       if (update.status === "completed") row.completedAt = at;
 
+      /* Capture the move as a system message in the order's conversation, so
+         the care team sees status history inline with the chat rather than only
+         on the order record. Skipped when the status didn't actually change. */
+      let statusEvent: ChatMessage | null = null;
+      if (from !== row.status) {
+        statusEvent = {
+          id: `msg-${nanoid(8)}`,
+          submissionId: row.id,
+          senderRole: "admin",
+          senderName: update.reviewedBy,
+          body: `Status changed from ${SUBMISSION_STATUS_LABELS[from]} to ${SUBMISSION_STATUS_LABELS[row.status]}.`,
+          createdAt: at,
+          readAt: null,
+          event: {
+            kind: "status_change",
+            title: "Status updated",
+            fromStatus: from,
+            toStatus: row.status,
+            actor: update.reviewedBy,
+          },
+        };
+        db.messages.push(statusEvent);
+      }
+
       emitSubmissionChange({
         type: "updated",
         submissionId: row.id,
         patientName: row.name,
         status: row.status,
       });
-      return clone(row);
+      return { row: clone(row), statusEvent };
     });
+
+    /* Emit outside the mutate so an open conversation picks the event up live. */
+    if (statusEvent) emitMessage(statusEvent);
+    return row;
   },
 
   onChange(handler) {

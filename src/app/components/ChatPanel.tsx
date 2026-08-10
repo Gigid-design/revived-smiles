@@ -4,8 +4,15 @@ import { useState, useRef, useEffect } from "react";
 import { useChat } from "../hooks/useChat";
 import type { FormKind } from "./ChatRequestForm";
 import { MacroPicker } from "./MacroPicker";
+import { ChatPhotoLightbox } from "./ChatPhotoLightbox";
 import styles from "./ChatPanel.module.css";
-import { REQUEST_LABELS, type ChatMessage, type RequestStatus } from "@/lib/api";
+import {
+  REQUEST_LABELS,
+  SUBMISSION_STATUS_LABELS,
+  type ChatMessage,
+  type MessagePhoto,
+  type RequestStatus,
+} from "@/lib/api";
 
 const REQUEST_STATUS_COPY: Record<RequestStatus, string> = {
   pending: "Awaiting review",
@@ -75,6 +82,8 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [deciding, setDeciding] = useState<string | null>(null);
+  /* The expanded photo attachment, if any — a set of photos plus the one in view. */
+  const [lightbox, setLightbox] = useState<{ photos: MessagePhoto[]; index: number } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -200,6 +209,92 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
     );
   }
 
+  /** A tap-to-expand thumbnail strip for the photos carried by a message. */
+  function renderAttachments(photos: MessagePhoto[]) {
+    return (
+      <div className={styles.attachGrid}>
+        {photos.map((photo, i) => (
+          <button
+            key={`${photo.url}-${i}`}
+            type="button"
+            className={styles.attachThumb}
+            onClick={() => setLightbox({ photos, index: i })}
+            title={photo.label ? `${photo.label} — click to expand` : "Click to expand"}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- stand-in demo asset */}
+            <img src={photo.url} alt={photo.label ?? "Attached photo"} className={styles.attachImg} />
+            {photo.label && <span className={styles.attachLabel}>{photo.label}</span>}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  /** A form submission or a status change, drawn as a centred timeline event
+      rather than a chat bubble — so the care team reads the order's history
+      inline with the conversation. */
+  function renderEventMessage(msg: ChatMessage) {
+    const event = msg.event!;
+
+    if (event.kind === "status_change") {
+      const to = event.toStatus ? SUBMISSION_STATUS_LABELS[event.toStatus] : "updated";
+      const from = event.fromStatus ? SUBMISSION_STATUS_LABELS[event.fromStatus] : null;
+      return (
+        <div key={msg.id} className={styles.eventStatusRow}>
+          <span className={styles.eventStatusPill}>
+            <span className={styles.eventStatusDot} aria-hidden />
+            {from ? (
+              <>Status: <b>{from}</b> → <b>{to}</b></>
+            ) : (
+              <>Status changed to <b>{to}</b></>
+            )}
+            {event.actor && <span className={styles.eventStatusActor}>· {event.actor}</span>}
+            <span className={styles.eventStatusTime}>· {formatTime(msg.createdAt)}</span>
+          </span>
+        </div>
+      );
+    }
+
+    /* Submission event — the recap card with facts + an expandable photo strip. */
+    const photos = msg.attachments ?? [];
+    return (
+      <div key={msg.id} className={styles.eventCardWrap}>
+        <div className={styles.eventCard}>
+          <div className={styles.eventHead}>
+            <span className={styles.eventIcon} aria-hidden>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 12l2 2 4-4" />
+                <path d="M7.5 3.5h9a1.5 1.5 0 011.5 1.5v14a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 016 19V5a1.5 1.5 0 011.5-1.5z" />
+              </svg>
+            </span>
+            <span className={styles.eventTitle}>{event.title}</span>
+            <span className={styles.eventTime}>{formatTime(msg.createdAt)}</span>
+          </div>
+
+          {event.facts && event.facts.length > 0 && (
+            <dl className={styles.eventFacts}>
+              {event.facts.map((fact) => (
+                <div key={fact.label} className={styles.eventFactRow}>
+                  <dt className={styles.eventFactLabel}>{fact.label}</dt>
+                  <dd className={styles.eventFactValue}>{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          {photos.length > 0 && (
+            <div className={styles.eventPhotos}>
+              <span className={styles.eventPhotosLabel}>
+                {photos.length} photo{photos.length === 1 ? "" : "s"} attached
+              </span>
+              {renderAttachments(photos)}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -240,6 +335,7 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
           </div>
         ) : (
           messages.map((msg) => {
+            if (msg.event) return renderEventMessage(msg);
             if (msg.request) return renderRequestCard(msg);
             const isOwn = msg.senderRole === currentRole;
             return (
@@ -264,6 +360,7 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
                 >
                   {msg.body}
                 </div>
+                {msg.attachments && msg.attachments.length > 0 && renderAttachments(msg.attachments)}
                 <div className={styles.timestamp}>
                   {formatTime(msg.createdAt)}
                   {isOwn && msg.readAt && (
@@ -344,6 +441,15 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
           </svg>
         </button>
       </div>
+
+      {lightbox && (
+        <ChatPhotoLightbox
+          photos={lightbox.photos}
+          index={lightbox.index}
+          onIndexChange={(index) => setLightbox((prev) => (prev ? { ...prev, index } : prev))}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </div>
   );
 }

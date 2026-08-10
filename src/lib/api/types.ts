@@ -123,6 +123,20 @@ export type SubmissionStatus =
   | "shipped"
   | "completed";
 
+/** Human-facing label for each status. Used by status-change chat events and
+    anywhere a status needs to read as a sentence rather than a slug. */
+export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
+  draft: "Draft",
+  pending: "Pending review",
+  in_review: "In review",
+  approved: "Approved",
+  changes_requested: "Changes requested",
+  rejected: "Rejected",
+  in_fabrication: "In fabrication",
+  shipped: "Shipped",
+  completed: "Completed",
+};
+
 /** The happy path, in order. Excludes the two branch statuses. */
 export const WORKFLOW_STATUSES: readonly SubmissionStatus[] = [
   "pending",
@@ -326,6 +340,68 @@ export interface ChatMessage {
    * separate place she has to go and find.
    */
   request?: MessageRequest;
+  /**
+   * Present when this message is a system-generated activity event — a form
+   * submission or a status change — rather than something a person typed. The
+   * chat renders these as a centred timeline card, not a left/right bubble, so
+   * the care team sees the order's history inline with the conversation.
+   */
+  event?: MessageEvent;
+  /**
+   * Photos carried by this message, shown as an inline thumbnail strip and
+   * expandable in a lightbox — so the support team can view the impression
+   * images without leaving the chat. Rides on the submission event today; a
+   * plain message may also carry them.
+   */
+  attachments?: MessagePhoto[];
+}
+
+/* ------------------------------------------------------------------ */
+/* System activity events (a kind of message)                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A photo attached to a chat message.
+ *
+ * `url` is all the UI needs to show and expand it; `label` names the pose or
+ * slot ("Close Bite — Front", "Impression 2") so the thumbnail and the
+ * lightbox can caption it.
+ */
+export interface MessagePhoto {
+  url: string;
+  label?: string;
+}
+
+/**
+ * What a system message records.
+ *
+ * `submission` captures the moment the patient completed the impression +
+ * intake form; `status_change` captures the care team moving the order along.
+ */
+export type ChatEventKind = "submission" | "status_change";
+
+/** One labelled fact on a submission event card, e.g. "Tooth shade — A2". */
+export interface MessageEventFact {
+  label: string;
+  value: string;
+}
+
+/**
+ * The structured payload behind a system message. Mirrors the `request`
+ * pattern: the message keeps a plain-text `body` for anywhere the card isn't
+ * rendered, and this carries what the card needs to draw itself.
+ */
+export interface MessageEvent {
+  kind: ChatEventKind;
+  /** Card headline, e.g. "Impression & intake submitted". */
+  title: string;
+  /** Submission events: the recap facts (product, shades, teeth, notes). */
+  facts?: MessageEventFact[];
+  /** Status-change events: where the order moved. */
+  fromStatus?: SubmissionStatus;
+  toStatus?: SubmissionStatus;
+  /** Who caused it — the reviewer's name on a status change. */
+  actor?: string;
 }
 
 /* ------------------------------------------------------------------ */
