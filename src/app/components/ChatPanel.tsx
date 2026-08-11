@@ -3,11 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "../hooks/useChat";
 import type { FormKind } from "./ChatRequestForm";
-import { MacroPicker } from "./MacroPicker";
+import { MacroPicker, type Macro } from "./MacroPicker";
 import { ChatPhotoLightbox } from "./ChatPhotoLightbox";
 import styles from "./ChatPanel.module.css";
 import {
+  api,
   REQUEST_LABELS,
+  requiresReviewNotes,
   SUBMISSION_STATUS_LABELS,
   type ChatMessage,
   type MessagePhoto,
@@ -122,6 +124,26 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
     setSending(true);
     await sendMessage(text);
     setSending(false);
+  }
+
+  /** Apply a macro. A plain reply drops into the composer to edit before
+      sending; a macro that carries an action moves the order along — the same
+      `updateStatus` path as the review buttons — and sends its reply, so an
+      agent can approve or reject a submission without leaving the chat. The
+      status change posts its own event into the thread automatically. */
+  async function applyMacro(macro: Macro) {
+    if (!macro.action) {
+      setDraft((prev) => (prev.trim() ? `${prev}\n${macro.body}` : macro.body));
+      return;
+    }
+    if (!submissionId) return;
+    await api.submissions.updateStatus(submissionId, {
+      status: macro.action.status,
+      reviewedBy: currentName,
+      /* `changes_requested` / `rejected` require a note — the macro body is it. */
+      ...(requiresReviewNotes(macro.action.status) ? { reviewNotes: macro.body } : {}),
+    });
+    await sendMessage(macro.body);
   }
 
   async function decideRequest(messageId: string, status: RequestStatus) {
@@ -407,9 +429,7 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
 
       {/* Macros — admin only: search → select → apply a canned reply */}
       {currentRole === "admin" && (
-        <MacroPicker
-          onApply={(body) => setDraft((prev) => (prev.trim() ? `${prev}\n${body}` : body))}
-        />
+        <MacroPicker onApply={applyMacro} />
       )}
 
       {/* Input */}

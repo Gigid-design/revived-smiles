@@ -2,17 +2,34 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./MacroPicker.module.css";
+import { SUBMISSION_STATUS_LABELS, type SubmissionStatus } from "@/lib/api";
+
+/**
+ * The side-effect a macro performs when applied.
+ *
+ * `status` moves the submission along (the "Approve Impression" macro sets it to
+ * Approved); `tag` is a label applied alongside, shown for traceability. In V1
+ * the tag is descriptive only — the status change is the real action, run
+ * through the same `updateStatus` path as the review buttons.
+ */
+export interface MacroAction {
+  /** Human summary shown in the preview, e.g. "Sets status to Approved…". */
+  label: string;
+  /** The status this macro moves the submission to. */
+  status: SubmissionStatus;
+  /** A tag applied with the action, e.g. "impression approved". */
+  tag?: string;
+}
 
 /** A canned reply the admin can search for and apply. Some also carry an
- *  action note (e.g. "sets status") — V1 lets the agent select what's
- *  available; the action itself is configured upstream in Gorgias. */
+ *  action that moves the order along when applied (see `MacroAction`). */
 export interface Macro {
   id: string;
   name: string;
   tags: string[];
   body: string;
-  /** Optional side-effect this macro represents, shown in the preview. */
-  action?: string;
+  /** Optional action performed when the macro is applied. */
+  action?: MacroAction;
 }
 
 const MACROS: Macro[] = [
@@ -27,7 +44,11 @@ const MACROS: Macro[] = [
     name: "Approve Impression",
     tags: ["impression", "approval", "review"],
     body: "Great news — your impressions passed our review and we're moving your order into production. We'll be in touch with the next steps shortly.",
-    action: "Sets status to Approved · adds tag “impression approved”",
+    action: {
+      label: "Sets status to Approved · adds tag “impression approved”",
+      status: "approved",
+      tag: "impression approved",
+    },
   },
   {
     id: "generic-signoff",
@@ -40,20 +61,28 @@ const MACROS: Macro[] = [
     name: "Impression: Request better photos",
     tags: ["impression", "photos", "review"],
     body: "Thanks for your submission! A few of your impression photos came out blurry. Could you please retake them in good lighting and re-upload? That will help our lab give you the best fit.",
-    action: "Sets status to Changes requested",
+    action: {
+      label: "Sets status to Changes requested · adds tag “photos requested”",
+      status: "changes_requested",
+      tag: "photos requested",
+    },
+  },
+  {
+    id: "reject-submission",
+    name: "Impression: Reject submission",
+    tags: ["impression", "reject", "review"],
+    body: "Thank you for your submission. After review, we're unable to proceed with these impressions and recommend seeing a dentist in person before we fit anything. Our team will follow up with the details.",
+    action: {
+      label: "Sets status to Rejected · adds tag “impression rejected”",
+      status: "rejected",
+      tag: "impression rejected",
+    },
   },
   {
     id: "order-already-shipped",
     name: "Order Change/Cancel: Already Shipped",
     tags: ["order", "shipping", "cancel"],
     body: "Your order has already shipped, so we're unable to change or cancel it at this stage. Once it arrives, reach out and we'll help with any adjustments.",
-  },
-  {
-    id: "order-cancel-refund",
-    name: "Order Change/Cancel: Cancel & Refund",
-    tags: ["order", "refund", "cancel"],
-    body: "We've cancelled your order and a refund has been issued to your original payment method. Please allow 5–10 business days for it to appear.",
-    action: "Sets status to Cancelled",
   },
   {
     id: "shipping-tracking",
@@ -63,12 +92,18 @@ const MACROS: Macro[] = [
   },
 ];
 
-const SUGGESTED_IDS = ["generic-help", "approve-impression", "generic-signoff"];
+/* The three review decisions up front — approve, deny, or send back for
+   changes — so support can action a submission straight from the chip row. */
+const SUGGESTED_IDS = ["approve-impression", "reject-submission", "request-photos"];
 
-export function MacroPicker({ onApply }: { onApply: (body: string) => void }) {
+export function MacroPicker({ onApply }: { onApply: (macro: Macro) => void | Promise<void> }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [previewId, setPreviewId] = useState<string | null>(null);
+  /* The action macro staged for confirmation, and whether it's running — so a
+     status change takes a deliberate second click rather than firing on select. */
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
@@ -89,16 +124,45 @@ export function MacroPicker({ onApply }: { onApply: (body: string) => void }) {
   useEffect(() => {
     if (!open) return;
     function onDown(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setConfirmId(null);
+      }
     }
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
-  function apply(m: Macro) {
-    onApply(m.body);
+  function reset() {
     setOpen(false);
     setQuery("");
+    setConfirmId(null);
+  }
+
+  /** Plain replies apply straight away; a macro that also actions the ticket
+      stages a confirm first, so an approval/rejection is never a one-click slip. */
+  function apply(m: Macro) {
+    if (m.action) {
+      setOpen(true);
+      setPreviewId(m.id);
+      setConfirmId(m.id);
+      return;
+    }
+    void onApply(m);
+    reset();
+  }
+
+  async function confirmApply(m: Macro) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await onApply(m);
+      reset();
+    } catch (err) {
+      console.error("Could not apply macro:", err);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -175,12 +239,43 @@ export function MacroPicker({ onApply }: { onApply: (body: string) => void }) {
                       <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.4" />
                       <path d="M10 6v4l2.5 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                     </svg>
-                    {preview.action}
+                    {preview.action.label}
                   </p>
                 )}
-                <button type="button" className={styles.applyBtn} onClick={() => apply(preview)}>
-                  Apply
-                </button>
+                {confirmId === preview.id && preview.action ? (
+                  <div className={styles.confirmBar}>
+                    <p className={styles.confirmText}>
+                      Set this order to{" "}
+                      <b>{SUBMISSION_STATUS_LABELS[preview.action.status]}</b> and send this reply?
+                    </p>
+                    <div className={styles.confirmBtns}>
+                      <button
+                        type="button"
+                        className={styles.confirmApply}
+                        disabled={busy}
+                        onClick={() => void confirmApply(preview)}
+                      >
+                        {busy ? "Applying…" : "Confirm & send"}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.confirmCancel}
+                        disabled={busy}
+                        onClick={() => setConfirmId(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className={`${styles.applyBtn} ${preview.action ? styles.applyBtnAction : ""}`}
+                    onClick={() => apply(preview)}
+                  >
+                    {preview.action ? "Apply & update status" : "Apply"}
+                  </button>
+                )}
               </>
             ) : (
               <p className={styles.previewHint}>Hover a macro to preview it.</p>

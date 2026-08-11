@@ -85,8 +85,8 @@
   right: 0.75rem;
   z-index: 40;
   display: grid;
-  grid-template-columns: 15rem minmax(0, 1fr);
-  height: 15rem;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  height: 16rem;
   background: var(--admin-card-bg);
   border: 1px solid var(--admin-card-border);
   border-radius: 10px;
@@ -159,11 +159,15 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow-y: auto;
   padding: 0.875rem;
 }
 
+/* Only the reply text scrolls; the action label and Apply/confirm footer stay
+   pinned so the button is never pushed out of view in a tight panel. */
 .previewBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--admin-text);
@@ -210,6 +214,76 @@
 
 .applyBtn:hover {
   opacity: 0.9;
+}
+
+/* An action macro's button reads as a status action, not a plain insert. */
+.applyBtnAction {
+  background: #16a34a;
+}
+
+/* ── Confirm step for action macros ── */
+.confirmBar {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--admin-card-border);
+}
+
+.confirmText {
+  margin: 0 0 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--admin-text);
+}
+
+.confirmText b {
+  font-weight: 700;
+}
+
+.confirmBtns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.confirmApply {
+  padding: 0.4375rem 0.875rem;
+  border: none;
+  border-radius: 7px;
+  background: #16a34a;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.confirmApply:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.confirmCancel {
+  padding: 0.4375rem 0.75rem;
+  border: 1px solid var(--admin-card-border);
+  border-radius: 7px;
+  background: var(--admin-card-bg);
+  color: var(--admin-text-muted);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.confirmCancel:hover:not(:disabled) {
+  color: var(--admin-text);
+  border-color: var(--admin-text-muted);
+}
+
+.confirmApply:disabled,
+.confirmCancel:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* ── Suggested macros ── */
