@@ -13,6 +13,13 @@ interface PhotoViewerProps {
   onClose: () => void;
 }
 
+/** A filesystem-friendly name for a saved photo, e.g. "upper-impression-1.png". */
+function downloadName(url: string, label?: string): string {
+  const ext = url.split("?")[0].split(".").pop() || "jpg";
+  const base = (label ?? "photo").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return `${base || "photo"}.${ext}`;
+}
+
 export function PhotoViewer({ photos, initialIndex, onClose }: PhotoViewerProps) {
   const [index, setIndex] = useState(initialIndex);
   const [zoomed, setZoomed] = useState(false);
@@ -30,6 +37,17 @@ export function PhotoViewer({ photos, initialIndex, onClose }: PhotoViewerProps)
     setIndex((i) => Math.min(photos.length - 1, i + 1));
     setZoomed(false);
   }, [photos.length]);
+
+  /* Save a copy of the photo in view — same-origin assets download directly. */
+  const download = useCallback(() => {
+    if (!photo) return;
+    const a = document.createElement("a");
+    a.href = photo.url;
+    a.download = downloadName(photo.url, photo.label);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }, [photo]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -52,6 +70,13 @@ export function PhotoViewer({ photos, initialIndex, onClose }: PhotoViewerProps)
   return (
     <div className="pv-overlay" onClick={onClose}>
       <div className="pv-container" onClick={(e) => e.stopPropagation()}>
+        {/* Save button */}
+        <button className="pv-download" onClick={(e) => { e.stopPropagation(); download(); }} aria-label="Save photo" title="Save photo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
         {/* Close button */}
         <button className="pv-close" onClick={onClose} aria-label="Close photo viewer">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -128,6 +153,26 @@ export function PhotoViewer({ photos, initialIndex, onClose }: PhotoViewerProps)
           z-index: 10;
         }
         .pv-close:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+        .pv-download {
+          position: fixed;
+          top: 1rem;
+          right: 4.25rem;
+          background: rgba(255, 255, 255, 0.1);
+          border: none;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #ffffff;
+          cursor: pointer;
+          transition: background 0.15s;
+          z-index: 10;
+        }
+        .pv-download:hover {
           background: rgba(255, 255, 255, 0.2);
         }
         .pv-arrow {

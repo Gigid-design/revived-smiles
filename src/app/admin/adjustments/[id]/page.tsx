@@ -43,6 +43,7 @@ export default function AdjustmentDetailPage() {
   const [saving, setSaving] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [slipBusy, setSlipBusy] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -106,6 +107,35 @@ export default function AdjustmentDetailPage() {
       showToast(err instanceof ApiError ? err.message : "Something went wrong.", "error");
     } finally {
       setSaving(false);
+    }
+  }
+
+  /* Generate the printable packing slip for an approved case and hand it to the
+     browser as a download. It carries just enough to match the returned models
+     to the order: patient, order, product, and that it's an adjustment. */
+  async function downloadPackingSlip() {
+    if (!request || slipBusy) return;
+    setSlipBusy(true);
+    try {
+      const blob = await api.shipping.packingSlip({
+        requestNumber: request.requestNumber,
+        orderNumber: request.orderNumber,
+        patientName: submission?.name ?? "Patient",
+        productLabel: productLabel(request.product),
+        kind: "Adjustment",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `packing-slip-${request.requestNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : "Could not generate the packing slip.", "error");
+    } finally {
+      setSlipBusy(false);
     }
   }
 
@@ -272,6 +302,25 @@ export default function AdjustmentDetailPage() {
               <p className={styles.muted}>
                 This request is {meta.label.toLowerCase()} and needs no further action.
               </p>
+            )}
+
+            {request.status === "approved" && (
+              <div className={styles.slipRow}>
+                <button
+                  type="button"
+                  className={styles.slipBtn}
+                  onClick={() => void downloadPackingSlip()}
+                  disabled={slipBusy}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                  </svg>
+                  {slipBusy ? "Generating…" : "Download packing slip"}
+                </button>
+                <p className={styles.slipHint}>
+                  Prints with the order, patient and product for the patient to include in the return box.
+                </p>
+              </div>
             )}
           </section>
         </aside>

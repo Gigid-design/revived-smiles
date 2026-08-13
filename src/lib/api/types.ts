@@ -376,9 +376,12 @@ export interface MessagePhoto {
  * What a system message records.
  *
  * `submission` captures the moment the patient completed the impression +
- * intake form; `status_change` captures the care team moving the order along.
+ * intake form; `adjustment` captures an adjustment/remake request being raised;
+ * `status_change` captures the care team moving the order along. `submission`
+ * and `adjustment` both render as a recap card (facts + optional photos); only
+ * `status_change` draws as an inline pill.
  */
-export type ChatEventKind = "submission" | "status_change";
+export type ChatEventKind = "submission" | "adjustment" | "status_change";
 
 /** One labelled fact on a submission event card, e.g. "Tooth shade — A2". */
 export interface MessageEventFact {
@@ -590,6 +593,22 @@ export interface AdjustmentDecision {
 /** `changes_requested` and `rejected` require a note explaining why. */
 export function adjustmentRequiresNotes(status: AdjustmentStatus): boolean {
   return status === "changes_requested" || status === "rejected";
+}
+
+/**
+ * What a packing slip needs to identify a returned case.
+ *
+ * Printed by the patient and dropped in the return box for an approved
+ * adjustment/remake, so the lab can match the models to the order when they
+ * arrive (Gitai, Aug 11). Deliberately minimal — order, name, product, and
+ * that it's an adjustment/remake only.
+ */
+export interface PackingSlipInput {
+  requestNumber: string;
+  orderNumber: string | null;
+  patientName: string;
+  productLabel: string;
+  kind: "Adjustment" | "Remake";
 }
 
 /* ------------------------------------------------------------------ */

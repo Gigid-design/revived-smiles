@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useState, type CSSProperties } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
 import { StatusBadge } from "../../components/StatusBadge";
@@ -12,7 +12,7 @@ import { ChatPanel } from "@/app/components/ChatPanel";
 import { useAdminUser } from "../../components/AdminAuthGuard";
 import { api, ApiError } from "@/lib/api";
 import type { ItemDetail, PhotoType, Submission, SubmissionStatus } from "@/lib/api";
-import { PRODUCTS, CATEGORY_LABELS, productLabel, productLabels, productsSubtotalCents, formatUsd, type ProductConfig } from "@/app/context/productConfig";
+import { PRODUCTS, CATEGORY_LABELS, archTag, productLabel, productLabels, productsSubtotalCents, formatUsd, type ProductConfig } from "@/app/context/productConfig";
 import { useChat } from "@/app/hooks/useChat";
 import { ReviewCriteriaDrawer } from "../../components/ReviewCriteriaDrawer";
 
@@ -134,8 +134,12 @@ function stepIndex(status: string): number {
 
 export default function SubmissionDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const adminUser = useAdminUser();
   const id = params.id as string;
+  /* Return where the agent came from: the chat inbox deep-links here with
+     ?from=chat, so "Back" should land them back in that conversation. */
+  const cameFromChat = searchParams.get("from") === "chat";
 
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
@@ -297,12 +301,12 @@ export default function SubmissionDetailPage() {
         </div>
       )}
 
-      {/* Back Link */}
-      <Link href="/admin/submissions" className={styles.backLink}>
+      {/* Back Link — returns to the chat conversation when opened from there. */}
+      <Link href={cameFromChat ? `/admin/chat?id=${id}` : "/admin/submissions"} className={styles.backLink}>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        Back to Submissions
+        {cameFromChat ? "Back to chat" : "Back to Submissions"}
       </Link>
 
       {/* ── Header ── */}
@@ -525,14 +529,18 @@ export default function SubmissionDetailPage() {
                 <span className={styles.infoLabel}>Products</span>
                 <div className={styles.productList}>
                   {productConfigs.length > 0
-                    ? productConfigs.map((c) => (
-                        <span key={c.id} className={styles.productPill}>
-                          {c.label}
-                          {CATEGORY_LABELS[c.category] !== c.label && (
-                            <span className={styles.categoryTag}>{CATEGORY_LABELS[c.category]}</span>
-                          )}
-                        </span>
-                      ))
+                    ? productConfigs.map((c) => {
+                        const arch = archTag(c.id, submission.itemDetails?.[c.id]?.selectedTeeth ?? submission.selectedTeeth);
+                        return (
+                          <span key={c.id} className={styles.productPill}>
+                            {c.label}
+                            {arch && <span className={styles.categoryTag}>{arch}</span>}
+                            {CATEGORY_LABELS[c.category] !== c.label && (
+                              <span className={styles.categoryTag}>{CATEGORY_LABELS[c.category]}</span>
+                            )}
+                          </span>
+                        );
+                      })
                     : (submission.products ?? []).length > 0
                       ? submission.products.map((p) => <span key={p} className={styles.productPill}>{productLabel(p)}</span>)
                       : <span className={styles.infoValue}>—</span>
@@ -724,7 +732,16 @@ export default function SubmissionDetailPage() {
                             <h4 className={styles.historyDetailTitle}>Impression Kit Review</h4>
                             <dl className={styles.historyFields}>
                               <div className={styles.historyField}><dt>Order ID</dt><dd>{orderLabel}</dd></div>
-                              <div className={styles.historyField}><dt>Product</dt><dd>{productLabel(product)}</dd></div>
+                              <div className={styles.historyField}>
+                                <dt>Product</dt>
+                                <dd>
+                                  {productLabel(product)}
+                                  {(() => {
+                                    const arch = archTag(product, submission.itemDetails?.[product]?.selectedTeeth ?? submission.selectedTeeth);
+                                    return arch ? ` · ${arch}` : "";
+                                  })()}
+                                </dd>
+                              </div>
                               <div className={styles.historyField}><dt>Status</dt><dd><StatusBadge status={submission.status} /></dd></div>
                               <div className={styles.historyField}><dt>Amount</dt><dd>{amount}</dd></div>
                               <div className={styles.historyField}><dt>Created</dt><dd>{created}</dd></div>

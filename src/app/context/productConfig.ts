@@ -411,3 +411,13 @@ export function productHasArch(slug: string): boolean {
   const category = PRODUCTS.find((p) => p.id === slug)?.category;
   return category === "partial-denture" || category === "full-denture";
 }
+
+/** The arch label ("Upper" / "Lower" / "Upper & Lower") for a product given the
+ *  teeth charted for it, or null when the product has no arch or nothing was
+ *  charted. Lets the admin order views say which arch was ordered — Gitai asked
+ *  the order specify the arch, since a partial/denture is made for one. */
+export function archTag(productSlug: string, teeth: number[] | undefined | null): string | null {
+  if (!productHasArch(productSlug)) return null;
+  const arch = archFromTeeth(teeth ?? []);
+  return arch ? ARCH_LABELS[arch] : null;
+}

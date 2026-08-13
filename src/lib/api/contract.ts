@@ -30,6 +30,7 @@ import type {
   Invoice,
   NewPromptConfig,
   OAuthProvider,
+  PackingSlipInput,
   Paged,
   PaymentMethod,
   PhotoAnalysis,
@@ -506,6 +507,17 @@ export interface ShippingApi {
    * write it back to `submission.trackingNumber`.
    */
   label(submissionId: string, patientName: string): Promise<Blob>;
+
+  /**
+   * The packing slip PDF for an approved adjustment/remake.
+   *
+   * The patient prints it and includes it in the return box so the lab can
+   * identify the case when the models arrive — without it, a returned partial
+   * is just anonymous models. Basic by design (order, name, product, and that
+   * it's an adjustment/remake). A real implementation may instead reuse the
+   * carrier/ShipStation packing slip if one is generated with the return label.
+   */
+  packingSlip(input: PackingSlipInput): Promise<Blob>;
 }
 
 /* ------------------------------------------------------------------ */

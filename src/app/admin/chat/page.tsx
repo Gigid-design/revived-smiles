@@ -4,17 +4,28 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import { ChatPanel } from "@/app/components/ChatPanel";
+import { ChatPhotoLightbox } from "@/app/components/ChatPhotoLightbox";
 import { StatusBadge } from "../components/StatusBadge";
 import { useAdminUser } from "../components/AdminAuthGuard";
 import { api } from "@/lib/api";
-import type { ChatMessage, Submission } from "@/lib/api";
+import type { ChatMessage, MessagePhoto, Submission } from "@/lib/api";
 import {
+  archTag,
   productLabel,
   productLabels,
   productPriceCents,
   productsSubtotalCents,
   formatUsd,
 } from "@/app/context/productConfig";
+
+/** Impression-tray slots, in capture order, for the expandable order card. */
+const IMPRESSION_LABELS = ["Upper Impression 1", "Upper Impression 2", "Lower Impression 1", "Lower Impression 2"];
+
+/** The teeth charted for one product on an order — its own per-item chart when
+    the order carries several appliances, else the order-level selection. */
+function teethForProduct(sub: Submission, slug: string): number[] {
+  return sub.itemDetails?.[slug]?.selectedTeeth ?? sub.selectedTeeth ?? [];
+}
 
 interface Conversation {
   sub: Submission;
@@ -84,6 +95,9 @@ export default function AdminChatPage() {
   /* Conversations this agent has claimed. Seeded from ones that already have
      activity; an agent claims an unassigned one by replying or "Assign to me". */
   const [assigned, setAssigned] = useState<Set<string>>(new Set());
+  /* The order card starts collapsed; expanding it reveals the impression photos. */
+  const [orderExpanded, setOrderExpanded] = useState(false);
+  const [lightbox, setLightbox] = useState<{ photos: MessagePhoto[]; index: number } | null>(null);
 
   /* Build the inbox: every submission is a possible conversation, decorated
      with its last message and unread count. */
@@ -132,12 +146,13 @@ export default function AdminChatPage() {
   /* Honour a deep link (/admin/chat?id=sub-003) once, on mount. */
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get("id");
-    if (id) setSelectedId(id);
+    if (id) setSelectedId(id); // eslint-disable-line react-hooks/set-state-in-effect -- deep-link on mount
   }, []);
 
   const selectConversation = useCallback(
     (id: string) => {
       setSelectedId(id);
+      setOrderExpanded(false);
       router.replace(`/admin/chat?id=${id}`, { scroll: false });
       /* Viewing clears the patient's unread replies (ChatPanel marks them read). */
       setConversations((prev) =>
@@ -393,13 +408,85 @@ export default function AdminChatPage() {
                   {formatUsd(productsSubtotalCents(active.sub.products ?? []))}
                 </p>
                 <ul className={styles.lineItems}>
-                  {(active.sub.products ?? []).map((p) => (
-                    <li key={p} className={styles.lineItem}>
-                      <span className={styles.lineItemName}>{productLabel(p)}</span>
-                      <span className={styles.lineItemPrice}>{formatUsd(productPriceCents(p))}</span>
-                    </li>
-                  ))}
+                  {(active.sub.products ?? []).map((p) => {
+                    const arch = archTag(p, teethForProduct(active.sub, p));
+                    return (
+                      <li key={p} className={styles.lineItem}>
+                        <span className={styles.lineItemName}>
+                          {productLabel(p)}
+                          {arch && <span className={styles.archTag}>{arch}</span>}
+                        </span>
+                        <span className={styles.lineItemPrice}>{formatUsd(productPriceCents(p))}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
+
+                {/* Expand to reveal the impression photos without leaving chat. */}
+                {(() => {
+                  const photos: MessagePhoto[] = (active.sub.impressionPhotos ?? []).map((url, i) => ({
+                    url,
+                    label: IMPRESSION_LABELS[i] || `Impression ${i + 1}`,
+                  }));
+                  if (photos.length === 0) return null;
+                  return (
+                    <>
+                      <button
+                        type="button"
+                        className={styles.expandBtn}
+                        aria-expanded={orderExpanded}
+                        onClick={() => setOrderExpanded((v) => !v)}
+                      >
+                        {orderExpanded ? "Hide" : "View"} impression photos ({photos.length})
+                        <svg
+                          className={styles.expandChevron}
+                          data-open={orderExpanded || undefined}
+                          width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden
+                        >
+                          <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                      {orderExpanded && (
+                        <div className={styles.photoGrid}>
+                          {photos.map((photo, i) => (
+                            <button
+                              key={`${photo.url}-${i}`}
+                              type="button"
+                              className={styles.photoThumb}
+                              onClick={() => setLightbox({ photos, index: i })}
+                              title={`${photo.label} — click to expand`}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element -- stand-in demo asset */}
+                              <img src={photo.url} alt={photo.label} />
+                              <span className={styles.photoThumbLabel}>{photo.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </section>
+
+              {/* Shipping — the fulfilment data Gitai asked to see beside chat. */}
+              <section className={styles.orderCard}>
+                <div className={styles.orderCardHead}>
+                  <span className={styles.orderCardTitle}>Shipping</span>
+                </div>
+                <dl className={styles.metaList}>
+                  <div className={styles.metaRow}>
+                    <dt>Tracking</dt>
+                    <dd>{active.sub.trackingNumber || "—"}</dd>
+                  </div>
+                  <div className={styles.metaRow}>
+                    <dt>Shipped</dt>
+                    <dd>{active.sub.shippedAt ? formatDate(active.sub.shippedAt) : "—"}</dd>
+                  </div>
+                  <div className={styles.metaRow}>
+                    <dt>Delivered</dt>
+                    <dd>{active.sub.completedAt ? formatDate(active.sub.completedAt) : "—"}</dd>
+                  </div>
+                </dl>
               </section>
 
               {/* Impression review */}
@@ -417,7 +504,7 @@ export default function AdminChatPage() {
                     {active.sub.reviewedAt ? ` · ${formatDate(active.sub.reviewedAt)}` : ""}
                   </p>
                 )}
-                <a href={`/admin/submissions/${active.sub.id}`} className={styles.orderLink}>
+                <a href={`/admin/submissions/${active.sub.id}?from=chat`} className={styles.orderLink}>
                   Open full submission →
                 </a>
               </section>
@@ -425,6 +512,15 @@ export default function AdminChatPage() {
           </aside>
         )}
       </div>
+
+      {lightbox && (
+        <ChatPhotoLightbox
+          photos={lightbox.photos}
+          index={lightbox.index}
+          onIndexChange={(index) => setLightbox((prev) => (prev ? { ...prev, index } : prev))}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </div>
   );
 }

@@ -14,9 +14,12 @@ import { ISSUE_LABELS } from "@/app/context/adjustmentConfig";
 import { productLabel } from "@/app/context/productConfig";
 import type { AdjustmentsApi } from "../contract";
 import type {
+  AdjustmentPhotos,
   AdjustmentDecision,
   AdjustmentRequest,
   ChatMessage,
+  MessageEventFact,
+  MessagePhoto,
   NewAdjustmentRequest,
 } from "../types";
 import { ApiError, adjustmentRequiresNotes } from "../types";
@@ -53,6 +56,35 @@ function buildAdjustmentSummary(req: AdjustmentRequest): string {
   if (req.description.trim()) lines.push(`• Details: ${req.description.trim()}`);
   lines.push("", `Request number: ${req.requestNumber}`);
   return lines.join("\n");
+}
+
+/** Human labels for the role-keyed adjustment photos, for the chat recap card. */
+const ADJUSTMENT_PHOTO_LABELS: Record<keyof AdjustmentPhotos, string> = {
+  inMouth: "In mouth",
+  onModels: "On models",
+  biteStrip: "Bite strip",
+  markedModels: "Marked models",
+  damage: "Damage",
+};
+
+/** The recap card's facts — the same key points as the text summary, structured
+    so the admin chat renders them as a submission-style card. */
+function buildAdjustmentFacts(req: AdjustmentRequest): MessageEventFact[] {
+  const facts: MessageEventFact[] = [{ label: "Product", value: productLabel(req.product) }];
+  if (req.issues.length) {
+    facts.push({ label: "What's wrong", value: req.issues.map((i) => ISSUE_LABELS[i]).join(", ") });
+  }
+  if (req.answers.newToothShade) facts.push({ label: "Tooth shade", value: req.answers.newToothShade });
+  if (req.answers.newGumShade) facts.push({ label: "Gum shade", value: req.answers.newGumShade });
+  facts.push({ label: "Request no.", value: req.requestNumber });
+  return facts;
+}
+
+/** The role-keyed photos as an ordered attachment strip for the recap card. */
+function buildAdjustmentPhotos(photos: AdjustmentPhotos): MessagePhoto[] {
+  return (Object.keys(ADJUSTMENT_PHOTO_LABELS) as (keyof AdjustmentPhotos)[])
+    .filter((key) => photos[key])
+    .map((key) => ({ url: photos[key] as string, label: ADJUSTMENT_PHOTO_LABELS[key] }));
 }
 
 function find(id: string): AdjustmentRequest {
@@ -103,14 +135,23 @@ export const mockAdjustments: AdjustmentsApi = {
 
     const summary = mutate((db): ChatMessage => {
       db.adjustmentRequests.unshift(request);
+      const photos = buildAdjustmentPhotos(request.photos);
       const message: ChatMessage = {
         id: `msg-${nanoid(8)}`,
         submissionId: order.id,
         senderRole: "patient",
         senderName: order.name ?? "You",
+        /* Plain-text summary kept for the patient's Messages view (which renders
+           the body); the structured event lets the admin chat draw a recap card. */
         body: buildAdjustmentSummary(request),
         createdAt: at,
         readAt: null,
+        event: {
+          kind: "adjustment",
+          title: "Adjustment request submitted",
+          facts: buildAdjustmentFacts(request),
+        },
+        ...(photos.length ? { attachments: photos } : {}),
       };
       db.messages.push(message);
       return message;

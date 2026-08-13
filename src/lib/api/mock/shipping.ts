@@ -138,4 +138,62 @@ export const mockShipping: ShippingApi = {
     const bytes = await doc.save();
     return new Blob([bytes as BlobPart], { type: "application/pdf" });
   },
+
+  async packingSlip(input) {
+    if (!input.requestNumber) {
+      throw new ApiError("validation", "A request is needed to make a packing slip.");
+    }
+
+    const doc = await PDFDocument.create();
+    const page = doc.addPage([4 * 72, 6 * 72]); // 4×6 inch slip
+    const { width, height } = page.getSize();
+
+    const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
+    const fontRegular = await doc.embedFont(StandardFonts.Helvetica);
+
+    const navy = rgb(14 / 255, 27 / 255, 77 / 255);
+    const gray = rgb(0.4, 0.4, 0.4);
+    const rule = rgb(0.85, 0.85, 0.85);
+
+    const divider = (y: number) =>
+      page.drawLine({
+        start: { x: 24, y },
+        end: { x: width - 24, y },
+        thickness: 1,
+        color: rule,
+      });
+
+    /* Header */
+    page.drawText("REVIVED SMILES", { x: 24, y: height - 36, size: 16, font: fontBold, color: navy });
+    page.drawText("Return Packing Slip", { x: 24, y: height - 52, size: 9, font: fontRegular, color: gray });
+    divider(height - 64);
+
+    /* The one thing the lab reads first: what kind of case this is. */
+    let y = height - 92;
+    page.drawText(`${input.kind.toUpperCase()} ONLY`, { x: 24, y, size: 15, font: fontBold, color: navy });
+
+    /* Fields */
+    const field = (label: string, value: string) => {
+      y -= 26;
+      page.drawText(label, { x: 24, y, size: 8, font: fontBold, color: gray });
+      y -= 14;
+      page.drawText(value || "—", { x: 24, y, size: 12, font: fontRegular, color: navy });
+    };
+
+    y -= 8;
+    field("PATIENT", input.patientName || "Patient");
+    field("ORDER", input.orderNumber || "—");
+    field("PRODUCT", input.productLabel);
+    field("REQUEST NO.", input.requestNumber);
+
+    y -= 26;
+    divider(y);
+    y -= 18;
+    page.drawText("Include this slip in the return box with your models.", {
+      x: 24, y, size: 8, font: fontRegular, color: gray,
+    });
+
+    const bytes = await doc.save();
+    return new Blob([bytes as BlobPart], { type: "application/pdf" });
+  },
 };
