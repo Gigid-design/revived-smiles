@@ -198,8 +198,8 @@
 .detailFooter {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: flex-end;
+  gap: 1.25rem;
   flex-wrap: wrap;
 }
 
@@ -211,6 +211,19 @@
 }
 
 .detailViewLink:hover {
+  text-decoration: underline;
+}
+
+/* Secondary path to the fuller submission record — the chat is primary now. */
+.detailRecordLink {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  text-decoration: none;
+}
+
+.detailRecordLink:hover {
+  color: var(--admin-text);
   text-decoration: underline;
 }
 

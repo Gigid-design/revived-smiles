@@ -117,15 +117,15 @@ export default function AdminDashboard() {
         />
       </section>
 
-      {/* Recent Orders — expandable rows arranged by order */}
+      {/* Latest impressions — expand for a quick look, or open the conversation */}
       <section className={styles.recentSection}>
         <div className={styles.recentHeader}>
           <div>
-            <h2 className={styles.recentTitle}>Recent Orders</h2>
-            <p className={styles.recentSubtitle}>Each row is one order — expand to review it, or open the full record.</p>
+            <h2 className={styles.recentTitle}>Latest Impressions</h2>
+            <p className={styles.recentSubtitle}>The most recent submissions — expand for a quick look, or open one to handle it in chat.</p>
           </div>
-          <Link href="/admin/submissions" className={styles.viewAllLink}>
-            View all →
+          <Link href="/admin/chat" className={styles.viewAllLink}>
+            Open chat →
           </Link>
         </div>
 
@@ -176,7 +176,7 @@ export default function AdminDashboard() {
                       </td>
                       <td>
                         <Link
-                          href={`/admin/submissions/${sub.id}`}
+                          href={`/admin/chat?id=${sub.id}`}
                           className={styles.nameCell}
                           style={{ textDecoration: "none" }}
                           onClick={(e) => e.stopPropagation()}
@@ -213,7 +213,7 @@ export default function AdminDashboard() {
                       </td>
                       <td>
                         <Link
-                          href={`/admin/submissions/${sub.id}`}
+                          href={`/admin/chat?id=${sub.id}`}
                           className={styles.viewBtn}
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -274,8 +274,11 @@ export default function AdminDashboard() {
                             )}
 
                             <div className={styles.detailFooter}>
-                              <Link href={`/admin/submissions/${sub.id}`} className={styles.detailViewLink}>
-                                Open full review →
+                              <Link href={`/admin/submissions/${sub.id}`} className={styles.detailRecordLink}>
+                                Full record
+                              </Link>
+                              <Link href={`/admin/chat?id=${sub.id}`} className={styles.detailViewLink}>
+                                Open in chat →
                               </Link>
                             </div>
                           </div>
