@@ -354,6 +354,26 @@ export interface ChatMessage {
    * plain message may also carry them.
    */
   attachments?: MessagePhoto[];
+  /**
+   * Downloadable fulfilment documents offered with this message — e.g. the
+   * prepaid return label + packing slip the customer receives when an
+   * adjustment is approved (Aug 13: these belong to the customer, in chat,
+   * not to an admin download button).
+   */
+  documents?: MessageDocuments;
+}
+
+/**
+ * Fulfilment documents attached to a chat message. Each flag/payload is
+ * generated on demand from `ShippingApi` when the customer downloads it.
+ */
+export interface MessageDocuments {
+  /** Offer the prepaid return label (built from the order + patient name). */
+  returnLabel?: boolean;
+  /** Patient name for the return label. */
+  patientName?: string;
+  /** Offer the adjustment packing slip; carries its own render fields. */
+  packingSlip?: PackingSlipInput;
 }
 
 /* ------------------------------------------------------------------ */

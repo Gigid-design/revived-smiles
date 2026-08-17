@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./messages.module.css";
 import { BottomNav } from "@/app/components/BottomNav";
+import { ChatDocuments } from "@/app/components/ChatDocuments";
 import { useInsurance } from "@/app/hooks/useInsurance";
 import {
   useMessages,
@@ -196,6 +197,7 @@ export default function Messages() {
         <div className={`${styles.bubble} ${isOwn ? styles.bubbleOwn : styles.bubbleOther}`}>
           {msg.body}
         </div>
+        {msg.documents && <ChatDocuments submissionId={msg.submissionId} documents={msg.documents} />}
         <div className={styles.timestamp}>{formatWhen(msg.createdAt)}</div>
       </div>
     );

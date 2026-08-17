@@ -446,3 +446,17 @@
   line-height: 1.5;
   margin: 0.5rem 0 0;
 }
+
+.slipDone {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4375rem;
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #0f7a3d;
+}
+.slipDone svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}

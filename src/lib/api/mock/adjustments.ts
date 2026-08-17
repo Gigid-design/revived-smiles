@@ -198,7 +198,7 @@ export const mockAdjustments: AdjustmentsApi = {
       throw new ApiError("validation", "Add a note explaining what the patient needs to do.");
     }
 
-    const { request, reply } = mutate((db) => {
+    const { request, reply, approval } = mutate((db) => {
       const row = db.adjustmentRequests.find((r) => r.id === id);
       if (!row) throw new ApiError("not_found", "That adjustment request could not be found.");
 
@@ -207,11 +207,40 @@ export const mockAdjustments: AdjustmentsApi = {
       row.reviewedBy = decision.reviewedBy;
       row.reviewedAt = at;
       row.reviewNotes = decision.reviewNotes?.trim() ?? null;
+
+      /* On approval, hand the customer their prepaid return label + packing
+         slip right here in the conversation — the documents belong to them, not
+         to an admin download (Aug 13). Include the slip in the return box so the
+         lab can match the case when the models come back. */
+      let approval: ChatMessage | null = null;
       if (decision.status === "approved") {
         row.approvedAt = at;
-        /* TODO (Phase 5 — approval actions): emit the prepaid return label,
-           add the "Adjusted Product" line item to the Shopify order, and
-           generate the printable summary sheet. */
+        const order = db.submissions.find((s) => s.id === row.submissionId);
+        const patientName = order?.name ?? "Patient";
+        approval = {
+          id: `msg-${nanoid(8)}`,
+          submissionId: row.submissionId,
+          senderRole: "admin",
+          senderName: CARE_TEAM_NAME,
+          body:
+            `Good news — your adjustment for ${productLabel(row.product)} is approved! ` +
+            `Print your prepaid return label and packing slip below, put the packing slip in the box ` +
+            `with your appliance, and drop it off. We'll take it from there.`,
+          createdAt: at,
+          readAt: null,
+          documents: {
+            returnLabel: true,
+            patientName,
+            packingSlip: {
+              requestNumber: row.requestNumber,
+              orderNumber: row.orderNumber,
+              patientName,
+              productLabel: productLabel(row.product),
+              kind: "Adjustment",
+            },
+          },
+        };
+        db.messages.push(approval);
       }
 
       /* Post the team's note into the conversation so the patient sees why the
@@ -229,9 +258,10 @@ export const mockAdjustments: AdjustmentsApi = {
         };
         db.messages.push(reply);
       }
-      return { request: clone(row), reply };
+      return { request: clone(row), reply, approval };
     });
 
+    if (approval) emitMessage(approval);
     if (reply) emitMessage(reply);
     return request;
   },

@@ -1,0 +1,41 @@
+/* Download chips for the fulfilment documents attached to a chat message. */
+.docs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.docBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #eef0f5;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #121723;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.04);
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+
+.docBtn:hover:not(:disabled) {
+  border-color: #1e66ff;
+  color: #1e66ff;
+}
+
+.docBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.docError {
+  width: 100%;
+  margin: 0;
+  font-size: 0.6875rem;
+  color: #b91c1c;
+}

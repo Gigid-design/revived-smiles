@@ -5,6 +5,7 @@ import { useChat } from "../hooks/useChat";
 import type { FormKind } from "./ChatRequestForm";
 import { MacroPicker, type Macro } from "./MacroPicker";
 import { ChatPhotoLightbox } from "./ChatPhotoLightbox";
+import { ChatDocuments } from "./ChatDocuments";
 import styles from "./ChatPanel.module.css";
 import {
   api,
@@ -383,6 +384,7 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
                   {msg.body}
                 </div>
                 {msg.attachments && msg.attachments.length > 0 && renderAttachments(msg.attachments)}
+                {msg.documents && <ChatDocuments submissionId={msg.submissionId} documents={msg.documents} />}
                 <div className={styles.timestamp}>
                   {formatTime(msg.createdAt)}
                   {isOwn && msg.readAt && (
