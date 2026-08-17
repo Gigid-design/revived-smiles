@@ -57,6 +57,22 @@ function teethForProduct(sub: Submission, slug: string): number[] {
   return sub.itemDetails?.[slug]?.selectedTeeth ?? sub.selectedTeeth ?? [];
 }
 
+/** A small muted glyph that precedes a rail card title, for quick scanning. */
+function TitleIcon({ kind }: { kind: "customer" | "order" | "shipping" | "intake" | "plan" }) {
+  const p = {
+    width: 14, height: 14, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
+    strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const,
+  };
+  const glyph = {
+    customer: <><circle cx="12" cy="8" r="3.6" /><path d="M5 20c0-3.2 3.4-5.6 7-5.6s7 2.4 7 5.6" /></>,
+    order: <><path d="M6 2.5h12L19.5 7H4.5z" /><path d="M5 7v12.5a1 1 0 001 1h12a1 1 0 001-1V7" /><path d="M9 11a3 3 0 006 0" /></>,
+    shipping: <><rect x="2.5" y="6.5" width="11.5" height="9" rx="1.2" /><path d="M14 9.5h3.5l3.5 3.5V15.5H14z" /><circle cx="7" cy="17.5" r="1.5" /><circle cx="17" cy="17.5" r="1.5" /></>,
+    intake: <><rect x="6" y="4" width="12" height="17" rx="2.2" /><rect x="9" y="2.5" width="6" height="3.2" rx="1" /><path d="M9 11h6M9 14.5h4" /></>,
+    plan: <><path d="M12 3l7 2.8v5.2c0 4.4-3 7.8-7 9.7-4-1.9-7-5.3-7-9.7V5.8z" /><path d="M9 12l2 2 4-4" /></>,
+  }[kind];
+  return <span className={styles.titleIcon} aria-hidden><svg {...p}>{glyph}</svg></span>;
+}
+
 /** Every photo on a submission, labelled by pose/slot, for the rail strip. */
 function allPhotos(sub: Submission): MessagePhoto[] {
   return [
@@ -526,7 +542,13 @@ export default function AdminChatPage() {
                   <span className={styles.stageTitle}>{stageLabel}</span>
                   <StatusBadge status={status} />
                 </div>
-                <p className={styles.stageTodo}>{STATUS_TODO[status]}</p>
+                <p className={styles.stageTodo}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 8h.01M11 12h1v4h1" />
+                  </svg>
+                  {STATUS_TODO[status]}
+                </p>
 
                 {/* Actions by stage — parity with the submission detail. */}
                 {isReviewable && (
@@ -589,7 +611,7 @@ export default function AdminChatPage() {
               {/* Customer */}
               <section className={styles.orderCard}>
                 <div className={styles.orderCardHead}>
-                  <span className={styles.orderCardTitle}>Customer</span>
+                  <span className={styles.orderCardTitle}><TitleIcon kind="customer" />Customer</span>
                 </div>
                 <div className={styles.customerRow}>
                   <div className={styles.avatarLg} aria-hidden>{initials(sub.name)}</div>
@@ -608,7 +630,7 @@ export default function AdminChatPage() {
               {/* Order — laid out like the Shopify order-details block */}
               <section className={styles.orderCard}>
                 <div className={styles.orderCardHead}>
-                  <span className={styles.orderCardTitle}>Order {sub.orderNumber || "—"}</span>
+                  <span className={styles.orderCardTitle}><TitleIcon kind="order" />Order {sub.orderNumber || "—"}</span>
                   <StatusBadge status={status} />
                 </div>
                 <p className={styles.orderMetaLine}>
@@ -671,7 +693,7 @@ export default function AdminChatPage() {
               {/* Shipping */}
               <section className={styles.orderCard}>
                 <div className={styles.orderCardHead}>
-                  <span className={styles.orderCardTitle}>Shipping</span>
+                  <span className={styles.orderCardTitle}><TitleIcon kind="shipping" />Shipping</span>
                 </div>
                 <dl className={styles.metaList}>
                   <div className={styles.metaRow}><dt>Tracking</dt><dd>{sub.trackingNumber || "—"}</dd></div>
@@ -683,7 +705,7 @@ export default function AdminChatPage() {
               {/* Patient intake — collapsible: shades, teeth, per-item, note */}
               <section className={styles.orderCard}>
                 <button type="button" className={styles.collapseHead} aria-expanded={intakeOpen} onClick={() => setIntakeOpen((v) => !v)}>
-                  <span className={styles.orderCardTitle}>Patient Intake</span>
+                  <span className={styles.orderCardTitle}><TitleIcon kind="intake" />Patient Intake</span>
                   <svg className={styles.expandChevron} data-open={intakeOpen || undefined} width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
                     <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -729,7 +751,7 @@ export default function AdminChatPage() {
               {/* Protection plan — collapsible: status + coverage + payments */}
               <section className={styles.orderCard}>
                 <button type="button" className={styles.collapseHead} aria-expanded={planOpen} onClick={() => setPlanOpen((v) => !v)}>
-                  <span className={styles.orderCardTitle}>Protection Plan</span>
+                  <span className={styles.orderCardTitle}><TitleIcon kind="plan" />Protection Plan</span>
                   <span className={styles.collapseHeadRight}>
                     <span className={`${styles.planChip} ${insurance?.status === "insured" ? styles.planChipOn : styles.planChipOff}`}>
                       {insurance ? (insurance.status === "insured" ? "Active" : "Inactive") : "None"}
