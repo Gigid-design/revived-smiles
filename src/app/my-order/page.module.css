@@ -661,6 +661,24 @@
 .careGuideLink:hover { background: #e2ecff; }
 .careGuideChevron { margin-left: -0.05rem; opacity: 0.75; }
 
+.prescriptionsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0 1.4375rem; /* aligns under the tracker labels */
+  padding: 0.35rem 0.6rem;
+  border-radius: 9px;
+  background: #eef4ff;
+  color: #1d4ed8;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.prescriptionsLink:hover { background: #e2ecff; }
+.prescriptionsChevron { margin-left: -0.05rem; opacity: 0.75; }
+
 .labelBtn:active { background: #eef1f7; }
 .labelBtn svg { color: #0e1b4d; flex-shrink: 0; }
 
