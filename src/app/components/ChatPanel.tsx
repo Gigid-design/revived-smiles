@@ -337,7 +337,7 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
   }
 
   return (
-    <div className={styles.chatPanel}>
+    <div className={styles.chatPanel} data-role={currentRole}>
       {/* Messages */}
       <div className={styles.messageList} ref={listRef}>
         {messages.length === 0 ? (

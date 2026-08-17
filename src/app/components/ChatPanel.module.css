@@ -84,6 +84,18 @@
   border-radius: 1rem 1rem 0.25rem 1rem;
 }
 
+/* Support-agent replies (admin console) get a modern cobalt so they read as a
+   distinct voice from the black primary button — not another near-black slab.
+   Scoped to the admin panel, so the customer's own bubbles are unchanged. */
+.chatPanel[data-role="admin"] .bubbleOwn {
+  background: linear-gradient(135deg, #2f74ff 0%, #1e66ff 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 10px -2px rgba(30, 102, 255, 0.45);
+}
+.chatPanel[data-role="admin"] .bubbleOwn::selection {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 .bubbleOther {
   background: #ffffff;
   color: #121723;

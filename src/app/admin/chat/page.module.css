@@ -323,6 +323,24 @@
   min-width: 0;
 }
 
+/* Back-to-list control — only on the single-pane phone layout. */
+.threadBack {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--admin-text);
+  cursor: pointer;
+}
+.threadBack:hover {
+  background: var(--admin-bg);
+}
+
 /* Clip the name/email column so a long name truncates instead of spilling
    into the meta on a narrow thread. */
 .threadHeaderText {
@@ -1156,9 +1174,36 @@
 @media (max-width: 860px) {
   .shell,
   .shell[data-has-order] {
-    grid-template-columns: 14rem minmax(0, 1fr);
+    grid-template-columns: 13rem minmax(0, 1fr);
   }
   .threadHeaderMeta {
     display: none;
+  }
+}
+
+/* Phones: one pane at a time. The list is full width; opening a conversation
+   shows the thread full width with a back button, the standard mobile chat
+   pattern — no more crushed two-column layout. */
+@media (max-width: 640px) {
+  .shell,
+  .shell[data-has-order] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .list {
+    border-right: none;
+  }
+  /* No conversation open → show the list, hide the (empty) thread. */
+  .shell:not([data-has-order]) .thread {
+    display: none;
+  }
+  /* Conversation open → hide the list, show the thread full width. */
+  .shell[data-has-order] .list {
+    display: none;
+  }
+  .threadBack {
+    display: inline-flex;
+  }
+  .threadHeader {
+    padding: 0.75rem 1rem;
   }
 }

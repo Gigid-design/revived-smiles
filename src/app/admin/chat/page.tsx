@@ -236,6 +236,13 @@ export default function AdminChatPage() {
     [router],
   );
 
+  /* Mobile single-pane: step back from a thread to the conversation list. */
+  const deselect = useCallback(() => {
+    setSelectedId(null);
+    setRailOpen(false);
+    router.replace("/admin/chat", { scroll: false });
+  }, [router]);
+
   /* Keep the open conversation's preview fresh as messages arrive/send.
      Replying to a conversation claims it for this agent. */
   useEffect(() => {
@@ -473,6 +480,11 @@ export default function AdminChatPage() {
             <>
               <header className={styles.threadHeader}>
                 <div className={styles.threadHeaderMain}>
+                  <button type="button" className={styles.threadBack} onClick={deselect} aria-label="Back to conversations">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M15 6l-6 6 6 6" />
+                    </svg>
+                  </button>
                   <div className={styles.avatarLg} aria-hidden>{initials(active.sub.name)}</div>
                   <div className={styles.threadHeaderText}>
                     <h2 className={styles.threadName}>{active.sub.name || "—"}</h2>
