@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import { ChatPanel } from "@/app/components/ChatPanel";
@@ -491,6 +491,9 @@ export default function AdminChatPage() {
           const isBranch = status === "changes_requested" || status === "rejected";
           const isReviewable = status === "pending" || status === "in_review" || status === "changes_requested";
           const filledIdx = isBranch ? 1 : currentIdx;
+          /* Fraction of the track to fill with the brand ramp (0–1), matching
+             the submission stepper and the customer fulfilment tracker. */
+          const progress = filledIdx <= 0 ? 0 : filledIdx / (WORKFLOW_STEPS.length - 1);
           const stageLabel =
             status === "rejected" ? "Rejected"
               : status === "changes_requested" ? "Changes Requested"
@@ -504,10 +507,13 @@ export default function AdminChatPage() {
             <div className={styles.orderScroll}>
               {/* Stage + to-do + actions — what this customer needs next */}
               <section className={styles.orderCard}>
-                <div className={styles.stepper} aria-label={`Stage: ${stageLabel}`}>
+                <div
+                  className={styles.stepper}
+                  style={{ "--progress": progress } as CSSProperties}
+                  aria-label={`Stage: ${stageLabel}`}
+                >
                   {WORKFLOW_STEPS.map((step, i) => (
-                    <span key={step.key} className={styles.stepSlot}>
-                      {i > 0 && <span className={`${styles.stepBar} ${i <= filledIdx ? styles.stepBarOn : ""}`} />}
+                    <span key={step.key} className={styles.stepItem}>
                       <span
                         className={`${styles.stepDot} ${
                           i < filledIdx ? styles.stepDotDone : i === filledIdx ? (isBranch ? styles.stepDotBranch : styles.stepDotOn) : ""
