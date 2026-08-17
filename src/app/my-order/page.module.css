@@ -679,6 +679,71 @@
 .prescriptionsLink:hover { background: #e2ecff; }
 .prescriptionsChevron { margin-left: -0.05rem; opacity: 0.75; }
 
+/* ── Resubmission blocker — a red stop at the current stage + action card ── */
+.stageBlocked .stageDot {
+  background: #e11d48 !important;
+  border-color: #e11d48 !important;
+  box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.15);
+}
+.stageBlocked .stageLabel {
+  color: #be123c;
+  font-weight: 700;
+}
+
+.blockerCard {
+  margin: 0.875rem 0 0 1.4375rem;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  background: #fff1f3;
+  border: 1px solid #fecdd3;
+}
+.blockerHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #be123c;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+.blockerText {
+  margin: 0.375rem 0 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #4b1120;
+}
+.blockerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.blockerBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 1rem;
+  border-radius: 100px;
+  background: #e11d48;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: filter 0.15s ease;
+}
+.blockerBtn:hover { filter: brightness(1.06); }
+.blockerLink {
+  color: #be123c;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+.blockerLink:hover { text-decoration: underline; }
+
 .labelBtn:active { background: #eef1f7; }
 .labelBtn svg { color: #0e1b4d; flex-shrink: 0; }
 

@@ -68,6 +68,39 @@ const MACROS: Macro[] = [
     },
   },
   {
+    id: "resubmit-upper",
+    name: "Resubmit: Upper impression",
+    tags: ["impression", "resubmit", "upper", "changes", "lab"],
+    body: "We reviewed your impressions in the lab and need a fresh upper impression to get your fit right. We've sent new trays and material — tracking is on its way. Once they arrive, please retake just your upper impression and resubmit. Everything else is on file, so you won't need to start over.",
+    action: {
+      label: "Sets status to Changes requested · adds tag “resubmit upper”",
+      status: "changes_requested",
+      tag: "resubmit upper",
+    },
+  },
+  {
+    id: "resubmit-lower",
+    name: "Resubmit: Lower impression",
+    tags: ["impression", "resubmit", "lower", "changes", "lab"],
+    body: "We reviewed your impressions in the lab and need a fresh lower impression to get your fit right. We've sent new trays and material — tracking is on its way. Once they arrive, please retake just your lower impression and resubmit. Everything else is on file, so you won't need to start over.",
+    action: {
+      label: "Sets status to Changes requested · adds tag “resubmit lower”",
+      status: "changes_requested",
+      tag: "resubmit lower",
+    },
+  },
+  {
+    id: "resubmit-bite",
+    name: "Resubmit: Bite impression",
+    tags: ["impression", "resubmit", "bite", "changes", "lab"],
+    body: "We reviewed your impressions in the lab and need a new bite impression to get your fit right. We've sent what you need — tracking is on its way. Once it arrives, please retake just your bite and resubmit. Everything else is on file, so you won't need to start over.",
+    action: {
+      label: "Sets status to Changes requested · adds tag “resubmit bite”",
+      status: "changes_requested",
+      tag: "resubmit bite",
+    },
+  },
+  {
     id: "reject-submission",
     name: "Impression: Reject submission",
     tags: ["impression", "reject", "review"],

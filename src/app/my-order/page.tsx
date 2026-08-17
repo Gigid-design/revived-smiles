@@ -225,6 +225,8 @@ export default function MyOrder() {
     ? (forceDelivered ? "completed" : order.status)
     : undefined;
   const stagesComplete = effectiveStatus ? STAGES_COMPLETE[effectiveStatus] : 0;
+  /* A partial-resubmission request blocks the order at the review stage. */
+  const isBlocked = effectiveStatus === "changes_requested";
 
   /* The primary action only opens once the care team's review is complete —
      i.e. the "Review completed" stage has been cleared. */
@@ -376,26 +378,56 @@ export default function MyOrder() {
               {STAGE_LABELS.map((label, i) => {
                 const done = i < stagesComplete;
                 const isCurrent = i === stagesComplete - 1;
+                /* A partial-resubmission request is a red stop AT the current
+                   stage — not a reset to the top — so the patient sees exactly
+                   what's blocking without thinking they've lost their progress. */
+                const isBlocker = isBlocked && isCurrent;
                 /* Colour each cleared dot with the gradient at its point on the
                    rail, so the circles and the bar read as one. */
-                const dotColor = done
+                const dotColor = done && !isBlocker
                   ? gradientColor(stagesComplete > 1 ? i / (stagesComplete - 1) : 0)
                   : undefined;
                 return (
                   <li
                     key={label}
-                    className={`${styles.stage} ${done ? styles.stageDone : ""} ${isCurrent ? styles.stageCurrent : ""}`}
+                    className={`${styles.stage} ${done ? styles.stageDone : ""} ${isCurrent ? styles.stageCurrent : ""} ${isBlocker ? styles.stageBlocked : ""}`}
                   >
                     <span
                       className={styles.stageDot}
                       aria-hidden="true"
                       style={dotColor ? { background: dotColor, borderColor: dotColor } : undefined}
                     />
-                    <span className={styles.stageLabel}>{label}</span>
+                    <span className={styles.stageLabel}>
+                      {isBlocker ? "Action needed — resubmit for approval" : label}
+                    </span>
                   </li>
                 );
               })}
             </ol>
+
+            {/* Resubmission blocker — the targeted action item. Shows what the
+                lab needs and routes straight to a retake, rather than sending
+                the patient back to the start of the impression flow. */}
+            {isBlocked && (
+              <div className={styles.blockerCard}>
+                <div className={styles.blockerHead}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 8v4M12 16h.01" />
+                  </svg>
+                  Action needed
+                </div>
+                <p className={styles.blockerText}>
+                  {order.reviewNotes
+                    ? order.reviewNotes
+                    : "Your care team needs another impression before we can continue. Check Messages for what's needed and your return details."}
+                </p>
+                <div className={styles.blockerActions}>
+                  <Link href="/impression-photos" className={styles.blockerBtn}>Resubmit impression</Link>
+                  <Link href="/messages" className={styles.blockerLink}>View details</Link>
+                </div>
+              </div>
+            )}
 
             {/* Prescriptions — quick access beside the tracker once the care
                 team's review is done and the teledentistry Rx is on file. */}
