@@ -416,6 +416,57 @@
   font-weight: 600;
 }
 
+/* Mark complete → closes the Gorgias ticket in a real backend. */
+.completeBtn {
+  padding: 0.3125rem 0.75rem;
+  border-radius: 7px;
+  border: 1px solid var(--admin-card-border);
+  background: var(--admin-card-bg);
+  color: var(--admin-text);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.completeBtn:hover {
+  border-color: var(--admin-text-muted);
+  background: var(--admin-bg);
+}
+.completedTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--admin-text);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+.reopenBtn {
+  padding: 0.3125rem 0.625rem;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--admin-accent);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.reopenBtn:hover {
+  text-decoration: underline;
+}
+.rowDone {
+  color: #0f7a3d;
+  margin-right: 0.25rem;
+  vertical-align: -1px;
+}
+.rowCompleted .rowName {
+  color: var(--admin-text-muted);
+}
+
 /* ── Right rail: order context ── */
 .orderPanel {
   display: flex;

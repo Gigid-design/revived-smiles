@@ -150,6 +150,9 @@ export default function AdminChatPage() {
   /* Conversations this agent has claimed. Seeded from ones that already have
      activity; an agent claims an unassigned one by replying or "Assign to me". */
   const [assigned, setAssigned] = useState<Set<string>>(new Set());
+  /* Conversations marked complete. In a real backend this closes the Gorgias
+     ticket; a new patient reply reopens it (handled in the subscribe effect). */
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
   /* On narrow screens the rail becomes a slide-over drawer, toggled here. */
   const [railOpen, setRailOpen] = useState(false);
   /* Collapsible rail sections. Photos + intake + protection plan start closed. */
@@ -256,9 +259,29 @@ export default function AdminChatPage() {
       if (msg.senderRole === "admin") {
         setAssigned((prev) => (prev.has(selectedId) ? prev : new Set(prev).add(selectedId)));
       }
+      /* A new patient reply reopens a completed conversation (Gorgias parity). */
+      if (msg.senderRole === "patient") {
+        setCompleted((prev) => {
+          if (!prev.has(selectedId)) return prev;
+          const next = new Set(prev);
+          next.delete(selectedId);
+          return next;
+        });
+      }
     });
     return unsubscribe;
   }, [selectedId]);
+
+  /* Mark the open conversation complete (or reopen it). Completing closes the
+     linked Gorgias ticket in a real backend; the transcript stays visible there. */
+  const toggleComplete = useCallback((id: string) => {
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   /* Load the side data the rail shows for the open order — the protection plan
      and recent payments — so support has that context without leaving chat. */
@@ -372,6 +395,7 @@ export default function AdminChatPage() {
 
   const active = conversations.find((c) => c.sub.id === selectedId) ?? null;
   const activeAssigned = active ? assigned.has(active.sub.id) : false;
+  const activeCompleted = active ? completed.has(active.sub.id) : false;
 
   return (
     <div className={styles.page}>
@@ -440,17 +464,23 @@ export default function AdminChatPage() {
             ) : (
               filtered.map((c) => {
                 const selected = c.sub.id === selectedId;
+                const isCompleted = completed.has(c.sub.id);
                 return (
                   <button
                     key={c.sub.id}
                     type="button"
-                    className={`${styles.row} ${selected ? styles.rowActive : ""}`}
+                    className={`${styles.row} ${selected ? styles.rowActive : ""} ${isCompleted ? styles.rowCompleted : ""}`}
                     onClick={() => selectConversation(c.sub.id)}
                   >
                     <div className={styles.avatar} aria-hidden>{initials(c.sub.name)}</div>
                     <div className={styles.rowBody}>
                       <div className={styles.rowTop}>
-                        <span className={styles.rowName}>{c.sub.name || c.sub.email}</span>
+                        <span className={styles.rowName}>
+                          {isCompleted && (
+                            <svg className={styles.rowDone} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M20 6L9 17l-5-5" /></svg>
+                          )}
+                          {c.sub.name || c.sub.email}
+                        </span>
                         <span className={styles.rowTime}>{formatWhen(c.last?.createdAt)}</span>
                       </div>
                       <div className={styles.rowMeta}>{productLabels(c.sub.products ?? []) || "—"}</div>
@@ -501,6 +531,25 @@ export default function AdminChatPage() {
                       onClick={() => assignToMe(active.sub.id)}
                     >
                       Assign to me
+                    </button>
+                  )}
+                  {activeCompleted ? (
+                    <span className={styles.completedTag}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M20 6L9 17l-5-5" /></svg>
+                      Completed
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={styles.completeBtn}
+                      onClick={() => toggleComplete(active.sub.id)}
+                    >
+                      Mark complete
+                    </button>
+                  )}
+                  {activeCompleted && (
+                    <button type="button" className={styles.reopenBtn} onClick={() => toggleComplete(active.sub.id)}>
+                      Reopen
                     </button>
                   )}
                   <StatusBadge status={active.sub.status} />
