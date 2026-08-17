@@ -165,4 +165,13 @@ export const mockInsurance: InsuranceApi = {
     emitMessage(recap);
     return insurance;
   },
+
+  async getForSubmission(submissionId) {
+    await delay();
+    const record = getDb().insurances.find((i) => i.submissionId === submissionId);
+    if (!record) return null;
+    const out = clone(record);
+    out.nextClaimEligibleAt = nextEligible(orderAnchor(record.submissionId, record.purchasedAt), record.claim);
+    return out;
+  },
 };

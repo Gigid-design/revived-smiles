@@ -443,6 +443,16 @@ export interface InsuranceApi {
     insuranceId: string,
     claim: { reason: string; detail: string },
   ): Promise<Insurance>;
+
+  /**
+   * The protection plan for one order, for the admin console — so support can
+   * see a customer's plan status and payment context beside the chat without a
+   * patient session. Returns null when the appliance has no plan record.
+   *
+   * ADMIN-ONLY in a real backend, which must authorise the staff caller and
+   * scope nothing to a patient session (unlike `list`).
+   */
+  getForSubmission(submissionId: string): Promise<Insurance | null>;
 }
 
 /* ------------------------------------------------------------------ */

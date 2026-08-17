@@ -40,9 +40,11 @@
   overflow: hidden;
 }
 
-/* Third column appears once a conversation is open. */
+/* Third column appears once a conversation is open. Opening a conversation
+   narrows the list and widens the detail rail (Aug 13 session) so the rail can
+   carry the full submission without crowding the message thread. */
 .shell[data-has-order] {
-  grid-template-columns: 20rem minmax(0, 1fr) 19rem;
+  grid-template-columns: 15rem minmax(0, 1fr) 22rem;
 }
 
 /* ── Left: conversation list ── */
@@ -602,10 +604,365 @@
   text-decoration: underline;
 }
 
+/* ── Stage tracker (top of the rail) ── */
+.stepper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.stepSlot {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+.stepSlot:first-child {
+  flex: 0 0 auto;
+}
+.stepBar {
+  flex: 1;
+  height: 2px;
+  background: var(--admin-card-border);
+}
+.stepBarOn {
+  background: var(--admin-primary);
+}
+.stepDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--admin-card-border);
+  flex-shrink: 0;
+}
+.stepDotDone {
+  background: var(--admin-primary);
+}
+.stepDotOn {
+  background: var(--admin-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--admin-primary) 25%, transparent);
+}
+.stepDotBranch {
+  background: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
+}
+
+.stageHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.stageTitle {
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+.stageTodo {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  margin: 0.25rem 0 0;
+}
+
+/* ── Stage actions ── */
+.actionBlock {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.priorNote {
+  font-size: 0.6875rem;
+  color: var(--admin-text-muted);
+  margin: 0;
+  padding: 0.375rem 0.5rem;
+  background: var(--admin-bg);
+  border-radius: 6px;
+}
+.noteTemplates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3125rem;
+}
+.noteTemplateBtn {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--admin-card-border);
+  border-radius: 9999px;
+  background: var(--admin-bg);
+  color: var(--admin-text-muted);
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  cursor: pointer;
+  text-align: left;
+}
+.noteTemplateBtn:hover {
+  color: var(--admin-text);
+  border-color: var(--admin-primary);
+}
+.notesTextarea {
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--admin-card-border);
+  border-radius: 8px;
+  background: var(--admin-card-bg);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--admin-text);
+  resize: vertical;
+}
+.notesTextarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+}
+.actionBtns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.375rem;
+}
+.btnApprove,
+.btnChanges,
+.btnReject,
+.btnPrimary {
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s, background 0.15s;
+}
+.btnApprove {
+  background: #16a34a;
+  color: #fff;
+  grid-column: 1 / -1;
+}
+.btnApprove:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.btnChanges {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: #fed7aa;
+}
+.btnChanges:hover:not(:disabled) {
+  background: #ffedd5;
+}
+.btnReject {
+  background: transparent;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+.btnReject:hover:not(:disabled) {
+  background: #fef2f2;
+}
+.btnPrimary {
+  width: 100%;
+  margin-top: 0.75rem;
+  background: var(--admin-primary);
+  color: #fff;
+}
+.btnPrimary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.btnApprove:disabled,
+.btnChanges:disabled,
+.btnReject:disabled,
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.trackingInput {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--admin-card-border);
+  border-radius: 8px;
+  background: var(--admin-card-bg);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--admin-text);
+}
+.trackingInput:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+}
+.rejectReason {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #7f1d1d;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.rejectReasonLabel {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #b91c1c;
+  margin-bottom: 0.1875rem;
+}
+.rejectReasonMeta {
+  display: block;
+  margin-top: 0.25rem;
+  color: #9a3412;
+  font-size: 0.6875rem;
+}
+
+/* ── Order total ── */
+.orderTotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.625rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--admin-card-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+/* ── Collapsible section header ── */
+.collapseHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.collapseHeadRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.collapseBody {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+/* ── Intake fields ── */
+.intakeField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.intakeLabel {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--admin-text-muted);
+}
+.intakeValue {
+  font-size: 0.75rem;
+  color: var(--admin-text);
+}
+.intakeNote {
+  font-size: 0.75rem;
+  color: var(--admin-text);
+  font-style: italic;
+}
+.toothList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+.toothBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.375rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 6px;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-card-border);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+/* ── Protection plan ── */
+.planChip {
+  padding: 0.0625rem 0.4375rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+.planChipOn {
+  background: rgba(34, 197, 94, 0.14);
+  color: #0f7a3d;
+}
+.planChipOff {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--admin-text-muted);
+}
+.payList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+}
+.payRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+}
+.payDate {
+  color: var(--admin-text-muted);
+}
+.payAmount {
+  font-weight: 600;
+  color: var(--admin-text);
+}
+.payStatus {
+  text-transform: capitalize;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 9999px;
+  font-weight: 600;
+}
+.payOk {
+  background: rgba(34, 197, 94, 0.14);
+  color: #0f7a3d;
+}
+.payBad {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1200;
+  padding: 0.625rem 0.875rem;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+.toastSuccess {
+  background: #16a34a;
+  color: #fff;
+}
+.toastError {
+  background: #dc2626;
+  color: #fff;
+}
+
 /* Below this width, drop the order rail back to two panes. */
 @media (max-width: 1180px) {
   .shell[data-has-order] {
-    grid-template-columns: 20rem minmax(0, 1fr);
+    grid-template-columns: 15rem minmax(0, 1fr);
   }
   .orderPanel {
     display: none;
