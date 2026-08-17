@@ -150,6 +150,8 @@ export default function AdminChatPage() {
   /* Conversations this agent has claimed. Seeded from ones that already have
      activity; an agent claims an unassigned one by replying or "Assign to me". */
   const [assigned, setAssigned] = useState<Set<string>>(new Set());
+  /* On narrow screens the rail becomes a slide-over drawer, toggled here. */
+  const [railOpen, setRailOpen] = useState(false);
   /* Collapsible rail sections. Photos + intake + protection plan start closed. */
   const [orderExpanded, setOrderExpanded] = useState(false);
   const [intakeOpen, setIntakeOpen] = useState(false);
@@ -219,6 +221,7 @@ export default function AdminChatPage() {
   const selectConversation = useCallback(
     (id: string) => {
       setSelectedId(id);
+      setRailOpen(false);
       setOrderExpanded(false);
       setIntakeOpen(false);
       setPlanOpen(false);
@@ -300,17 +303,23 @@ export default function AdminChatPage() {
         return;
       }
       setSaving(true);
+      const note = reviewNotes.trim();
       try {
         const updated = await api.submissions.updateStatus(sub.id, {
           status: newStatus,
           reviewedBy: adminUser?.name ?? "Admin User",
-          reviewNotes: reviewNotes.trim() || undefined,
+          reviewNotes: note || undefined,
           trackingNumber: newStatus === "shipped" && tracking.trim() ? tracking.trim() : undefined,
         });
+        /* Post the note into the conversation so it reaches the customer and
+           sits in the thread — otherwise it only lives on the order record. */
+        if (note) {
+          await api.messages.send(sub.id, note, "admin", adminUser?.name ?? "Admin User");
+        }
         patchSub(updated);
         setReviewNotes("");
         setTracking("");
-        showToast("Status updated.");
+        showToast(note ? "Updated — note sent to chat." : "Status updated.");
       } catch (err) {
         showToast(err instanceof ApiError ? err.message : "Something went wrong.", "error");
       } finally {
@@ -390,7 +399,7 @@ export default function AdminChatPage() {
               className={`${styles.folderTab} ${folder === "mine" ? styles.folderTabActive : ""}`}
               onClick={() => setFolder("mine")}
             >
-              Assigned to me
+              Mine
               <span className={styles.folderCount}>{counts.mine}</span>
             </button>
           </div>
@@ -472,8 +481,10 @@ export default function AdminChatPage() {
                 </div>
                 <div className={styles.threadHeaderMeta}>
                   <span className={styles.threadOrder}>
-                    {productLabels(active.sub.products ?? []) || "—"}
-                    {active.sub.orderNumber ? ` · ${active.sub.orderNumber}` : ""}
+                    {active.sub.orderNumber || "—"}
+                    {(active.sub.products?.length ?? 0) > 0
+                      ? ` · ${active.sub.products.length} item${active.sub.products.length === 1 ? "" : "s"}`
+                      : ""}
                   </span>
                   {activeAssigned ? (
                     <span className={styles.assignedTag}>Assigned to you</span>
@@ -488,6 +499,19 @@ export default function AdminChatPage() {
                   )}
                   <StatusBadge status={active.sub.status} />
                 </div>
+                {/* Narrow screens: open the detail rail as a drawer. */}
+                <button
+                  type="button"
+                  className={styles.railToggle}
+                  onClick={() => setRailOpen(true)}
+                  aria-label="Open order details"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <rect x="3" y="4" width="18" height="16" rx="2" />
+                    <path d="M15 4v16M18 8h.01M18 12h.01" />
+                  </svg>
+                  Details
+                </button>
               </header>
 
               <ChatPanel
@@ -519,7 +543,12 @@ export default function AdminChatPage() {
           const recentPayments = invoices.slice(0, 3);
 
           return (
-          <aside className={styles.orderPanel}>
+          <aside className={styles.orderPanel} data-open={railOpen ? "" : undefined}>
+            <button type="button" className={styles.railClose} onClick={() => setRailOpen(false)} aria-label="Close details">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" aria-hidden>
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
             <div className={styles.orderScroll}>
               {/* Stage + to-do + actions — what this customer needs next */}
               <section className={styles.orderCard}>
@@ -567,14 +596,23 @@ export default function AdminChatPage() {
                     </div>
                     <textarea
                       className={styles.notesTextarea}
-                      placeholder="Add a note (required to reject or request changes)…"
+                      placeholder="Write a note to the customer — it's sent into this chat (required to reject or request changes)…"
                       value={reviewNotes}
                       onChange={(e) => setReviewNotes(e.target.value)}
                     />
                     <div className={styles.actionBtns}>
-                      <button className={styles.btnApprove} disabled={saving} onClick={() => void handleStatusUpdate(sub, "approved")}>Approve</button>
-                      <button className={styles.btnChanges} disabled={saving} onClick={() => void handleStatusUpdate(sub, "changes_requested")}>Request Changes</button>
-                      <button className={styles.btnReject} disabled={saving} onClick={() => void handleStatusUpdate(sub, "rejected")}>Reject</button>
+                      <button className={styles.btnApprove} disabled={saving} onClick={() => void handleStatusUpdate(sub, "approved")}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M20 6L9 17l-5-5" /></svg>
+                        Approve
+                      </button>
+                      <button className={styles.btnChanges} disabled={saving} onClick={() => void handleStatusUpdate(sub, "changes_requested")}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M3 11a9 9 0 0115-6.7L21 7M21 3v4h-4M21 13a9 9 0 01-15 6.7L3 17M3 21v-4h4" /></svg>
+                        Request Changes
+                      </button>
+                      <button className={styles.btnReject} disabled={saving} onClick={() => void handleStatusUpdate(sub, "rejected")}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M18 6L6 18M6 6l12 12" /></svg>
+                        Reject
+                      </button>
                     </div>
                   </div>
                 )}
@@ -805,6 +843,16 @@ export default function AdminChatPage() {
           );
         })()}
       </div>
+
+      {/* Drawer backdrop (narrow screens only, styled by media query). */}
+      {active && (
+        <div
+          className={styles.railBackdrop}
+          data-open={railOpen ? "" : undefined}
+          onClick={() => setRailOpen(false)}
+          aria-hidden
+        />
+      )}
 
       {toast && (
         <div className={`${styles.toast} ${toast.type === "error" ? styles.toastError : styles.toastSuccess}`}>
