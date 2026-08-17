@@ -298,7 +298,7 @@ export default function MyOrder() {
                   <span className={styles.orderRef}>{orderReference(order.id)}</span>
                   <span className={styles.orderPlaced}>Placed {formatPlaced(order.createdAt)}</span>
                 </span>
-                <span className={styles.orderStatus}>{ORDER_STATUS_COPY[effectiveStatus ?? order.status]}</span>
+                <span className={`${styles.orderStatus} ${isBlocked ? styles.orderStatusBlocked : ""}`}>{ORDER_STATUS_COPY[effectiveStatus ?? order.status]}</span>
                 {hasMultiple && (
                   <svg
                     className={`${styles.orderHeadChevron} ${menuOpen ? styles.orderHeadChevronOpen : ""}`}
@@ -418,9 +418,7 @@ export default function MyOrder() {
                   Action needed
                 </div>
                 <p className={styles.blockerText}>
-                  {order.reviewNotes
-                    ? order.reviewNotes
-                    : "Your care team needs another impression before we can continue. Check Messages for what's needed and your return details."}
+                  Your care team needs a quick retake to perfect your fit. See the details and resubmit when you&apos;re ready.
                 </p>
                 <div className={styles.blockerActions}>
                   <Link href="/impression-photos" className={styles.blockerBtn}>Resubmit impression</Link>
