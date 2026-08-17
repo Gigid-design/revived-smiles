@@ -319,7 +319,15 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex: 1 1 auto;
   min-width: 0;
+}
+
+/* Clip the name/email column so a long name truncates instead of spilling
+   into the meta on a narrow thread. */
+.threadHeaderText {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .threadName {
@@ -327,6 +335,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: var(--admin-text);
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -335,6 +344,10 @@
 .threadSub {
   font-size: 0.75rem;
   color: var(--admin-text-muted);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .threadHeaderMeta {
@@ -342,6 +355,7 @@
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+  min-width: 0;
 }
 
 .threadOrder {

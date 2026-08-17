@@ -474,18 +474,12 @@ export default function AdminChatPage() {
               <header className={styles.threadHeader}>
                 <div className={styles.threadHeaderMain}>
                   <div className={styles.avatarLg} aria-hidden>{initials(active.sub.name)}</div>
-                  <div>
+                  <div className={styles.threadHeaderText}>
                     <h2 className={styles.threadName}>{active.sub.name || "—"}</h2>
                     <p className={styles.threadSub}>{active.sub.email}</p>
                   </div>
                 </div>
                 <div className={styles.threadHeaderMeta}>
-                  <span className={styles.threadOrder}>
-                    {active.sub.orderNumber || "—"}
-                    {(active.sub.products?.length ?? 0) > 0
-                      ? ` · ${active.sub.products.length} item${active.sub.products.length === 1 ? "" : "s"}`
-                      : ""}
-                  </span>
                   {activeAssigned ? (
                     <span className={styles.assignedTag}>Assigned to you</span>
                   ) : (
