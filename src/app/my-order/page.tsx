@@ -97,6 +97,18 @@ function gradientColor(t: number): string {
   return `rgb(${r}, ${g}, ${bl})`;
 }
 
+/** The single impression area a resubmission note points at, so the retake can
+ *  target just that one. Null when it names none or several (retake all). */
+function resubmitAreaFromNotes(notes: string | null | undefined): "upper" | "lower" | "bite" | null {
+  const n = (notes ?? "").toLowerCase();
+  const hits = [
+    ["upper", n.includes("upper")],
+    ["lower", n.includes("lower")],
+    ["bite", n.includes("bite")],
+  ].filter(([, hit]) => hit) as [string, boolean][];
+  return hits.length === 1 ? (hits[0][0] as "upper" | "lower" | "bite") : null;
+}
+
 /* The patient-facing wording for an order status. */
 const ORDER_STATUS_COPY: Record<SubmissionStatus, string> = {
   draft: "In progress",
@@ -225,8 +237,10 @@ export default function MyOrder() {
     ? (forceDelivered ? "completed" : order.status)
     : undefined;
   const stagesComplete = effectiveStatus ? STAGES_COMPLETE[effectiveStatus] : 0;
-  /* A partial-resubmission request blocks the order at the review stage. */
+  /* A partial-resubmission request blocks the order at the review stage. When
+     the note names a single area, the retake can target just that impression. */
   const isBlocked = effectiveStatus === "changes_requested";
+  const resubmitArea = isBlocked ? resubmitAreaFromNotes(order?.reviewNotes) : null;
 
   /* The primary action only opens once the care team's review is complete —
      i.e. the "Review completed" stage has been cleared. */
@@ -418,10 +432,19 @@ export default function MyOrder() {
                   Action needed
                 </div>
                 <p className={styles.blockerText}>
-                  Your care team needs a quick retake to perfect your fit. See the details and resubmit when you&apos;re ready.
+                  {resubmitArea ? (
+                    <>Your care team needs a quick retake of your <strong>{resubmitArea}</strong> impression to perfect your fit. The rest is on file.</>
+                  ) : (
+                    <>Your care team needs a quick retake to perfect your fit. See the details and resubmit when you&apos;re ready.</>
+                  )}
                 </p>
                 <div className={styles.blockerActions}>
-                  <Link href="/impression-photos" className={styles.blockerBtn}>Resubmit impression</Link>
+                  <Link
+                    href={`/impression-photos${resubmitArea ? `?area=${resubmitArea}` : ""}`}
+                    className={styles.blockerBtn}
+                  >
+                    Resubmit impression
+                  </Link>
                   <Link href="/messages" className={styles.blockerLink}>View details</Link>
                 </div>
               </div>

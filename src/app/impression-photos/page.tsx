@@ -31,7 +31,17 @@ export default function ImpressionPhotos() {
   /* Bite registration is acknowledged, not photographed — a bite is hard to
      verify from a photo, so Gitai only needs the customer to confirm they did it. */
   const [biteAck, setBiteAck] = useState(false);
+  /* A targeted resubmission (?area=lower) — the lab only needs one impression
+     again; the others are already on file and restored into their slots. */
+  const [resubmitArea, setResubmitArea] = useState<"upper" | "lower" | "bite" | null>(null);
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
+
+  useEffect(() => {
+    const a = new URLSearchParams(window.location.search).get("area");
+    if (a === "upper" || a === "lower" || a === "bite") {
+      setResubmitArea(a); // eslint-disable-line react-hooks/set-state-in-effect -- read target area from the URL on mount
+    }
+  }, []);
 
   /* Restore previously-uploaded impression photos (e.g. the user uploaded here,
      was routed off to finish intake/teeth photos, and looped back). */
@@ -190,6 +200,15 @@ export default function ImpressionPhotos() {
             Place mold on a white surface with good lighting. Ensure the arch shape is clearly visible.
           </p>
         </div>
+
+        {/* Targeted resubmission — only the flagged impression is needed. */}
+        {resubmitArea && (
+          <div className={styles.resubmitBanner}>
+            <strong>Just your {resubmitArea} impression this time.</strong>{" "}
+            Your other impressions are already on file — retake your{" "}
+            {resubmitArea === "bite" ? "bite registration" : `${resubmitArea} photos`} below and resubmit.
+          </div>
+        )}
 
         {/* Tip box */}
         <div className={styles.tipBox}>

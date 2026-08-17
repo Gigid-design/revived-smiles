@@ -249,6 +249,19 @@
 }
 .tipText strong { color: #121723; font-weight: 700; }
 
+/* Targeted-resubmission banner — amber "action needed" to match My Order. */
+.resubmitBanner {
+  margin-top: 1rem;
+  padding: 0.875rem 1.125rem;
+  border-radius: 14px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #7c2d12;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.resubmitBanner strong { color: #c2410c; font-weight: 700; }
+
 /* Section label — uppercase, main text color */
 .sectionLabel {
   font-family: var(--font-heading);
