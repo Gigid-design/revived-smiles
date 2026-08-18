@@ -58,6 +58,11 @@ interface ProgressStep {
   label: string;
   state: StageState;
   action: { href: string; text: string } | null;
+  /* An `attention` step folds the care team's reason and its actions into the
+     row itself, so the timeline is the single place the branch is explained
+     (Aug 18 session — this replaced a banner that repeated the row verbatim). */
+  note?: string | null;
+  secondary?: { href: string; text: string } | null;
 }
 
 /* Sample review notes for the ?preview= demo, used only when the real order has
@@ -169,9 +174,24 @@ function Landing() {
   }
   if (impressionsComplete) {
     if (changesRequested) {
-      steps.push({ label: "Impression photos — resubmit needed", state: "attention", action: { href: ROUTE_UPLOAD, text: "Resubmit" } });
+      steps.push({
+        label: "Impression photos — resubmit needed",
+        state: "attention",
+        action: { href: ROUTE_UPLOAD, text: "Resubmit impression photos" },
+        secondary: { href: "/messages", text: "Message the care team" },
+        note: reviewNotes,
+      });
     } else if (rejected) {
-      steps.push({ label: "Impressions not approved", state: "attention", action: { href: "/messages", text: "Details" } });
+      /* Retake leads, contact follows. Most rejections are a photo problem the
+         patient can fix themselves, and leading with "message the care team"
+         routed every one of them into the support queue (Aug 18 session). */
+      steps.push({
+        label: "Impressions not approved",
+        state: "attention",
+        action: { href: ROUTE_UPLOAD, text: "Retake impression photos" },
+        secondary: { href: "/messages", text: "Message the care team" },
+        note: reviewNotes,
+      });
     } else {
       steps.push({ label: "Impression photos submitted", state: "done", action: { href: ROUTE_UPLOAD, text: "Replace" } });
     }
@@ -231,51 +251,6 @@ function Landing() {
         )}
 
         {/* ── Care-team sent it back: prominent action banner ── */}
-        {!loading && !error && branched && (
-          <section
-            className={`${styles.reviewBanner} ${rejected ? styles.reviewBannerRejected : styles.reviewBannerChanges}`}
-            role="alert"
-          >
-            <div className={styles.reviewBannerIcon} aria-hidden="true">
-              {rejected ? (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9" />
-                  <line x1="15" y1="9" x2="9" y2="15" />
-                  <line x1="9" y1="9" x2="15" y2="15" />
-                </svg>
-              ) : (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 3.5 21 19H3L12 3.5Z" />
-                  <path d="M12 9.5v4" />
-                  <path d="M12 16.5h.01" />
-                </svg>
-              )}
-            </div>
-            <div className={styles.reviewBannerBody}>
-              <h2 className={styles.reviewBannerTitle}>
-                {rejected ? "We couldn't approve your impressions" : "Your impressions need another look"}
-              </h2>
-              {reviewNotes && <p className={styles.reviewBannerReason}>{reviewNotes}</p>}
-              <p className={styles.reviewBannerHint}>
-                {rejected ? "We've explained why in your messages." : "Full details are in your messages."}
-              </p>
-              <div className={styles.reviewBannerActions}>
-                {changesRequested && (
-                  <Link href={ROUTE_UPLOAD} className={styles.reviewBannerPrimary}>
-                    Resubmit impression photos
-                  </Link>
-                )}
-                <Link
-                  href="/messages"
-                  className={changesRequested ? styles.reviewBannerSecondary : styles.reviewBannerPrimary}
-                >
-                  Message the care team
-                </Link>
-              </div>
-            </div>
-          </section>
-        )}
-
         {!loading && !error && (
           <div className={styles.grid}>
             <div className={styles.colMain}>
@@ -358,6 +333,7 @@ function Landing() {
                     <li
                       key={step.label}
                       className={`${styles.stage} ${STAGE_CLASS[step.state]}`}
+                      data-tone={step.state === "attention" ? (rejected ? "rejected" : "changes") : undefined}
                     >
                       <span className={styles.stageDot} aria-hidden="true">
                         {step.state === "done" && (
@@ -380,25 +356,47 @@ function Landing() {
                       </span>
 
                       <div className={styles.stageBody}>
-                        <span className={styles.stageLabel}>{step.label}</span>
-                        <span className={styles.stageRight}>
-                          {step.state === "done" && (
-                            <span className={`${styles.stageChip} ${styles.chipDone}`}>Completed</span>
-                          )}
-                          {step.state === "current" && (
-                            <span className={`${styles.stageChip} ${styles.chipCurrent}`}>In progress</span>
-                          )}
-                          {step.state === "attention" && (
-                            <span className={`${styles.stageChip} ${styles.chipAttention}`}>
-                              {rejected ? "Not approved" : "Action needed"}
-                            </span>
-                          )}
-                          {step.action && (
-                            <Link href={step.action.href} className={styles.stageAction}>
-                              {step.action.text}
-                            </Link>
-                          )}
-                        </span>
+                        <div className={styles.stageHeader}>
+                          <span className={styles.stageLabel}>{step.label}</span>
+                          <span className={styles.stageRight}>
+                            {step.state === "done" && (
+                              <span className={`${styles.stageChip} ${styles.chipDone}`}>Completed</span>
+                            )}
+                            {step.state === "current" && (
+                              <span className={`${styles.stageChip} ${styles.chipCurrent}`}>In progress</span>
+                            )}
+                            {step.state === "attention" && (
+                              <span className={`${styles.stageChip} ${styles.chipAttention}`}>
+                                {rejected ? "Not approved" : "Action needed"}
+                              </span>
+                            )}
+                            {/* An attention step carries its actions in the panel
+                                below, so only the calm rows get the inline link. */}
+                            {step.state !== "attention" && step.action && (
+                              <Link href={step.action.href} className={styles.stageAction}>
+                                {step.action.text}
+                              </Link>
+                            )}
+                          </span>
+                        </div>
+
+                        {step.state === "attention" && (step.note || step.action) && (
+                          <div className={styles.stagePanel} data-tone={rejected ? "rejected" : "changes"}>
+                            {step.note && <p className={styles.stagePanelNote}>{step.note}</p>}
+                            {step.action && (
+                              <div className={styles.stagePanelActions}>
+                                <Link href={step.action.href} className={styles.stagePanelPrimary}>
+                                  {step.action.text}
+                                </Link>
+                                {step.secondary && (
+                                  <Link href={step.secondary.href} className={styles.stagePanelSecondary}>
+                                    {step.secondary.text}
+                                  </Link>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </li>
                   ))}

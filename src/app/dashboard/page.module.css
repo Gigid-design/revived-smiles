@@ -91,89 +91,6 @@
   margin: 0.7rem 0 1.1rem 0.1rem;
 }
 
-/* ── Review banner — shown when the care team sends the order back ── */
-.reviewBanner {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  padding: 16px;
-  border-radius: 18px;
-  margin: 0 0 18px;
-  box-shadow: var(--card-shadow);
-}
-.reviewBannerChanges {
-  background: linear-gradient(135deg, #fff8ec 0%, #fef1dc 100%);
-  border: 1px solid rgba(186, 117, 23, 0.22);
-}
-.reviewBannerRejected {
-  background: linear-gradient(135deg, #fdeeec 0%, #fbe2df 100%);
-  border: 1px solid rgba(196, 57, 47, 0.22);
-}
-.reviewBannerIcon {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.reviewBannerChanges .reviewBannerIcon { background: #fdecc8; color: #a9660f; }
-.reviewBannerRejected .reviewBannerIcon { background: #f8d5d0; color: #b3372d; }
-.reviewBannerBody { flex: 1; min-width: 0; }
-.reviewBannerTitle {
-  font-family: var(--font-heading);
-  font-size: 1em;
-  font-weight: 700;
-  color: #121723;
-  margin: 2px 0 0;
-  line-height: 1.3;
-}
-.reviewBannerReason {
-  font-size: 0.8125em;
-  color: #4a4f5a;
-  line-height: 1.5;
-  margin: 8px 0 0;
-}
-.reviewBannerHint {
-  font-size: 0.75em;
-  color: #7a808c;
-  line-height: 1.4;
-  margin: 6px 0 0;
-}
-.reviewBannerActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 14px;
-}
-.reviewBannerPrimary,
-.reviewBannerSecondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-  padding: 0 18px;
-  border-radius: 100px;
-  font-family: var(--font-heading);
-  font-size: 0.8125em;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.reviewBannerPrimary {
-  background: #121723;
-  color: #ffffff;
-  border: none;
-}
-.reviewBannerPrimary:hover { background: #26304a; }
-.reviewBannerSecondary {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(14, 27, 77, 0.14);
-  color: #121723;
-}
-.reviewBannerSecondary:hover { background: #ffffff; }
-
 /* ── Shared card ── */
 .startCard,
 .intakeCard {
@@ -453,17 +370,80 @@
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 10px;
   padding-top: 4px;
 }
+
+.stageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* The branch panel — reason + actions folded into the step that owns them,
+   rather than a separate banner repeating the same sentence above the card. */
+.stagePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+}
+.stagePanel[data-tone="rejected"] {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.stagePanelNote {
+  margin: 0;
+  font-size: 0.8125em; /* 13px */
+  line-height: 1.5;
+  color: #4a4f5c;
+}
+
+.stagePanelActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stagePanelPrimary,
+.stagePanelSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px;
+  border-radius: 9999px;
+  font-size: 0.8125em; /* 13px */
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.stagePanelPrimary {
+  background: #121723;
+  color: #ffffff;
+}
+.stagePanelPrimary:hover { background: #262d3d; }
+
+.stagePanelSecondary {
+  background: #ffffff;
+  color: #121723;
+  border: 1px solid #e4e7ee;
+}
+.stagePanelSecondary:hover { border-color: #c9cedb; }
 
 .stageLabel {
   font-size: 0.875em; /* 14px */
   color: #9299a5;
   line-height: 1.35;
 }
+
 .stageDone .stageLabel { color: #121723; font-weight: 600; }
 .stageCurrent .stageLabel {
   font-family: var(--font-heading);
@@ -491,20 +471,30 @@
 }
 .chipDone { color: #1f6b46; background: #e2f6ec; }
 .chipCurrent { color: #8a6100; background: #fff5da; }
-.chipAttention { color: #b3372d; background: #fdeceb; }
+/* Branch tones are the admin StatusBadge palette verbatim, so a state reads
+   the same colour to staff and to the patient: changes requested is orange,
+   rejected is red (Aug 18 session). */
+.chipAttention { color: #9a3412; background: #ffedd5; }
+.stageAttention[data-tone="rejected"] .chipAttention { color: #991b1b; background: #fee2e2; }
 
 /* ── Attention — the care team sent this step back for a resubmit ── */
 .stageAttention .stageDot {
   background: #ffffff;
-  border: 2px solid #c4392f;
-  color: #c4392f;
-  box-shadow: 0 0 0 5px rgba(196, 57, 47, 0.10);
+  border: 2px solid #ea580c;
+  color: #ea580c;
+  box-shadow: 0 0 0 5px rgba(234, 88, 12, 0.12);
 }
 .stageAttention .stageLabel {
   font-family: var(--font-heading);
   font-weight: 700;
-  color: #b3372d;
+  color: #c2410c;
 }
+.stageAttention[data-tone="rejected"] .stageDot {
+  border-color: #dc2626;
+  color: #dc2626;
+  box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.12);
+}
+.stageAttention[data-tone="rejected"] .stageLabel { color: #991b1b; }
 
 /* Completed rows stay tappable so the customer can still review/replace */
 .stageAction {
