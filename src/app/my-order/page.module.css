@@ -647,41 +647,68 @@
 
 /* ── Care Guide link — appears under "Delivered", aligned with the stage
    labels, once the order is delivered. ── */
-.careGuideLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin: 0.4rem 0 0 1.4375rem; /* aligns under the tracker labels */
-  padding: 0.35rem 0.6rem;
-  border-radius: 9px;
-  background: #eef4ff;
-  color: #1d4ed8;
-  font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 0.75rem;
-  text-decoration: none;
-  transition: background 0.15s ease;
+/* ── Tracker quick links — the documents the order unlocks ──
+   Was a pair of small blue-tinted chips that read as inline text links and got
+   lost under the tracker. Now full-width white buttons on the same language as
+   .labelBtn: brand dark text and icon, hairline border, one clear tap target
+   each (Aug 18 session — "bigger, white, dark text & icon"). */
+.quickLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.875rem 0 0 1.4375rem; /* aligns under the tracker labels */
 }
-.careGuideLink:hover { background: #e2ecff; }
-.careGuideChevron { margin-left: -0.05rem; opacity: 0.75; }
 
-.prescriptionsLink {
-  display: inline-flex;
+.quickLink {
+  display: flex;
   align-items: center;
-  gap: 0.35rem;
-  margin: 0.75rem 0 0 1.4375rem; /* aligns under the tracker labels */
-  padding: 0.35rem 0.6rem;
-  border-radius: 9px;
-  background: #eef4ff;
-  color: #1d4ed8;
+  gap: 0.6875rem;
+  min-height: 52px;
+  padding: 0.75rem 0.875rem 0.75rem 1rem;
+  border: 1px solid #e2e6ee;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #121723;
   font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 0.75rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: -0.005em;
   text-decoration: none;
-  transition: background 0.15s ease;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
-.prescriptionsLink:hover { background: #e2ecff; }
-.prescriptionsChevron { margin-left: -0.05rem; opacity: 0.75; }
+.quickLink:hover {
+  border-color: #c9cfdd;
+  box-shadow: 0 4px 14px -4px rgba(16, 24, 40, 0.14);
+}
+.quickLink:active { transform: translateY(1px); }
+
+.quickLinkIcon {
+  flex-shrink: 0;
+  color: #0e1b4d;
+}
+
+.quickLinkLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.quickLinkChevron {
+  flex-shrink: 0;
+  color: #9aa2b4;
+}
+
+/* Small phones: drop the tracker indent so the longer label ("View your Care
+   Guide") keeps to one line and the pair stays the same height. */
+@media (max-width: 360px) {
+  .quickLinks {
+    margin-left: 0;
+  }
+  .quickLink {
+    gap: 0.5rem;
+    padding-left: 0.875rem;
+  }
+}
 
 /* ── Resubmission blocker — an amber "action needed" stop at the current stage
    + action card. Amber (not red) is the SaaS convention for attention that

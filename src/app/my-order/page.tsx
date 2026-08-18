@@ -450,34 +450,39 @@ export default function MyOrder() {
               </div>
             )}
 
-            {/* Prescriptions — quick access beside the tracker once the care
-                team's review is done and the teledentistry Rx is on file. */}
-            {reviewComplete && (
-              <Link href={`/my-documents?id=${order.id}`} className={styles.prescriptionsLink}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" />
-                  <rect x="8" y="2" width="8" height="4" rx="1" />
-                  <path d="M9 12l2 2 4-4" />
-                </svg>
-                Your prescriptions
-                <svg className={styles.prescriptionsChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </Link>
-            )}
+            {/* Quick links off the tracker — the documents the patient earns as
+                the order advances. Prescriptions unlock at review complete, the
+                Care Guide at delivery; they share one button treatment so the
+                pair reads as a set rather than two loose chips. */}
+            {(reviewComplete || deliveredActive) && (
+              <div className={styles.quickLinks}>
+                {reviewComplete && (
+                  <Link href={`/my-documents?id=${order.id}`} className={styles.quickLink}>
+                    <svg className={styles.quickLinkIcon} width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" />
+                      <rect x="8" y="2" width="8" height="4" rx="1" />
+                      <path d="M9 12l2 2 4-4" />
+                    </svg>
+                    <span className={styles.quickLinkLabel}>Your prescriptions</span>
+                    <svg className={styles.quickLinkChevron} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </Link>
+                )}
 
-            {/* Care Guide — sits under "Delivered" and only once it's reached. */}
-            {deliveredActive && (
-              <Link href="/care-guide" className={styles.careGuideLink}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M4 5a2 2 0 0 1 2-2h10a1 1 0 0 1 1 1v13H6a2 2 0 0 0-2 2z" />
-                  <path d="M4 19a2 2 0 0 0 2 2h11" /><path d="M8 7h6M8 10h6" />
-                </svg>
-                View your Care Guide
-                <svg className={styles.careGuideChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </Link>
+                {deliveredActive && (
+                  <Link href="/care-guide" className={styles.quickLink}>
+                    <svg className={styles.quickLinkIcon} width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M4 5a2 2 0 0 1 2-2h10a1 1 0 0 1 1 1v13H6a2 2 0 0 0-2 2z" />
+                      <path d="M4 19a2 2 0 0 0 2 2h11" /><path d="M8 7h6M8 10h6" />
+                    </svg>
+                    <span className={styles.quickLinkLabel}>View your Care Guide</span>
+                    <svg className={styles.quickLinkChevron} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </Link>
+                )}
+              </div>
             )}
 
             {(order.trackingNumber || estimatedArrival(order)) && (
