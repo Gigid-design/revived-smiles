@@ -410,7 +410,7 @@ export default function AdminChatPage() {
               className={`${styles.folderTab} ${folder === "all" ? styles.folderTabActive : ""}`}
               onClick={() => setFolder("all")}
             >
-              All
+              <span className={styles.folderLabel}>All</span>
               <span className={styles.folderCount}>{counts.all}</span>
             </button>
             <button
@@ -420,7 +420,7 @@ export default function AdminChatPage() {
               className={`${styles.folderTab} ${folder === "unassigned" ? styles.folderTabActive : ""}`}
               onClick={() => setFolder("unassigned")}
             >
-              Unassigned
+              <span className={styles.folderLabel}>Unassigned</span>
               <span className={styles.folderCount}>{counts.unassigned}</span>
             </button>
             <button
@@ -430,7 +430,7 @@ export default function AdminChatPage() {
               className={`${styles.folderTab} ${folder === "mine" ? styles.folderTabActive : ""}`}
               onClick={() => setFolder("mine")}
             >
-              Mine
+              <span className={styles.folderLabel}>Mine</span>
               <span className={styles.folderCount}>{counts.mine}</span>
             </button>
           </div>

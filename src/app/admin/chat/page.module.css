@@ -59,32 +59,44 @@
 /* Folder tabs — Unassigned / Assigned to me */
 .folders {
   display: flex;
-  gap: 0.25rem;
-  margin: 0.625rem;
-  padding: 0.25rem;
+  gap: 0.125rem;
+  margin: 0.5rem;
+  padding: 0.1875rem;
   background: var(--admin-card-bg);
   border: 1px solid var(--admin-card-border);
   border-radius: 12px;
 }
 
+/* Content-proportional, not equal-width. `flex-basis: 0` used to force all
+   three tabs to the same width, so "Unassigned" (the longest label by far)
+   overflowed its third and collided with "Mine" once the list column narrowed
+   to 13rem. Basis `auto` sizes each tab to its label first, then shares any
+   slack; the label truncates instead of escaping the box. */
 .folderTab {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3125rem;
-  padding: 0.4375rem 0.375rem;
+  gap: 0.25rem;
+  padding: 0.4375rem 0.25rem;
   border: none;
   border-radius: 9px;
   background: transparent;
   cursor: pointer;
   font-family: var(--font-body);
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 600;
-  white-space: nowrap;
+  overflow: hidden;
   color: var(--admin-text-muted);
   transition: color 0.15s, background 0.15s;
+}
+
+.folderLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .folderTab:hover {
@@ -99,16 +111,17 @@
 }
 
 .folderCount {
+  flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.125rem;
-  height: 1.125rem;
-  padding: 0 0.3125rem;
+  min-width: 0.9375rem;
+  height: 0.9375rem;
+  padding: 0 0.25rem;
   border-radius: 9999px;
   background: rgba(0, 0, 0, 0.06);
   color: var(--admin-text-muted);
-  font-size: 0.625rem;
+  font-size: 0.5625rem;
   font-weight: 700;
 }
 
@@ -1256,5 +1269,22 @@
   }
   .threadHeader {
     padding: 0.75rem 1rem;
+  }
+  /* The list is full width here, so the tabs get their roomy treatment back. */
+  .folders {
+    gap: 0.25rem;
+    margin: 0.625rem;
+    padding: 0.25rem;
+  }
+  .folderTab {
+    gap: 0.3125rem;
+    padding: 0.4375rem 0.5rem;
+    font-size: 0.6875rem;
+  }
+  .folderCount {
+    min-width: 1.125rem;
+    height: 1.125rem;
+    padding: 0 0.3125rem;
+    font-size: 0.625rem;
   }
 }
