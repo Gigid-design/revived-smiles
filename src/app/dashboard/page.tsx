@@ -9,6 +9,7 @@ import { api, ApiError } from "@/lib/api";
 import type { Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { ImpressionStepsModal } from "@/app/components/ImpressionStepsModal";
+import { ShippingLabelModal } from "@/app/components/ShippingLabelModal";
 import { useMessages } from "@/app/context/MessagesContext";
 import { useInsurance } from "@/app/hooks/useInsurance";
 import { getDetailStops, getOrderTotalSteps } from "@/app/context/productConfig";
@@ -63,6 +64,9 @@ interface ProgressStep {
      (Aug 18 session — this replaced a banner that repeated the row verbatim). */
   note?: string | null;
   secondary?: { href: string; text: string } | null;
+  /* A panel action that runs in-page (e.g. opening the label modal) instead of
+     navigating. When set, the panel's primary renders as a button. */
+  onAction?: (() => void) | null;
 }
 
 /* Sample review notes for the ?preview= demo, used only when the real order has
@@ -103,6 +107,7 @@ function Landing() {
 
   /* Unread replies power the bottom-nav Messages badge. */
   const { unreadCount } = useMessages();
+  const [labelOpen, setLabelOpen] = useState(false);
 
   /* Insured appliances get a quiet entry point to file a protection claim. */
   const { canClaim } = useInsurance();
@@ -146,11 +151,13 @@ function Landing() {
     ? intakeProgress(submission)
     : { done: 0, total: 1, teethPhotosDone: false };
 
-  /* `?preview=changes_requested|rejected` overlays a branch status so the
-     denial/resubmit UI can be demoed without an admin flipping the order. */
+  /* `?preview=changes_requested|rejected|approved` overlays a status so the
+     branch and approval UI can be demoed without an admin flipping the order. */
   const preview = searchParams.get("preview");
   const previewStatus =
-    preview === "changes_requested" || preview === "rejected" ? preview : null;
+    preview === "changes_requested" || preview === "rejected" || preview === "approved"
+      ? preview
+      : null;
   const status: SubmissionStatus | undefined = previewStatus ?? submission?.status;
 
   /* When the care team sends the order back, the impressions turn red and the
@@ -159,7 +166,9 @@ function Landing() {
   const changesRequested = status === "changes_requested";
   const rejected = status === "rejected";
   const branched = changesRequested || rejected;
-  const reviewNotes = submission?.reviewNotes ?? (previewStatus ? PREVIEW_NOTES[previewStatus] : null);
+  const reviewNotes =
+    submission?.reviewNotes ??
+    (previewStatus && previewStatus !== "approved" ? PREVIEW_NOTES[previewStatus] : null);
 
   /* A branch status only happens after the order was fully submitted, so both
      prior steps read as complete (intake green, impressions red-for-resubmit). */
@@ -196,8 +205,28 @@ function Landing() {
       steps.push({ label: "Impression photos submitted", state: "done", action: { href: ROUTE_UPLOAD, text: "Replace" } });
     }
   }
+  /* Approved — the customer's next move is physical: pack the kit and send it
+     back. The row carries the label + instructions right on the timeline, for
+     customers who skip the approval email and come straight to the portal
+     (Aug 18 session — "impressions approved, print return label, and then put
+     everything back in the box"). */
+  const approved = status === "approved";
+  if (approved) {
+    steps.push({
+      label: "Impressions approved — send them back",
+      state: "current",
+      action: null,
+      note:
+        "Print your prepaid return label, put your impressions and trays back in the box, " +
+        "stick the label on, and drop it off. We'll take it from here.",
+      onAction: () => setLabelOpen(true),
+    });
+    steps.push({ label: "In production", state: "upcoming", action: null });
+    steps.push({ label: "On its way to you", state: "upcoming", action: null });
+  }
+
   /* Downstream stages only make sense once everything is in and on the happy path */
-  if (onTrack) {
+  if (onTrack && !approved) {
     POST_SUBMIT_STAGES.forEach((label, i) => {
       steps.push({
         label,
@@ -380,21 +409,35 @@ function Landing() {
                           </span>
                         </div>
 
-                        {step.state === "attention" && (step.note || step.action) && (
-                          <div className={styles.stagePanel} data-tone={rejected ? "rejected" : "changes"}>
+                        {(step.state === "attention" || step.onAction) && (step.note || step.action || step.onAction) && (
+                          <div
+                            className={styles.stagePanel}
+                            data-tone={step.state === "attention" ? (rejected ? "rejected" : "changes") : "approved"}
+                          >
                             {step.note && <p className={styles.stagePanelNote}>{step.note}</p>}
-                            {step.action && (
-                              <div className={styles.stagePanelActions}>
-                                <Link href={step.action.href} className={styles.stagePanelPrimary}>
-                                  {step.action.text}
-                                </Link>
-                                {step.secondary && (
-                                  <Link href={step.secondary.href} className={styles.stagePanelSecondary}>
-                                    {step.secondary.text}
+                            <div className={styles.stagePanelActions}>
+                              {step.onAction ? (
+                                <button type="button" className={styles.stagePanelPrimary} onClick={step.onAction}>
+                                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <polyline points="6 9 6 2 18 2 18 9" />
+                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                                    <rect x="6" y="14" width="12" height="8" />
+                                  </svg>
+                                  Print return label
+                                </button>
+                              ) : (
+                                step.action && (
+                                  <Link href={step.action.href} className={styles.stagePanelPrimary}>
+                                    {step.action.text}
                                   </Link>
-                                )}
-                              </div>
-                            )}
+                                )
+                              )}
+                              {step.secondary && (
+                                <Link href={step.secondary.href} className={styles.stagePanelSecondary}>
+                                  {step.secondary.text}
+                                </Link>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -456,6 +499,15 @@ function Landing() {
       </div>
 
       <ImpressionStepsModal open={stepsOpen} onClose={() => setStepsOpen(false)} />
+
+      {submission && (
+        <ShippingLabelModal
+          open={labelOpen}
+          onClose={() => setLabelOpen(false)}
+          submissionId={submission.id}
+          patientName={submission.name ?? "Patient"}
+        />
+      )}
 
       <BottomNav messagesBadge={unreadCount} />
     </main>

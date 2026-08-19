@@ -397,6 +397,12 @@
   border-color: #fecaca;
   background: #fef2f2;
 }
+/* Approved — a good-news panel: the impressions passed and the next move is
+   packing the kit. Green, matching the chipDone family. */
+.stagePanel[data-tone="approved"] {
+  border-color: #bbe8d0;
+  background: #f0faf5;
+}
 
 .stagePanelNote {
   margin: 0;
@@ -416,6 +422,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 7px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
   padding: 9px 16px;
   border-radius: 9999px;
   font-size: 0.8125em; /* 13px */
