@@ -10,6 +10,41 @@ My explicit commitments on the call: the **retake-flow visual for Nathan** (#4) 
 
 ---
 
+## Demo links (base: https://revived-smiles-5ncq.vercel.app)
+
+Admin sign-in: `/admin` → the login page prints its own demo credentials (`admin@revivedsmiles.com`, any password).
+Data lives per browser tab (`sessionStorage`) — a messy demo resets with a fresh tab. `?preview=` params
+show a state without an admin flipping the order.
+
+**Checklist items 1–3 (done this session)**
+
+| Show | URL |
+| --- | --- |
+| #1 — chat rail, no "Open full record" (open any conversation) | https://revived-smiles-5ncq.vercel.app/admin/chat |
+| #2 — My Order, return/cancel gone | https://revived-smiles-5ncq.vercel.app/my-order |
+| #3 — approved step + Print return label | https://revived-smiles-5ncq.vercel.app/dashboard?preview=approved |
+
+**Branch states (Meeting-8/9 work, for context)**
+
+| Show | URL |
+| --- | --- |
+| Changes requested — merged orange panel, resubmit leads | https://revived-smiles-5ncq.vercel.app/dashboard?preview=changes_requested |
+| Rejected — red panel, retake leads | https://revived-smiles-5ncq.vercel.app/dashboard?preview=rejected |
+| Happy path — calm timeline | https://revived-smiles-5ncq.vercel.app/dashboard |
+| Delivered — prescriptions + Care Guide buttons | https://revived-smiles-5ncq.vercel.app/my-order?preview=delivered |
+
+**Admin portal walkthrough**
+
+| Show | URL |
+| --- | --- |
+| Chat + right rail (Gerald = rejection reason; type `Resubmit` in macro bar for arch macros) | https://revived-smiles-5ncq.vercel.app/admin/chat |
+| Adjustments — Approve delivers return label + packing slip in chat | https://revived-smiles-5ncq.vercel.app/admin/adjustments |
+| AI prompts section | https://revived-smiles-5ncq.vercel.app/admin/prompts |
+| Patient chat (customer side of the same thread) | https://revived-smiles-5ncq.vercel.app/messages |
+| Documents / prescriptions | https://revived-smiles-5ncq.vercel.app/my-documents |
+
+---
+
 ## Do now — nothing blocking these
 
 - [x] **1. Remove "Open full record →" from the chat rail.** _(≈2:03–3:55)_ — `src/app/admin/chat/page.tsx:894`
