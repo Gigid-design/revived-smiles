@@ -10,7 +10,6 @@ import { BottomNav } from "@/app/components/BottomNav";
 import { SubscriptionCard } from "@/app/components/SubscriptionCard";
 import { InsuranceCard } from "@/app/components/InsuranceCard";
 import { ReportIssueSheet } from "@/app/components/ReportIssueSheet";
-import { ShippingLabelModal } from "@/app/components/ShippingLabelModal";
 import {
   productLabel,
   productLabels,
@@ -164,13 +163,12 @@ function estimatedArrival(order: Submission): string | null {
 }
 
 export default function MyOrder() {
-  const { requests, unreadCount, sendRequest, send } = useMessages();
+  const { requests, unreadCount, sendRequest } = useMessages();
 
   const [orders, setOrders] = useState<Submission[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [returnOpen, setReturnOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   /* Demo affordance: lets the tracker be viewed in its delivered state (and the
      Care Guide link that only appears then) without an admin advancing the
@@ -533,26 +531,6 @@ export default function MyOrder() {
               </button>
             )}
 
-            {/* Return or cancel — for an order still in flight (e.g. an unused
-                impression kit they've decided not to use). Issues a prepaid
-                return label and lets the care team know. */}
-            {effectiveStatus !== "completed" && effectiveStatus !== "rejected" && (
-              <button
-                type="button"
-                className={styles.returnBtn}
-                onClick={() => {
-                  void send("I'd like to return or cancel this order — please help me with a refund.");
-                  setReturnOpen(true);
-                }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M3 7h13a4 4 0 0 1 0 8h-3" />
-                  <path d="M7 11 3 7l4-4" />
-                </svg>
-                Return or cancel order
-              </button>
-            )}
-
           </section>
         )}
           </div>
@@ -642,15 +620,6 @@ export default function MyOrder() {
           orderId={order.id}
           onClose={() => setReportOpen(false)}
           onReport={(kind, note) => sendRequest(kind, "", note)}
-        />
-      )}
-
-      {order && (
-        <ShippingLabelModal
-          open={returnOpen}
-          onClose={() => setReturnOpen(false)}
-          submissionId={order.id}
-          patientName={order.name ?? "Patient"}
         />
       )}
 
