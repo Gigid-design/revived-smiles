@@ -39,6 +39,7 @@ const STATUS_TODO: Record<SubmissionStatus, string> = {
   pending: "Review the impression photos and decide.",
   in_review: "Review the impression photos and decide.",
   changes_requested: "Waiting on the patient to resubmit.",
+  lab_retake: "New kit sent — waiting on the patient's retake.",
   approved: "Approved — start fabrication when ready.",
   rejected: "Rejected — see the reason below.",
   in_fabrication: "In production — add tracking to ship.",
@@ -583,16 +584,20 @@ export default function AdminChatPage() {
           const sub = active.sub;
           const status = sub.status;
           const currentIdx = WORKFLOW_STEPS.findIndex((s) => s.key === status);
-          const isBranch = status === "changes_requested" || status === "rejected";
+          const isBranch = status === "changes_requested" || status === "rejected" || status === "lab_retake";
           const isReviewable = status === "pending" || status === "in_review" || status === "changes_requested";
-          const filledIdx = isBranch ? 1 : currentIdx;
+          /* A review-stage branch stops the track at Review; a lab retake
+             happened after approval, so the track holds at Approved instead of
+             rewinding — mirroring the customer's tracker (Aug 18 session). */
+          const filledIdx = isBranch ? (status === "lab_retake" ? 2 : 1) : currentIdx;
           /* Fraction of the track to fill with the brand ramp (0–1), matching
              the submission stepper and the customer fulfilment tracker. */
           const progress = filledIdx <= 0 ? 0 : filledIdx / (WORKFLOW_STEPS.length - 1);
           const stageLabel =
             status === "rejected" ? "Rejected"
               : status === "changes_requested" ? "Changes Requested"
-                : WORKFLOW_STEPS[currentIdx]?.label ?? "Draft";
+                : status === "lab_retake" ? "Lab Retake"
+                  : WORKFLOW_STEPS[currentIdx]?.label ?? "Draft";
           const photos = allPhotos(sub);
           const itemEntries = Object.entries(sub.itemDetails ?? {});
           const recentPayments = invoices.slice(0, 3);

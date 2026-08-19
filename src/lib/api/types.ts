@@ -118,6 +118,7 @@ export type SubmissionStatus =
   | "in_review"
   | "approved"
   | "changes_requested"
+  | "lab_retake"
   | "rejected"
   | "in_fabrication"
   | "shipped"
@@ -131,6 +132,7 @@ export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
   in_review: "In review",
   approved: "Approved",
   changes_requested: "Changes requested",
+  lab_retake: "Lab retake needed",
   rejected: "Rejected",
   in_fabrication: "In fabrication",
   shipped: "Shipped",
@@ -150,6 +152,7 @@ export const WORKFLOW_STATUSES: readonly SubmissionStatus[] = [
 /** Statuses that take the order off the happy path and need review notes. */
 export const BRANCH_STATUSES: readonly SubmissionStatus[] = [
   "changes_requested",
+  "lab_retake",
   "rejected",
 ] as const;
 
@@ -162,7 +165,7 @@ export const REVIEWABLE_STATUSES: readonly SubmissionStatus[] = [
 
 /** A status change to these requires non-empty review notes. */
 export function requiresReviewNotes(status: SubmissionStatus): boolean {
-  return status === "rejected" || status === "changes_requested";
+  return status === "rejected" || status === "changes_requested" || status === "lab_retake";
 }
 
 /**
@@ -239,6 +242,14 @@ export interface Submission {
   reviewedBy: string | null;
   reviewedAt: Timestamp | null;
   trackingNumber: string | null;
+  /* Tracking for the replacement impression kit sent on a `lab_retake` — the
+     physical impressions were received and found unusable, so a fresh kit goes
+     out while the original order holds its place in the pipeline. Kit dispatch
+     itself stays manual in Shopify (Aug 18 session — no automated writes yet);
+     the backend records the resulting tracking number here. */
+  retakeKitTracking?: string | null;
+  /* Which impression the lab retake targets — see StatusUpdate.retakeArea. */
+  retakeArea?: RetakeArea | null;
   shippedAt: Timestamp | null;
   completedAt: Timestamp | null;
   createdAt: Timestamp;
@@ -272,12 +283,19 @@ export type SubmissionDraft = Pick<
   | "notes"
 >;
 
+/** The single impression area a retake targets. */
+export type RetakeArea = "upper" | "lower" | "bite";
+
 /** The admin's decision on a submission. */
 export interface StatusUpdate {
   status: SubmissionStatus;
   reviewedBy: string;
   reviewNotes?: string;
   trackingNumber?: string;
+  /* Which impression a `lab_retake` targets. Structured on purpose — the
+     patient UI names the arch and routes the retake, so it must not depend on
+     parsing the note's prose. */
+  retakeArea?: RetakeArea | null;
 }
 
 /** Query for the admin submissions list. */

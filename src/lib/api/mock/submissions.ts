@@ -361,6 +361,13 @@ export const mockSubmissions: SubmissionsApi = {
         row.trackingNumber = update.trackingNumber ?? row.trackingNumber;
         row.shippedAt = at;
       }
+      /* Lab retake: the replacement kit goes out manually via Shopify; the
+         backend records its tracking so the patient's blocker can show it. The
+         mock stands in with a plausible number the moment the status lands. */
+      if (update.status === "lab_retake" && !row.retakeKitTracking) {
+        row.retakeKitTracking = "1Z999AA10777813377";
+      }
+      if (update.retakeArea !== undefined) row.retakeArea = update.retakeArea;
       if (update.status === "completed") row.completedAt = at;
 
       /* Capture the move as a system message in the order's conversation, so

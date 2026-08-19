@@ -51,6 +51,14 @@ const POST_SUBMIT_STAGES = [
   "On its way to you",
 ];
 
+/** The single impression area a lab-retake note points at (mirrors My Order's
+ *  parser) — null when it names none or several. */
+function retakeAreaFromNotes(notes: string | null | undefined): "upper" | "lower" | "bite" | null {
+  const n = (notes ?? "").toLowerCase();
+  const hits = ["upper", "lower", "bite"].filter((a) => n.includes(a));
+  return hits.length === 1 ? (hits[0] as "upper" | "lower" | "bite") : null;
+}
+
 /* A row on the "Your Progress" timeline. `attention` is the red state a step
    drops into when the care team kicks it back for a resubmit. */
 type StageState = "done" | "current" | "upcoming" | "attention";
@@ -67,16 +75,20 @@ interface ProgressStep {
   /* A panel action that runs in-page (e.g. opening the label modal) instead of
      navigating. When set, the panel's primary renders as a button. */
   onAction?: (() => void) | null;
+  /* Shipment tracking shown in the panel — the replacement kit on a lab retake. */
+  tracking?: string | null;
 }
 
 /* Sample review notes for the ?preview= demo, used only when the real order has
    no notes of its own — so the branch-state UI can be shown without an admin
    flipping the status first. Mirrors the tone of the seeded admin queue. */
-const PREVIEW_NOTES: Record<"changes_requested" | "rejected", string> = {
+const PREVIEW_NOTES: Record<"changes_requested" | "rejected" | "lab_retake", string> = {
   changes_requested:
     "The open-bite side photo is too dark to read the gum line. Could you retake it near a window, with the light facing you rather than behind you?",
   rejected:
     "The photos show active gum inflammation. Please see a dentist in person before we fit anything.",
+  lab_retake:
+    "We received your impressions, but the upper impression didn't survive the trip in usable shape. A fresh kit is on its way — retake just your upper impression once it arrives.",
 };
 
 /* Routes for the "Start Here" actions. */
@@ -155,7 +167,7 @@ function Landing() {
      branch and approval UI can be demoed without an admin flipping the order. */
   const preview = searchParams.get("preview");
   const previewStatus =
-    preview === "changes_requested" || preview === "rejected" || preview === "approved"
+    preview === "changes_requested" || preview === "rejected" || preview === "approved" || preview === "lab_retake"
       ? preview
       : null;
   const status: SubmissionStatus | undefined = previewStatus ?? submission?.status;
@@ -165,7 +177,8 @@ function Landing() {
      thing we don't ask for again. */
   const changesRequested = status === "changes_requested";
   const rejected = status === "rejected";
-  const branched = changesRequested || rejected;
+  const labRetake = status === "lab_retake";
+  const branched = changesRequested || rejected || labRetake;
   const reviewNotes =
     submission?.reviewNotes ??
     (previewStatus && previewStatus !== "approved" ? PREVIEW_NOTES[previewStatus] : null);
@@ -182,7 +195,9 @@ function Landing() {
     steps.push({ label: "Intake complete", state: "done", action: { href: ROUTE_INTAKE, text: "Review" } });
   }
   if (impressionsComplete) {
-    if (changesRequested) {
+    if (labRetake) {
+      steps.push({ label: "Impression photos submitted", state: "done", action: null });
+    } else if (changesRequested) {
       steps.push({
         label: "Impression photos — resubmit needed",
         state: "attention",
@@ -210,6 +225,25 @@ function Landing() {
      customers who skip the approval email and come straight to the portal
      (Aug 18 session — "impressions approved, print return label, and then put
      everything back in the box"). */
+  /* Lab retake — the post-approval branch (Aug 18 session): impressions were
+     approved and physically received, then one didn't survive. Review stays
+     green; the stop is a new row after it, with the replacement-kit tracking
+     and a retake path that names just the arch the lab needs. */
+  if (labRetake) {
+    const area = submission?.retakeArea ?? retakeAreaFromNotes(reviewNotes) ?? (previewStatus === "lab_retake" ? "upper" : null);
+    steps.push({ label: "Impressions approved", state: "done", action: null });
+    steps.push({
+      label: area ? `Lab retake needed — ${area} impression` : "Lab retake needed",
+      state: "attention",
+      action: { href: `/impression-photos${area ? `?area=${area}` : ""}`, text: "Retake & resubmit" },
+      secondary: { href: "/messages", text: "Message the care team" },
+      note: reviewNotes,
+      tracking: submission?.retakeKitTracking ?? (previewStatus === "lab_retake" ? "1Z999AA10777813377" : null),
+    });
+    steps.push({ label: "In production", state: "upcoming", action: null });
+    steps.push({ label: "On its way to you", state: "upcoming", action: null });
+  }
+
   const approved = status === "approved";
   if (approved) {
     steps.push({
@@ -415,6 +449,16 @@ function Landing() {
                             data-tone={step.state === "attention" ? (rejected ? "rejected" : "changes") : "approved"}
                           >
                             {step.note && <p className={styles.stagePanelNote}>{step.note}</p>}
+                            {step.tracking && (
+                              <p className={styles.stagePanelTracking}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                  <path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z" />
+                                  <circle cx="7" cy="17" r="1.6" />
+                                  <circle cx="17.5" cy="17" r="1.6" />
+                                </svg>
+                                Replacement kit tracking&nbsp;<strong>{step.tracking}</strong>
+                              </p>
+                            )}
                             <div className={styles.stagePanelActions}>
                               {step.onAction ? (
                                 <button type="button" className={styles.stagePanelPrimary} onClick={step.onAction}>

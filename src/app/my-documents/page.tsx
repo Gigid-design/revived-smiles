@@ -35,6 +35,7 @@ const STATUS_LABELS: Record<SubmissionStatus, string> = {
   pending: "In review",
   in_review: "In review",
   approved: "Approved",
+  lab_retake: "Retake requested",
   changes_requested: "Needs changes",
   rejected: "Not approved",
   in_fabrication: "In fabrication",

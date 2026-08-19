@@ -19,6 +19,8 @@ export interface MacroAction {
   status: SubmissionStatus;
   /** A tag applied with the action, e.g. "impression approved". */
   tag?: string;
+  /** Which impression a lab retake targets — travels with the status update. */
+  retakeArea?: "upper" | "lower" | "bite";
 }
 
 /** A canned reply the admin can search for and apply. Some also carry an
@@ -98,6 +100,47 @@ const MACROS: Macro[] = [
       label: "Sets status to Changes requested · adds tag “resubmit bite”",
       status: "changes_requested",
       tag: "resubmit bite",
+    },
+  },
+  /* Lab retake — the post-approval branch (Aug 18 session). The impressions
+     were approved and physically received, then found unusable in the lab. A
+     fresh kit is dispatched manually via Shopify; the macro carries the news,
+     names the arch, and parks the order at `lab_retake` until the patient
+     resubmits. Nothing needs returning first. */
+  {
+    id: "lab-retake-upper",
+    name: "Lab retake: Upper impression",
+    tags: ["impression", "retake", "upper", "lab", "kit"],
+    body: "We received your impressions — thank you! Unfortunately the upper impression didn't survive the trip in usable shape, so we're sending you a fresh kit with new trays and material. Nothing to send back for now. Once the kit arrives, retake just your upper impression, photograph it, and resubmit. Your lower impression and everything else are safely on file.",
+    action: {
+      label: "Sets status to Lab retake · adds tag \u201clab retake upper\u201d",
+      status: "lab_retake",
+      tag: "lab retake upper",
+      retakeArea: "upper",
+    },
+  },
+  {
+    id: "lab-retake-lower",
+    name: "Lab retake: Lower impression",
+    tags: ["impression", "retake", "lower", "lab", "kit"],
+    body: "We received your impressions — thank you! Unfortunately the lower impression didn't survive the trip in usable shape, so we're sending you a fresh kit with new trays and material. Nothing to send back for now. Once the kit arrives, retake just your lower impression, photograph it, and resubmit. Your upper impression and everything else are safely on file.",
+    action: {
+      label: "Sets status to Lab retake · adds tag \u201clab retake lower\u201d",
+      status: "lab_retake",
+      tag: "lab retake lower",
+      retakeArea: "lower",
+    },
+  },
+  {
+    id: "lab-retake-bite",
+    name: "Lab retake: Bite impression",
+    tags: ["impression", "retake", "bite", "lab", "kit"],
+    body: "We received your impressions — thank you! We need a fresh bite registration to get your fit right, so we're sending you new bite material. Nothing to send back for now. Once it arrives, retake just your bite, photograph it, and resubmit. Both impressions and everything else are safely on file.",
+    action: {
+      label: "Sets status to Lab retake · adds tag \u201clab retake bite\u201d",
+      status: "lab_retake",
+      tag: "lab retake bite",
+      retakeArea: "bite",
     },
   },
   {

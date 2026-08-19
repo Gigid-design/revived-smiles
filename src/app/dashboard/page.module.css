@@ -411,6 +411,16 @@
   color: #4a4f5c;
 }
 
+.stagePanelTracking {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.75em;
+  color: #7c5a2b;
+}
+.stagePanelTracking strong { font-weight: 700; letter-spacing: 0.01em; }
+
 .stagePanelActions {
   display: flex;
   flex-wrap: wrap;

@@ -67,6 +67,9 @@ const STAGES_COMPLETE: Record<SubmissionStatus, number> = {
   changes_requested: 4,
   rejected: 4,
   approved: 5,
+  /* Retake found at the lab: review stayed complete — the stop sits past it,
+     on the production slot that can't start until the fresh impression lands. */
+  lab_retake: 6,
   in_fabrication: 6,
   shipped: 7,
   completed: 8,
@@ -114,6 +117,7 @@ const ORDER_STATUS_COPY: Record<SubmissionStatus, string> = {
   pending: "In review",
   in_review: "In review",
   changes_requested: "Action needed",
+  lab_retake: "Action needed",
   rejected: "Declined",
   approved: "Review completed",
   in_fabrication: "In production",
@@ -170,17 +174,18 @@ export default function MyOrder() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  /* Demo affordance: lets the tracker be viewed in its delivered state (and the
-     Care Guide link that only appears then) without an admin advancing the
-     order. Set via `?preview=delivered`. */
-  const [forceDelivered, setForceDelivered] = useState(false);
+  /* Demo affordance: lets the tracker be viewed in a state an admin would
+     otherwise have to set up — `?preview=delivered` or `?preview=lab_retake`. */
+  const [forceStatus, setForceStatus] = useState<SubmissionStatus | null>(null);
 
   const headRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const preview = params.get("preview");
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reading URL params on mount
-    if (params.get("preview") === "delivered") setForceDelivered(true);
+    if (preview === "delivered") setForceStatus("completed");
+    else if (preview === "lab_retake") setForceStatus("lab_retake");
   }, []);
 
   useEffect(() => {
@@ -232,13 +237,26 @@ export default function MyOrder() {
   }, [menuOpen]);
 
   const effectiveStatus: SubmissionStatus | undefined = order
-    ? (forceDelivered ? "completed" : order.status)
+    ? (forceStatus ?? order.status)
     : undefined;
   const stagesComplete = effectiveStatus ? STAGES_COMPLETE[effectiveStatus] : 0;
   /* A partial-resubmission request blocks the order at the review stage. When
      the note names a single area, the retake can target just that impression. */
   const isBlocked = effectiveStatus === "changes_requested";
-  const resubmitArea = isBlocked ? resubmitAreaFromNotes(order?.reviewNotes) : null;
+  /* Lab retake: the impressions came back physically and one didn't survive —
+     the stop sits past Review completed, a new kit is on its way, and nothing
+     needs returning first (Aug 18 session). Kit dispatch stays manual in
+     Shopify; the portal shows the message, the tracking, and the retake path. */
+  const isLabRetake = effectiveStatus === "lab_retake";
+  const resubmitArea =
+    isBlocked || isLabRetake
+      ? (order?.retakeArea ??
+          resubmitAreaFromNotes(order?.reviewNotes) ??
+          (forceStatus === "lab_retake" ? ("upper" as const) : null))
+      : null;
+  const retakeKitTracking = isLabRetake
+    ? (order?.retakeKitTracking ?? (forceStatus === "lab_retake" ? "1Z999AA10777813377" : null))
+    : null;
 
   /* The primary action only opens once the care team's review is complete —
      i.e. the "Review completed" stage has been cleared. */
@@ -393,7 +411,7 @@ export default function MyOrder() {
                 /* A partial-resubmission request is a red stop AT the current
                    stage — not a reset to the top — so the patient sees exactly
                    what's blocking without thinking they've lost their progress. */
-                const isBlocker = isBlocked && isCurrent;
+                const isBlocker = (isBlocked || isLabRetake) && isCurrent;
                 /* Colour each cleared dot with the gradient at its point on the
                    rail, so the circles and the bar read as one. */
                 const dotColor = done && !isBlocker
@@ -410,7 +428,13 @@ export default function MyOrder() {
                       style={dotColor ? { background: dotColor, borderColor: dotColor } : undefined}
                     />
                     <span className={styles.stageLabel}>
-                      {isBlocker ? "Action needed — resubmit for approval" : label}
+                      {isBlocker
+                        ? isLabRetake
+                          ? resubmitArea
+                            ? `Action needed — retake your ${resubmitArea} impression`
+                            : "Action needed — retake & resubmit"
+                          : "Action needed — resubmit for approval"
+                        : label}
                     </span>
                   </li>
                 );
@@ -420,28 +444,44 @@ export default function MyOrder() {
             {/* Resubmission blocker — the targeted action item. Shows what the
                 lab needs and routes straight to a retake, rather than sending
                 the patient back to the start of the impression flow. */}
-            {isBlocked && (
+            {(isBlocked || isLabRetake) && (
               <div className={styles.blockerCard}>
                 <div className={styles.blockerHead}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <circle cx="12" cy="12" r="9" />
                     <path d="M12 8v4M12 16h.01" />
                   </svg>
-                  Action needed
+                  {isLabRetake ? "New kit on the way" : "Action needed"}
                 </div>
                 <p className={styles.blockerText}>
-                  {resubmitArea ? (
+                  {isLabRetake ? (
+                    resubmitArea ? (
+                      <>We received your impressions, but your <strong>{resubmitArea}</strong> impression needs a retake. We&apos;re sending you a fresh kit — nothing to send back for now. Once it arrives, retake just that impression and resubmit. Everything else is safely on file.</>
+                    ) : (
+                      <>We received your impressions, but one needs a retake. We&apos;re sending you a fresh kit — nothing to send back for now. Once it arrives, retake and resubmit. Everything else is safely on file.</>
+                    )
+                  ) : resubmitArea ? (
                     <>Your care team needs a quick retake of your <strong>{resubmitArea}</strong> impression to perfect your fit. The rest is on file.</>
                   ) : (
                     <>Your care team needs a quick retake to perfect your fit. See the details and resubmit when you&apos;re ready.</>
                   )}
                 </p>
+                {retakeKitTracking && (
+                  <p className={styles.blockerTracking}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z" />
+                      <circle cx="7" cy="17" r="1.6" />
+                      <circle cx="17.5" cy="17" r="1.6" />
+                    </svg>
+                    Replacement kit tracking&nbsp;<strong>{retakeKitTracking}</strong>
+                  </p>
+                )}
                 <div className={styles.blockerActions}>
                   <Link
                     href={`/impression-photos${resubmitArea ? `?area=${resubmitArea}` : ""}`}
                     className={styles.blockerBtn}
                   >
-                    Resubmit impression
+                    {isLabRetake ? "Retake & resubmit" : "Resubmit impression"}
                   </Link>
                   <Link href="/messages" className={styles.blockerLink}>View details</Link>
                 </div>

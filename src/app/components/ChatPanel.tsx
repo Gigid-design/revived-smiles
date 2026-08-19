@@ -143,6 +143,7 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
       reviewedBy: currentName,
       /* `changes_requested` / `rejected` require a note — the macro body is it. */
       ...(requiresReviewNotes(macro.action.status) ? { reviewNotes: macro.body } : {}),
+      ...(macro.action.retakeArea ? { retakeArea: macro.action.retakeArea } : {}),
     });
     await sendMessage(macro.body);
   }
