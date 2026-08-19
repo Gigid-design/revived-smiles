@@ -1,7 +1,7 @@
 # Design To-Do — from Working Session Aug 18, 2026 (Meeting 9)
 
 Audited against the current build (commit `9704909`) on 2026-08-18.
-Items 1–4 completed (`1086974`–`5d05124`) and live on the demo (`?preview=approved` shows #3, `?preview=lab_retake` shows #4).
+All six do-now items completed (`1086974`–`cbbce68`) and live on the demo (`?preview=approved` shows #3, `?preview=lab_retake` shows #4; #5/#6 are on the chat rail — open any conversation).
 Legend: ✅ Done · ⚠️ Partial · ❌ Not started · 🕐 Waiting on someone · ⚠️Nathan = developer flagged scope/complexity concern
 Live demo: https://revived-smiles-5ncq.vercel.app
 
@@ -26,6 +26,7 @@ show a state without an admin flipping the order.
 | #4 — lab retake: customer dashboard (green run → amber stop, kit tracking) | https://revived-smiles-5ncq.vercel.app/dashboard?preview=lab_retake |
 | #4 — lab retake: My Order tracker (stop past Review completed) | https://revived-smiles-5ncq.vercel.app/my-order?preview=lab_retake |
 | #4 — lab retake: admin macros (open a conversation, type `Lab retake`) | https://revived-smiles-5ncq.vercel.app/admin/chat |
+| #5 — shipping address on the Customer card · #6 — "Approved by / Sent back by" under the actions (approve one to see it) | https://revived-smiles-5ncq.vercel.app/admin/chat |
 
 **Branch states (Meeting-8/9 work, for context)**
 
@@ -70,10 +71,10 @@ show a state without an admin flipping the order.
   **Current build:** DONE (`5d05124`) — `lab_retake` status with structured arch + kit tracking; three admin macros; admin tracker holds at Approved; customer tracker stops past Review completed; no resend button, per Nathan's constraint.
   **⚠️Nathan:** the Shopify **write** (auto-sending the replacement kit from the portal) is added scope + testing risk — "I don't want the system to go nuts and send somebody 20 orders." Agreed short-term: kit dispatch stays **manual** in Shopify. So the design shows messaging + blocker only — **no "resend kit" button**.
 
-- [ ] **5. Shipping address in the admin chat rail (Customer card).** _(≈4:00–5:21)_
+- [x] **5. Shipping address in the admin chat rail (Customer card).** _(≈4:00–5:21)_
   **Why:** Gitai wants the customer's address visible in the portal and synced with Shopify — "all in one place and no confusion," a mismatched address "is going to cost something." Nathan confirmed it comes from the Shopify order sync; design the slot now with mock data.
 
-- [ ] **6. Reviewer attribution on approvals too.** _(≈26:40)_
+- [x] **6. Reviewer attribution on approvals too.** _(≈26:40)_
   **Why:** Gitai: "mark who rejected and who approved specific impressions… so we can keep that traceability."
   **Current build:** rejection card already shows reviewer + date (`rejectReasonMeta`); extend the same treatment to approvals.
 
