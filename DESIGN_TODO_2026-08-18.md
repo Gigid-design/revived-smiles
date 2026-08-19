@@ -1,6 +1,7 @@
 # Design To-Do — from Working Session Aug 18, 2026 (Meeting 9)
 
 Audited against the current build (commit `9704909`) on 2026-08-18.
+Items 1–3 completed in `1086974`–`2aaf00e` and live on the demo (`?preview=approved` shows #3).
 Legend: ✅ Done · ⚠️ Partial · ❌ Not started · 🕐 Waiting on someone · ⚠️Nathan = developer flagged scope/complexity concern
 Live demo: https://revived-smiles-5ncq.vercel.app
 
@@ -11,14 +12,14 @@ My explicit commitments on the call: the **retake-flow visual for Nathan** (#4) 
 
 ## Do now — nothing blocking these
 
-- [ ] **1. Remove "Open full record →" from the chat rail.** _(≈2:03–3:55)_ — `src/app/admin/chat/page.tsx:894`
+- [x] **1. Remove "Open full record →" from the chat rail.** _(≈2:03–3:55)_ — `src/app/admin/chat/page.tsx:894`
   **Why:** Gitai: support won't use it — "there's more than enough information on the sidebar to approve or disapprove." Nathan's caveat: keeping it would mean revising the whole submissions detail view, so removal also kills that scope. I agreed on the call: "let's take that out."
 
-- [ ] **2. Remove "Return or cancel order" from My Order — entirely.** _(≈19:03–20:07)_ — `src/app/my-order/page.tsx:552`
+- [x] **2. Remove "Return or cancel order" from My Order — entirely.** _(≈19:03–20:07)_ — `src/app/my-order/page.tsx:552`
   **Why:** Gitai: returns/cancels should go through customer service only — "make as much friction as possible in that flow… honestly remove that entirely." He worried people would self-return before impression approval.
   **Note:** this reverses his own Meeting-8 ask (self-serve return labels, commit `1973af3`). Aug 18 decision wins.
 
-- [ ] **3. "Impressions approved — print return label" on the customer progress list.** _(≈20:49–22:08)_ — dashboard, `src/app/dashboard/page.tsx`
+- [x] **3. "Impressions approved — print return label" on the customer progress list.** _(≈20:49–22:08)_ — dashboard, `src/app/dashboard/page.tsx`
   **Why:** If the customer ignores the approval email and comes straight to the portal, there is currently nowhere to get the return label. Gitai's wording: "intake complete, impression photos complete, and then right under it, impressions approved, print return label" + a brief pack-everything-back instruction.
   **I committed to this on the call:** "I will work that design into as another flow for Nathan."
 
