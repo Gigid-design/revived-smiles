@@ -1,7 +1,7 @@
 # Design To-Do — from Working Session Aug 18, 2026 (Meeting 9)
 
 Audited against the current build (commit `9704909`) on 2026-08-18.
-Items 1–3 completed in `1086974`–`2aaf00e` and live on the demo (`?preview=approved` shows #3).
+Items 1–4 completed (`1086974`–`5d05124`) and live on the demo (`?preview=approved` shows #3, `?preview=lab_retake` shows #4).
 Legend: ✅ Done · ⚠️ Partial · ❌ Not started · 🕐 Waiting on someone · ⚠️Nathan = developer flagged scope/complexity concern
 Live demo: https://revived-smiles-5ncq.vercel.app
 
@@ -23,6 +23,9 @@ show a state without an admin flipping the order.
 | #1 — chat rail, no "Open full record" (open any conversation) | https://revived-smiles-5ncq.vercel.app/admin/chat |
 | #2 — My Order, return/cancel gone | https://revived-smiles-5ncq.vercel.app/my-order |
 | #3 — approved step + Print return label | https://revived-smiles-5ncq.vercel.app/dashboard?preview=approved |
+| #4 — lab retake: customer dashboard (green run → amber stop, kit tracking) | https://revived-smiles-5ncq.vercel.app/dashboard?preview=lab_retake |
+| #4 — lab retake: My Order tracker (stop past Review completed) | https://revived-smiles-5ncq.vercel.app/my-order?preview=lab_retake |
+| #4 — lab retake: admin macros (open a conversation, type `Lab retake`) | https://revived-smiles-5ncq.vercel.app/admin/chat |
 
 **Branch states (Meeting-8/9 work, for context)**
 
@@ -58,13 +61,13 @@ show a state without an admin flipping the order.
   **Why:** If the customer ignores the approval email and comes straight to the portal, there is currently nowhere to get the return label. Gitai's wording: "intake complete, impression photos complete, and then right under it, impressions approved, print return label" + a brief pack-everything-back instruction.
   **I committed to this on the call:** "I will work that design into as another flow for Nathan."
 
-- [ ] **4. Post-lab retake flow — the visual Nathan asked me for.** _(≈6:03–12:57)_ — my #1 deliverable
+- [x] **4. Post-lab retake flow — the visual Nathan asked me for.** _(≈6:03–12:57)_ — my #1 deliverable
   **Why:** Different scenario from the existing review-stage blocker. Here the impressions were already **approved and physically received in the lab**, then found bad. We send THEM a new kit (customer returns nothing first). Flow must show, **past the approval stage**:
   - a stop/blocker in the progress bar ("we're sending you another kit")
   - which arch we need retaken (upper / lower / bite)
   - tracking for the replacement kit
   - retake → resubmit photos → re-approval, without restarting the journey
-  **Current build:** blocker + arch-aware macros exist but sit at the *review* stage — needs a second variant positioned after "Review completed."
+  **Current build:** DONE (`5d05124`) — `lab_retake` status with structured arch + kit tracking; three admin macros; admin tracker holds at Approved; customer tracker stops past Review completed; no resend button, per Nathan's constraint.
   **⚠️Nathan:** the Shopify **write** (auto-sending the replacement kit from the portal) is added scope + testing risk — "I don't want the system to go nuts and send somebody 20 orders." Agreed short-term: kit dispatch stays **manual** in Shopify. So the design shows messaging + blocker only — **no "resend kit" button**.
 
 - [ ] **5. Shipping address in the admin chat rail (Customer card).** _(≈4:00–5:21)_
