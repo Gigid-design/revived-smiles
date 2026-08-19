@@ -889,10 +889,6 @@ export default function AdminChatPage() {
                   </div>
                 )}
               </section>
-
-              <a href={`/admin/submissions/${sub.id}?from=chat`} className={styles.orderLink}>
-                Open full record →
-              </a>
             </div>
           </aside>
           );

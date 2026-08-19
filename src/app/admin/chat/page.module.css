@@ -716,19 +716,6 @@
   margin: 0.5rem 0 0;
 }
 
-.orderLink {
-  display: inline-block;
-  margin-top: 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--admin-primary);
-  text-decoration: none;
-}
-
-.orderLink:hover {
-  text-decoration: underline;
-}
-
 /* ── Stage tracker (top of the rail) ──
    Grey track + a completed fill drawn as the one brand ramp (yellow→blue→navy),
    the same gradient the submission stepper and customer fulfilment tracker use.
