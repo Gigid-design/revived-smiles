@@ -704,6 +704,21 @@ export default function AdminChatPage() {
                     )}
                   </div>
                 )}
+
+                {/* Who made the call — on every reviewed state, not just
+                    rejections (Aug 18 session: "mark who rejected and who
+                    approved… so we can keep that traceability"). */}
+                {["approved", "in_fabrication", "shipped", "completed", "changes_requested", "lab_retake"].includes(status) && sub.reviewedBy && sub.reviewedAt && (
+                  <p className={styles.decisionMeta}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    {status === "changes_requested" || status === "lab_retake"
+                      ? "Sent back by"
+                      : "Approved by"} <strong>{sub.reviewedBy}</strong> · {formatDate(sub.reviewedAt)}
+                  </p>
+                )}
               </section>
 
               {/* Customer */}
@@ -720,7 +735,19 @@ export default function AdminChatPage() {
                 </div>
                 <dl className={styles.metaList}>
                   <div className={styles.metaRow}><dt>Total spent</dt><dd>{formatUsd(productsSubtotalCents(sub.products ?? []))}</dd></div>
-                  <div className={styles.metaRow}><dt>State</dt><dd>{sub.state || "—"}</dd></div>
+                  {/* Mirrored from the Shopify order; read-only here so there is
+                      exactly one address of record (Aug 18 session). */}
+                  {sub.shippingAddress ? (
+                    <div className={styles.metaRow}>
+                      <dt>Shipping address</dt>
+                      <dd className={styles.addressLines}>
+                        <span>{sub.shippingAddress.line1}{sub.shippingAddress.line2 ? `, ${sub.shippingAddress.line2}` : ""}</span>
+                        <span>{sub.shippingAddress.city}, {sub.shippingAddress.state} {sub.shippingAddress.postalCode}</span>
+                      </dd>
+                    </div>
+                  ) : (
+                    <div className={styles.metaRow}><dt>State</dt><dd>{sub.state || "—"}</dd></div>
+                  )}
                   <div className={styles.metaRow}><dt>Created at</dt><dd>{formatDate(sub.createdAt)}</dd></div>
                 </dl>
               </section>

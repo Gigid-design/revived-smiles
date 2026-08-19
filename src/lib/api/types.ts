@@ -250,6 +250,11 @@ export interface Submission {
   retakeKitTracking?: string | null;
   /* Which impression the lab retake targets — see StatusUpdate.retakeArea. */
   retakeArea?: RetakeArea | null;
+  /* The order's shipping address, mirrored from the Shopify order and kept in
+     sync by the order-update webhook (Aug 18 session — "if we change the
+     address on the Shopify order, it changes here as well"). Read-only in the
+     portal: Shopify stays the system of record. */
+  shippingAddress?: BillingAddress | null;
   shippedAt: Timestamp | null;
   completedAt: Timestamp | null;
   createdAt: Timestamp;

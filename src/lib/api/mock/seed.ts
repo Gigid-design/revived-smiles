@@ -113,6 +113,40 @@ function daysAgo(n: number): string {
 }
 
 /** A submission with sensible empty defaults, so seeds stay readable. */
+/* A believable street address for a seeded patient — the rail's Customer card
+   mirrors the Shopify shipping address, so every row needs one. Deterministic
+   (hashed from the email) so reloads don't reshuffle the demo. */
+const SEED_CITIES: Record<string, { city: string; zip: string; abbr: string }> = {
+  California: { city: "San Diego", zip: "92103", abbr: "CA" },
+  Texas: { city: "Austin", zip: "78704", abbr: "TX" },
+  "New Jersey": { city: "Montclair", zip: "07042", abbr: "NJ" },
+  Florida: { city: "Sarasota", zip: "34236", abbr: "FL" },
+  Illinois: { city: "Evanston", zip: "60201", abbr: "IL" },
+  Oregon: { city: "Portland", zip: "97214", abbr: "OR" },
+  Maine: { city: "Portland", zip: "04101", abbr: "ME" },
+  Nevada: { city: "Reno", zip: "89509", abbr: "NV" },
+  "New York": { city: "Albany", zip: "12203", abbr: "NY" },
+  Washington: { city: "Spokane", zip: "99201", abbr: "WA" },
+  "North Carolina": { city: "Durham", zip: "27701", abbr: "NC" },
+  Pennsylvania: { city: "Pittsburgh", zip: "15217", abbr: "PA" },
+};
+const SEED_STREETS = ["Maple Ave", "Oakwood Dr", "Cedar Ln", "Willow Ct", "Birchwood Rd", "Juniper St"];
+
+function seedAddress(email: string, state: string | null): BillingAddress | null {
+  if (!state) return null;
+  const loc = SEED_CITIES[state] ?? { city: "Springfield", zip: "00000", abbr: state.slice(0, 2).toUpperCase() };
+  let h = 0;
+  for (const ch of email) h = (h * 31 + ch.charCodeAt(0)) % 9973;
+  return {
+    line1: `${100 + (h % 899)} ${SEED_STREETS[h % SEED_STREETS.length]}`,
+    line2: "",
+    city: loc.city,
+    state: loc.abbr,
+    postalCode: loc.zip,
+    country: "US",
+  };
+}
+
 function submission(partial: Partial<Submission> & Pick<Submission, "id" | "email">): Submission {
   return {
     userId: null,
@@ -138,6 +172,16 @@ function submission(partial: Partial<Submission> & Pick<Submission, "id" | "emai
     createdAt: daysAgo(1),
     ...partial,
   };
+}
+
+/** The builder above, plus a synthesized Shopify-style shipping address when
+    the row doesn't carry its own. */
+function submissionWithAddress(partial: Partial<Submission> & Pick<Submission, "id" | "email">): Submission {
+  const row = submission(partial);
+  if (row.shippingAddress === undefined) {
+    row.shippingAddress = seedAddress(row.email, row.state);
+  }
+  return row;
 }
 
 /* ------------------------------------------------------------------ */
@@ -184,7 +228,7 @@ const QUEUE: Array<{
 
 function buildQueue(): Submission[] {
   return QUEUE.map((row, i) =>
-    submission({
+    submissionWithAddress({
       id: `sub-${String(i + 2).padStart(3, "0")}`,
       email: row.email,
       name: row.name,
@@ -736,7 +780,7 @@ function buildAdjustmentRequests(): AdjustmentRequest[] {
 }
 
 export function buildSeed(): MockDb {
-  const demo = submission({
+  const demo = submissionWithAddress({
     id: DEMO_SUBMISSION_ID,
     userId: DEMO_PATIENT.id,
     email: DEMO_PATIENT.email,
@@ -766,7 +810,7 @@ export function buildSeed(): MockDb {
   /* A second, earlier order for the same patient, so My Orders has more than
      one to switch between. Kept older than `demo` so `getMine` (newest) — and
      therefore the dashboard — still resolves to the in-progress order. */
-  const demoPast = submission({
+  const demoPast = submissionWithAddress({
     id: "demo-2",
     userId: DEMO_PATIENT.id,
     email: DEMO_PATIENT.email,
@@ -795,7 +839,7 @@ export function buildSeed(): MockDb {
   /* A third order sitting at "Review completed" — the care team has approved
      it, so the tracker rests on that stage and the "View order" CTA is active.
      Older than `demo`, so `getMine`/the dashboard are unaffected. */
-  const demoReview = submission({
+  const demoReview = submissionWithAddress({
     id: "demo-3",
     userId: DEMO_PATIENT.id,
     email: DEMO_PATIENT.email,
