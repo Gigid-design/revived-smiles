@@ -159,13 +159,15 @@ function Landing() {
     };
   }, []);
 
-  const intake = submission
-    ? intakeProgress(submission)
-    : { done: 0, total: 1, teethPhotosDone: false };
-
-  /* `?preview=changes_requested|rejected|approved` overlays a status so the
-     branch and approval UI can be demoed without an admin flipping the order. */
+  /* `?preview=changes_requested|rejected|approved|lab_retake` overlays a status
+     so the branch and approval UI can be demoed without an admin flipping the
+     order; `?preview=new` shows the untouched first visit — nothing started. */
   const preview = searchParams.get("preview");
+  const previewNew = preview === "new";
+
+  const intake = submission && !previewNew
+    ? intakeProgress(submission)
+    : { done: 0, total: submission ? intakeProgress(submission).total : 1, teethPhotosDone: false };
   const previewStatus =
     preview === "changes_requested" || preview === "rejected" || preview === "approved" || preview === "lab_retake"
       ? preview
@@ -186,7 +188,7 @@ function Landing() {
   /* A branch status only happens after the order was fully submitted, so both
      prior steps read as complete (intake green, impressions red-for-resubmit). */
   const intakeComplete = branched || intake.teethPhotosDone;
-  const impressionsComplete = branched || (submission?.impressionPhotos?.length ?? 0) > 0;
+  const impressionsComplete = !previewNew && (branched || (submission?.impressionPhotos?.length ?? 0) > 0);
   const onTrack = intakeComplete && impressionsComplete && !branched;
   const showTimeline = intakeComplete || impressionsComplete;
 
