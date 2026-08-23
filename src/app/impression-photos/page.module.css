@@ -487,3 +487,34 @@
   color: #ffffff;
   cursor: pointer;
 }
+
+/* ── Targeted retake: slots the lab already has are shown, not editable ── */
+.photoCardLocked {
+  cursor: default;
+  opacity: 0.72;
+  border-style: dashed;
+}
+.lockedChip {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  background: #e2f6ec;
+  color: #1f6b46;
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+.onFileTag {
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  background: #e2f6ec;
+  color: #1f6b46;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: middle;
+}
+.biteAckLocked { opacity: 0.8; cursor: default; }

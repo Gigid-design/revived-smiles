@@ -60,9 +60,22 @@ export default function ImpressionPhotos() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const uploadedCount = Object.keys(photos).length;
-  const totalPhotos = SLOTS.length;
-  const pct = Math.round((uploadedCount / totalPhotos) * 100);
+  /* A targeted retake locks the slots the lab already has, so the patient
+     uploads only what's needed (Aug 21 client review). Upper → lower slots
+     lock (and vice-versa); a bite retake locks all four photo slots. */
+  const isLocked = (slotId: number) =>
+    resubmitArea === "bite" ? true
+      : resubmitArea === "upper" ? slotId >= 3
+        : resubmitArea === "lower" ? slotId <= 2
+          : false;
+  const requiredSlots = SLOTS.filter((sl) => !isLocked(sl.id));
+  const uploadedCount = requiredSlots.filter((sl) => photos[sl.id]).length;
+  const totalPhotos = requiredSlots.length;
+  const pct = totalPhotos ? Math.round((uploadedCount / totalPhotos) * 100) : 100;
+  /* Bite is already on file unless the bite itself is being retaken. */
+  const biteNeeded = !resubmitArea || resubmitArea === "bite";
+  const biteSatisfied = biteNeeded ? biteAck : true;
+  const ready = uploadedCount >= totalPhotos && biteSatisfied && !submitting;
 
   async function handleFileChange(id: number, file: File | undefined) {
     if (!file) return;
@@ -109,7 +122,7 @@ export default function ImpressionPhotos() {
   }
 
   async function handleSubmit() {
-    if (uploadedCount < 4 || !biteAck || submitting) return;
+    if (!ready) return;
 
     setSubmitting(true);
 
@@ -224,9 +237,24 @@ export default function ImpressionPhotos() {
         </div>
 
         {/* Upper Arch */}
-        <p className={styles.sectionLabel}>Upper Arch</p>
+        <p className={styles.sectionLabel}>
+          Upper Arch{isLocked(1) && <span className={styles.onFileTag}>Already on file</span>}
+        </p>
         <div className={styles.photoGrid}>
           {SLOTS.slice(0, 2).map(slot => (
+            isLocked(slot.id) ? (
+              <div key={slot.id} className={`${styles.photoCard} ${styles.photoCardLocked}`} aria-label={`${slot.label} — already on file`}>
+                {photos[slot.id] ? (
+                  <img src={photos[slot.id].preview} alt={slot.label} className={styles.uploadedPhoto} />
+                ) : (
+                  <div className={styles.photoCardInner}>
+                    <Image src={`/assets/images/${slot.tray}`} alt="" width={44} height={50} className={styles.trayImg}
+                      style={slot.flip ? { transform: "scaleX(-1)" } : undefined} unoptimized />
+                  </div>
+                )}
+                <span className={styles.lockedChip}>On file ✓</span>
+              </div>
+            ) : (
             <button
               key={slot.id}
               className={`${styles.photoCard} ${photos[slot.id] ? styles.photoCardFilled : ""}`}
@@ -271,13 +299,29 @@ export default function ImpressionPhotos() {
                 onChange={e => handleFileChange(slot.id, e.target.files?.[0])}
               />
             </button>
+            )
           ))}
         </div>
 
         {/* Lower Arch */}
-        <p className={styles.sectionLabel}>Lower Arch</p>
+        <p className={styles.sectionLabel}>
+          Lower Arch{isLocked(3) && <span className={styles.onFileTag}>Already on file</span>}
+        </p>
         <div className={styles.photoGrid}>
           {SLOTS.slice(2, 4).map(slot => (
+            isLocked(slot.id) ? (
+              <div key={slot.id} className={`${styles.photoCard} ${styles.photoCardLocked}`} aria-label={`${slot.label} — already on file`}>
+                {photos[slot.id] ? (
+                  <img src={photos[slot.id].preview} alt={slot.label} className={styles.uploadedPhoto} />
+                ) : (
+                  <div className={styles.photoCardInner}>
+                    <Image src={`/assets/images/${slot.tray}`} alt="" width={44} height={50} className={styles.trayImg}
+                      style={slot.flip ? { transform: "scaleX(-1)" } : undefined} unoptimized />
+                  </div>
+                )}
+                <span className={styles.lockedChip}>On file ✓</span>
+              </div>
+            ) : (
             <button
               key={slot.id}
               className={`${styles.photoCard} ${photos[slot.id] ? styles.photoCardFilled : ""}`}
@@ -322,13 +366,26 @@ export default function ImpressionPhotos() {
                 onChange={e => handleFileChange(slot.id, e.target.files?.[0])}
               />
             </button>
+            )
           ))}
         </div>
 
         {/* Bite Registration — acknowledgment only (no photo). Gitai needs the
             customer to confirm they completed the bite with the purple putty;
             a bite is hard to verify from a photo, so this is a checkbox, not an upload. */}
-        <p className={styles.sectionLabel}>Bite Registration</p>
+        <p className={styles.sectionLabel}>
+          Bite Registration{!biteNeeded && <span className={styles.onFileTag}>Already on file</span>}
+        </p>
+        {!biteNeeded ? (
+          <div className={`${styles.biteAck} ${styles.biteAckChecked} ${styles.biteAckLocked}`}>
+            <span className={styles.biteCheckboxBox} aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M2.5 6.2L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <span className={styles.biteAckText}>Your bite registration is already on file — nothing to redo here.</span>
+          </div>
+        ) : (
         <label className={`${styles.biteAck} ${biteAck ? styles.biteAckChecked : ""}`}>
           <input
             type="checkbox"
@@ -346,6 +403,7 @@ export default function ImpressionPhotos() {
             <span className={styles.putty}>purple putty</span> included in my kit.
           </span>
         </label>
+        )}
 
       </div>
 
@@ -353,8 +411,8 @@ export default function ImpressionPhotos() {
       <div className={styles.btnWrapper}>
         <button
           type="button"
-          className={`${styles.btn} ${uploadedCount === 4 && biteAck && !submitting ? styles.btnActive : ""}`}
-          disabled={uploadedCount < 4 || !biteAck || submitting}
+          className={`${styles.btn} ${ready ? styles.btnActive : ""}`}
+          disabled={!ready}
           onClick={handleSubmit}
         >
           {submitting ? "SUBMITTING…" : "CONTINUE"}
