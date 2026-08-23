@@ -47,7 +47,7 @@ export const mockMessages: MessagesApi = {
     return clone(message);
   },
 
-  async sendRequest(submissionId, kind: RequestKind, detail, note, senderName) {
+  async sendRequest(submissionId, kind: RequestKind, detail, note, senderName, photos) {
     await delay();
 
     /* The headline reads as a sentence on its own, so the message still makes
@@ -60,7 +60,7 @@ export const mockMessages: MessagesApi = {
       senderRole: "patient",
       senderName,
       body: trimmedNote ? `${headline}\n\n${trimmedNote}` : headline,
-      request: { kind, detail, status: "pending", outcome: null, trackingNumber: null },
+      request: { kind, detail, status: "pending", outcome: null, trackingNumber: null, ...(photos?.length ? { photos } : {}) },
     });
 
     mutate((db) => {

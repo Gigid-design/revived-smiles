@@ -213,7 +213,7 @@ export interface PhotosApi {
    * A stand-in image, for demo builds with no camera or filesystem.
    * Only meaningful when `usesStandInPhotos` is true.
    */
-  standInPhoto(kind: PhotoType | "impression"): Promise<StoredPhoto>;
+  standInPhoto(kind: PhotoType | "impression" | "issue"): Promise<StoredPhoto>;
 
   /**
    * Grades a captured photo against the active prompt for that pose.
@@ -226,7 +226,7 @@ export interface PhotosApi {
   analyze(image: string, photoType: PhotoType): Promise<PhotoAnalysis>;
 
   /** Stores an image and returns its retrievable URL. */
-  upload(file: Blob, kind: "close-bite" | "open-bite" | "impression"): Promise<StoredPhoto>;
+  upload(file: Blob, kind: "close-bite" | "open-bite" | "impression" | "issue"): Promise<StoredPhoto>;
 
   /**
    * Saves one graded pose onto a submission — the photo URL into its slot and
@@ -288,6 +288,8 @@ export interface MessagesApi {
     detail: string,
     note: string,
     senderName: string,
+    /** Evidence photos — the damaged-shipment report requires at least one. */
+    photos?: string[],
   ): Promise<ChatMessage>;
 
   /**

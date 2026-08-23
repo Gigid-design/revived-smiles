@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 import styles from "./WrongOrderSheet.module.css";
@@ -21,7 +22,7 @@ interface ReportIssueSheetProps {
   orderId: string;
   onClose: () => void;
   /** Files a not-received / damaged report with the care team. */
-  onReport: (kind: "not-received" | "damaged", note: string) => Promise<void>;
+  onReport: (kind: "not-received" | "damaged", note: string, photos?: string[]) => Promise<void>;
 }
 
 /**
@@ -37,6 +38,10 @@ export function ReportIssueSheet({ open, orderId, onClose, onReport }: ReportIss
   const [note, setNote] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Damaged-shipment reports must carry a photo of the damage (Aug 21 client
+     review) — the team can't action "it arrived damaged" without seeing it. */
+  const [photo, setPhoto] = useState<{ url: string; preview: string } | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const close = useCallback(() => {
     setChoice(null);
@@ -63,8 +68,28 @@ export function ReportIssueSheet({ open, orderId, onClose, onReport }: ReportIss
   if (!open || typeof document === "undefined") return null;
 
   const needsNote = choice === "not-received" || choice === "damaged";
-  /* The report options need an explanation; the adjustment option just links on. */
-  const valid = choice === "adjustment" || (needsNote && note.trim().length > 0);
+  const needsPhoto = choice === "damaged";
+  /* The report options need an explanation; damage also needs a photo; the
+     adjustment option just links on. */
+  const valid =
+    choice === "adjustment" ||
+    (needsNote && note.trim().length > 0 && (!needsPhoto || !!photo));
+
+  async function attachPhoto(file?: File) {
+    setUploading(true);
+    setError(null);
+    try {
+      const stored = api.photos.usesStandInPhotos || !file
+        ? await api.photos.standInPhoto("issue")
+        : await api.photos.upload(file, "issue");
+      setPhoto({ url: stored.url, preview: file ? URL.createObjectURL(file) : stored.url });
+    } catch (err) {
+      console.error("Could not attach the photo:", err);
+      setError("We couldn't attach that photo. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function submit() {
     if (!valid || sending || !choice) return;
@@ -76,7 +101,7 @@ export function ReportIssueSheet({ open, orderId, onClose, onReport }: ReportIss
     setSending(true);
     setError(null);
     try {
-      await onReport(choice, note.trim());
+      await onReport(choice, note.trim(), photo ? [photo.url] : undefined);
       close();
     } catch (err) {
       console.error("Could not report the issue:", err);
@@ -139,6 +164,34 @@ export function ReportIssueSheet({ open, orderId, onClose, onReport }: ReportIss
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
+
+            {needsPhoto && (
+              <div className={styles.photoField}>
+                <span className={styles.fieldLabel}>Photo of the damage <em className={styles.required}>required</em></span>
+                {photo ? (
+                  <div className={styles.photoPreviewRow}>
+                    <img src={photo.preview} alt="Damage" className={styles.photoPreview} />
+                    <button type="button" className={styles.photoRemove} onClick={() => setPhoto(null)}>Remove</button>
+                  </div>
+                ) : (
+                  <label className={styles.photoBtn}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className={styles.hiddenInput}
+                      onChange={(e) => { void attachPhoto(e.target.files?.[0]); }}
+                      disabled={uploading}
+                    />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
+                    {uploading ? "Attaching…" : "Add a photo"}
+                  </label>
+                )}
+              </div>
+            )}
           </>
         )}
 

@@ -29,7 +29,7 @@ interface MessagesContextValue {
   /** Every supplies request she's raised, newest first. Drives /my-order. */
   requests: ChatMessage[];
   send: (body: string) => Promise<void>;
-  sendRequest: (kind: RequestKind, detail: string, note: string) => Promise<void>;
+  sendRequest: (kind: RequestKind, detail: string, note: string, photos?: string[]) => Promise<void>;
   markRead: () => Promise<void>;
   /** Simulates the care team's decision. Admin-only once a backend lands. */
   setRequestStatus: (messageId: string, status: RequestStatus) => Promise<void>;
@@ -99,9 +99,9 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   );
 
   const sendRequest = useCallback(
-    async (kind: RequestKind, detail: string, note: string) => {
+    async (kind: RequestKind, detail: string, note: string, photos?: string[]) => {
       if (!submissionId) return;
-      const sent = await api.messages.sendRequest(submissionId, kind, detail, note, patientName);
+      const sent = await api.messages.sendRequest(submissionId, kind, detail, note, patientName, photos);
       setMessages((prev) => (prev.some((m) => m.id === sent.id) ? prev : [...prev, sent]));
     },
     [submissionId, patientName],

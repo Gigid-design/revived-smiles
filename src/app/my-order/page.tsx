@@ -767,7 +767,7 @@ export default function MyOrder() {
           open={reportOpen}
           orderId={order.id}
           onClose={() => setReportOpen(false)}
-          onReport={(kind, note) => sendRequest(kind, "", note)}
+          onReport={(kind, note, photos) => sendRequest(kind, "", note, photos)}
         />
       )}
 

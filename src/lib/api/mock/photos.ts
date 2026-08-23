@@ -63,7 +63,7 @@ export const mockPhotos: PhotosApi = {
   async standInPhoto(kind) {
     await delay(220);
 
-    const url = kind === "impression" ? DEMO_IMPRESSION_PHOTO : DEMO_PHOTOS[kind];
+    const url = kind === "impression" || kind === "issue" ? DEMO_IMPRESSION_PHOTO : DEMO_PHOTOS[kind];
     return { url, path: `stand-in/${kind}` };
   },
 

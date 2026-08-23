@@ -494,6 +494,9 @@ export interface MessageRequest {
   /** What the patient sees once accepted, e.g. "New trays sent". */
   outcome: string | null;
   trackingNumber: string | null;
+  /** Evidence the patient attached — required for a damaged-shipment report
+      (Aug 21 client review). URLs from `photos.upload(…, "issue")`. */
+  photos?: string[];
 }
 
 /* ------------------------------------------------------------------ */

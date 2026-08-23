@@ -188,6 +188,15 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
 
           {detail && <p className={styles.requestDetail}>{detail}</p>}
           {typed && <p className={styles.requestNote}>{typed}</p>}
+          {request.photos?.length ? (
+            <div className={styles.requestPhotos}>
+              {request.photos.map((src, i) => (
+                <a key={i} href={src} target="_blank" rel="noreferrer">
+                  <img src={src} alt={`Attached photo ${i + 1}`} className={styles.requestPhoto} />
+                </a>
+              ))}
+            </div>
+          ) : null}
 
           {status === "accepted" && outcome && (
             <div className={styles.outcomeRow}>
