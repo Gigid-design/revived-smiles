@@ -118,7 +118,7 @@ const ORDER_STATUS_COPY: Record<SubmissionStatus, string> = {
   in_review: "In review",
   changes_requested: "Action needed",
   lab_retake: "Action needed",
-  rejected: "Declined",
+  rejected: "Can't proceed with order",
   approved: "Review completed",
   in_fabrication: "In production",
   shipped: "Shipped",
@@ -186,6 +186,7 @@ export default function MyOrder() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reading URL params on mount
     if (preview === "delivered") setForceStatus("completed");
     else if (preview === "lab_retake") setForceStatus("lab_retake");
+    else if (preview === "in_production") setForceStatus("in_fabrication");
   }, []);
 
   useEffect(() => {
@@ -427,14 +428,27 @@ export default function MyOrder() {
                       aria-hidden="true"
                       style={dotColor ? { background: dotColor, borderColor: dotColor } : undefined}
                     />
-                    <span className={styles.stageLabel}>
-                      {isBlocker
-                        ? isLabRetake
-                          ? resubmitArea
-                            ? `Action needed — retake your ${resubmitArea} impression`
-                            : "Action needed — retake & resubmit"
-                          : "Action needed — resubmit for approval"
-                        : label}
+                    <span className={styles.stageText}>
+                      <span className={styles.stageLabel}>
+                        {isBlocker
+                          ? isLabRetake
+                            ? resubmitArea
+                              ? `Action needed — retake your ${resubmitArea} impression`
+                              : "Action needed — retake & resubmit"
+                            : "Action needed — resubmit for approval"
+                          : label}
+                      </span>
+                      {/* Production is the one stage that gets a timestamp and a
+                          set-expectations note (Aug 21 client review): the date
+                          once it has started, the crafting window while it's
+                          the current stage. */}
+                      {label === "In production" && done && !isBlocker && (order.fabricationStartedAt || isCurrent) && (
+                        <span className={styles.stageMeta}>
+                          {order.fabricationStartedAt && `Started ${formatDate(order.fabricationStartedAt)}`}
+                          {order.fabricationStartedAt && isCurrent && " · "}
+                          {isCurrent && "Please allow 5–7 business days for crafting"}
+                        </span>
+                      )}
                     </span>
                   </li>
                 );

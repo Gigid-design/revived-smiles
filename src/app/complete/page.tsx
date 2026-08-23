@@ -92,14 +92,18 @@ export default function Complete() {
           </p>
 
           <ol className={styles.steps}>
+            {/* Spells out the return-label step — "once approved, we start
+                crafting" skipped it and patients didn't know to wait for a
+                label (Aug 21 client review). */}
             <li className={styles.step}>
               Our care team reviews your photos — usually within 24–48 hours.
             </li>
             <li className={styles.step}>
-              We&apos;ll let you know by email and right here in the app.
+              <strong>Once approved, you&apos;ll receive a prepaid return label</strong> — by
+              email and right here in the app. Hold on to your impressions until then.
             </li>
             <li className={styles.step}>
-              Once approved, we start crafting your custom fit.
+              Send them back with that label, and we start crafting your custom fit.
             </li>
           </ol>
         </div>

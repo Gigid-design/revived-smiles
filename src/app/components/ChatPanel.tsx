@@ -36,7 +36,7 @@ function requestNote(body: string): string {
 const QUICK_QUESTIONS = ["Where is my order?"];
 const QUICK_FORMS: { label: string; kind: FormKind }[] = [
   { label: "Need more materials?", kind: "material" },
-  { label: "Need different trays?", kind: "trays" },
+  { label: "Need different sized trays?", kind: "trays" },
 ];
 
 /** Admin ↔ patient conversation, used by the admin submission console.

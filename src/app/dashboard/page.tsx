@@ -212,7 +212,7 @@ function Landing() {
          patient can fix themselves, and leading with "message the care team"
          routed every one of them into the support queue (Aug 18 session). */
       steps.push({
-        label: "Impressions not approved",
+        label: "Can't proceed with order",
         state: "attention",
         action: { href: ROUTE_UPLOAD, text: "Retake impression photos" },
         secondary: { href: "/messages", text: "Message the care team" },
@@ -432,7 +432,7 @@ function Landing() {
                             )}
                             {step.state === "attention" && (
                               <span className={`${styles.stageChip} ${styles.chipAttention}`}>
-                                {rejected ? "Not approved" : "Action needed"}
+                                {rejected ? "Can't proceed" : "Action needed"}
                               </span>
                             )}
                             {/* An attention step carries its actions in the panel

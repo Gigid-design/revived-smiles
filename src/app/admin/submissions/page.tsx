@@ -15,7 +15,7 @@ const STATUS_OPTIONS: { value: SubmissionStatus | ""; label: string }[] = [
   { value: "pending", label: "Pending" },
   { value: "in_review", label: "In Review" },
   { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
+  { value: "rejected", label: "Can't Proceed" },
   { value: "changes_requested", label: "Changes Requested" },
   { value: "in_fabrication", label: "In Fabrication" },
   { value: "shipped", label: "Shipped" },

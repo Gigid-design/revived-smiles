@@ -133,7 +133,7 @@ export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
   approved: "Approved",
   changes_requested: "Changes requested",
   lab_retake: "Lab retake needed",
-  rejected: "Rejected",
+  rejected: "Can't proceed with order",
   in_fabrication: "In fabrication",
   shipped: "Shipped",
   completed: "Completed",
@@ -255,6 +255,9 @@ export interface Submission {
      address on the Shopify order, it changes here as well"). Read-only in the
      portal: Shopify stays the system of record. */
   shippingAddress?: BillingAddress | null;
+  /* When fabrication began — the only stage the patient tracker timestamps,
+     with the "allow 5–7 business days" note (Aug 21 client review). */
+  fabricationStartedAt?: Timestamp | null;
   shippedAt: Timestamp | null;
   completedAt: Timestamp | null;
   createdAt: Timestamp;

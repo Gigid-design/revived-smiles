@@ -88,7 +88,7 @@ const STATUS_META: Record<string, { title: string; desc: string }> = {
   in_review:          { title: "Under Review",           desc: "Review photos and patient info" },
   approved:           { title: "Ready for Fabrication",  desc: "Send this order to production" },
   changes_requested:  { title: "Changes Requested",      desc: "Waiting for patient to update" },
-  rejected:           { title: "Rejected",               desc: "No further actions" },
+  rejected:           { title: "Can't Proceed with Order", desc: "No further actions" },
   in_fabrication:     { title: "In Production",          desc: "Add tracking when ready" },
   shipped:            { title: "In Transit",             desc: "Confirm delivery when received" },
   completed:          { title: "Order Delivered",        desc: "Complete" },
@@ -196,7 +196,7 @@ export default function SubmissionDetailPage() {
 
     if (newStatus === "rejected") {
       const confirmed = window.confirm(
-        "Are you sure you want to reject this submission? This action can be reversed later.",
+        "Mark this order as can't proceed? The patient will be told we can't continue. This can be reversed later.",
       );
       if (!confirmed) return;
     }
@@ -225,7 +225,7 @@ export default function SubmissionDetailPage() {
 
     const statusLabels: Record<string, string> = {
       approved: "approved",
-      rejected: "rejected",
+      rejected: "marked can't proceed",
       changes_requested: "marked for changes",
       in_fabrication: "moved to fabrication",
       shipped: "marked as shipped",
@@ -430,7 +430,7 @@ export default function SubmissionDetailPage() {
                       <IconRefresh size={13} /> Request Changes
                     </button>
                     <button className={styles.btnReject} onClick={() => handleStatusUpdate("rejected")} disabled={saving}>
-                      <IconX size={12} /> Reject
+                      <IconX size={12} /> Can&apos;t proceed with order
                     </button>
                   </div>
                 </>

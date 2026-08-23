@@ -243,6 +243,9 @@ function buildQueue(): Submission[] {
       reviewedBy: row.status === "pending" ? null : "Admin User",
       reviewedAt: row.status === "pending" ? null : daysAgo(Math.max(0, row.days - 1)),
       trackingNumber: row.tracking ?? null,
+      fabricationStartedAt: ["in_fabrication", "shipped", "completed"].includes(row.status)
+        ? daysAgo(Math.max(0, row.days - 2))
+        : null,
       shippedAt: row.tracking ? daysAgo(Math.max(0, row.days - 3)) : null,
       completedAt: row.status === "completed" ? daysAgo(Math.max(0, row.days - 6)) : null,
       closeBitePhotos: [DEMO_PHOTOS["close-bite-front"], DEMO_PHOTOS["close-bite-side"]],

@@ -11,7 +11,7 @@ const STATUS_CONFIG: Record<SubmissionStatus, { label: string; bg: string; text:
   pending: { label: "Pending", bg: "#fef3c7", text: "#92400e" },
   in_review: { label: "In Review", bg: "#dbeafe", text: "#1e40af" },
   approved: { label: "Approved", bg: "#dcfce7", text: "#166534" },
-  rejected: { label: "Rejected", bg: "#fee2e2", text: "#991b1b" },
+  rejected: { label: "Can't Proceed", bg: "#fee2e2", text: "#991b1b" },
   changes_requested: { label: "Changes Requested", bg: "#ffedd5", text: "#9a3412" },
   lab_retake: { label: "Lab Retake", bg: "#ffedd5", text: "#9a3412" },
   in_fabrication: { label: "In Fabrication", bg: "#e0e7ff", text: "#3730a3" },

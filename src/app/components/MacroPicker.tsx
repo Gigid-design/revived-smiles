@@ -145,7 +145,7 @@ const MACROS: Macro[] = [
   },
   {
     id: "reject-submission",
-    name: "Impression: Reject submission",
+    name: "Impression: Can't proceed with order",
     tags: ["impression", "reject", "review"],
     body: "Thank you for your submission. After review, we're unable to proceed with these impressions and recommend seeing a dentist in person before we fit anything. Our team will follow up with the details.",
     action: {

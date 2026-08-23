@@ -62,10 +62,15 @@
   font-family: var(--font-body);
   font-size: 0.8125em;   /* 13px */
   line-height: 1.45;
-  color: #8a8a8a;
+  color: #121723;
   margin: 0 0 1em;
+  padding: 0.625em 0.75em;
+  border-radius: 10px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
   flex-shrink: 0;
 }
+.disclaimer strong { font-weight: 700; }
 
 /* Live preview row — a white floating card with a soft drop shadow, matching
    the dashboard card language. */

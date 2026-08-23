@@ -383,6 +383,18 @@
   box-shadow: 0 0 0 4px rgba(14, 27, 77, 0.12);
 }
 
+.stageText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+.stageMeta {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: #6b7280;
+}
+
 .stageLabel {
   font-size: 0.8125rem;
   color: #9299a5;

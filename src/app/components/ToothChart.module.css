@@ -63,16 +63,18 @@
   transform: translateX(-50%);
   z-index: 4;
   font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 0.75em;
-  letter-spacing: 0.14em;
+  font-weight: 700;
+  font-size: 0.8125em;
+  /* Was 0.14em — read as "U P P E R" (Aug 21 client review). */
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1;
-  color: #9aa0a6;
+  color: #7c838d;
   pointer-events: none;
 }
-.archLabelUpper { top: 36%; }
-.archLabelLower { top: 34%; }
+/* Centred in each arch's open bowl. */
+.archLabelUpper { top: 40%; }
+.archLabelLower { top: 40%; }
 
 .corner {
   position: absolute;

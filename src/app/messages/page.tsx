@@ -299,7 +299,7 @@ export default function Messages() {
               Need more materials?
             </button>
             <button type="button" className={styles.chip} onClick={() => openForm("trays")}>
-              Need different trays?
+              Need different sized trays?
             </button>
             <Link href="/adjust" className={styles.chip}>
               Need to adjust my appliance

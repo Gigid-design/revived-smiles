@@ -103,9 +103,11 @@ function ShadeForm({ stopIndex, stops }: { stopIndex: number; stops: DetailStop[
       {/* White card */}
       <div className={styles.card} id="main-content" ref={cardRef}>
         <h1 className={styles.cardTitle}>Tooth &amp; Gum shade</h1>
+        {/* Bold on purpose — patients were picking from the screen swatches
+            instead of the physical order form (Aug 21 client review). */}
         <p className={styles.disclaimer}>
-          Colors shown here are a guide only. Please refer to your order form for the
-          accurate coloring and confirm your selection matches it.
+          <strong>Colors shown here are a guide only. Please refer to your physical order
+          form for the accurate coloring and confirm your selection matches it.</strong>
         </p>
 
         {/* Live preview — White */}

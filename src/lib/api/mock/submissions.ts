@@ -368,6 +368,7 @@ export const mockSubmissions: SubmissionsApi = {
         row.retakeKitTracking = "1Z999AA10777813377";
       }
       if (update.retakeArea !== undefined) row.retakeArea = update.retakeArea;
+      if (update.status === "in_fabrication" && !row.fabricationStartedAt) row.fabricationStartedAt = at;
       if (update.status === "completed") row.completedAt = at;
 
       /* Capture the move as a system message in the order's conversation, so

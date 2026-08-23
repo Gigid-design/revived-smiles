@@ -31,13 +31,19 @@
   height: 0.3125rem;
 }
 
-/* Card — flows title + next-steps; raised so the content fits above the CTA */
+/* Card — flows title + next-steps; sized by its content, anchored to the
+   bottom. It used to be pinned at top:25rem with overflow hidden, so on
+   phones shorter than ~750px (iPhone SE, many Androids) steps 2–3 were
+   clipped and the fixed CTA sat on top of them (Aug 21 client review).
+   min-height keeps the tall-screen composition; on short screens the card
+   simply grows up over more of the hero. */
 .card {
   position: absolute;
   left: 1rem;
   right: 1rem;
-  top: 25rem;
   bottom: 0;
+  min-height: calc(100svh - 25rem);
+  max-height: calc(100svh - 4rem);
   border-radius: 2rem 2rem 0 0;
   overflow: hidden;
   z-index: 3;
@@ -69,6 +75,8 @@
 .body {
   position: relative;
   z-index: 1;
+  min-height: 0;
+  overflow-y: auto; /* last resort on very short viewports */
 }
 
 .desc {
@@ -99,6 +107,8 @@
   color: #ffffff;
   line-height: 1.4;
 }
+
+.step strong { font-weight: 700; color: #ffffff; }
 
 .step::before {
   content: counter(step);

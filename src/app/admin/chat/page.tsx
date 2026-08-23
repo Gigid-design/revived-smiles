@@ -41,7 +41,7 @@ const STATUS_TODO: Record<SubmissionStatus, string> = {
   changes_requested: "Waiting on the patient to resubmit.",
   lab_retake: "New kit sent — waiting on the patient's retake.",
   approved: "Approved — start fabrication when ready.",
-  rejected: "Rejected — see the reason below.",
+  rejected: "Can't proceed with this order — see the reason below.",
   in_fabrication: "In production — add tracking to ship.",
   shipped: "In transit — confirm delivery when it arrives.",
   completed: "Delivered — order complete.",
@@ -594,7 +594,7 @@ export default function AdminChatPage() {
              the submission stepper and the customer fulfilment tracker. */
           const progress = filledIdx <= 0 ? 0 : filledIdx / (WORKFLOW_STEPS.length - 1);
           const stageLabel =
-            status === "rejected" ? "Rejected"
+            status === "rejected" ? "Can't Proceed"
               : status === "changes_requested" ? "Changes Requested"
                 : status === "lab_retake" ? "Lab Retake"
                   : WORKFLOW_STEPS[currentIdx]?.label ?? "Draft";
@@ -671,7 +671,7 @@ export default function AdminChatPage() {
                       </button>
                       <button className={styles.btnReject} disabled={saving} onClick={() => void handleStatusUpdate(sub, "rejected")}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M18 6L6 18M6 6l12 12" /></svg>
-                        Reject
+                        Can&apos;t proceed with order
                       </button>
                     </div>
                   </div>
@@ -695,7 +695,7 @@ export default function AdminChatPage() {
                 )}
                 {status === "rejected" && sub.reviewNotes && (
                   <div className={styles.rejectReason}>
-                    <span className={styles.rejectReasonLabel}>Reason for rejection</span>
+                    <span className={styles.rejectReasonLabel}>Why we can&apos;t proceed</span>
                     {sub.reviewNotes}
                     {sub.reviewedBy && (
                       <span className={styles.rejectReasonMeta}>
