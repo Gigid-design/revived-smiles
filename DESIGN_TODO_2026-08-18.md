@@ -49,6 +49,28 @@ show a state without an admin flipping the order.
 
 ---
 
+## Aug 21 client review — Tier 1 (copy & polish) ✅ all 10 shipped
+
+Source: *Unosquare Internal Team Meeting Notes 8-21-26* · full triage in `Client Change Requests — Aug 21 Review.docx`. Commits `1259ddc`, `773bba2`; live.
+
+| # | Request | Where to see it |
+| --- | --- | --- |
+| 1 | "Need different sized trays?" | /messages quick actions · admin chat |
+| 2 | "Reject" / "Not approved" → **"Can't proceed with order"** (impression rejections only; adjustment declines untouched) | /dashboard?preview=rejected · admin chat + submissions |
+| 3 | Tooth-shade disclaimer bold, on a highlighted strip, names the *physical* order form | /step4 |
+| 4 | "UPPER/LOWER" tracking fixed (0.14em → 0.04em); completion cards no longer clip on short phones | /step5 · /complete · /intake-complete |
+| 5 | Post-submission copy spells out the return-label step | /complete |
+| 6 | "In production" gets a timestamp (new `fabricationStartedAt`) + "allow 5–7 business days" | /my-order?preview=in_production |
+| 7 | Account support → chat, not email | /profile |
+| 8 | Order number platform-wide (My Orders header, Progress card, /complete, admin lists) | /dashboard · /my-order · /admin/chat · /admin/submissions |
+| 9 | Photo angles named with per-slot how-to; Good/Bad explained | /impression-photos |
+| 10 | Scrolling: document is the scroller again (was an inner `main` scroller — wheel dead in desktop gutters, trapped feel on mobile) | any customer page |
+
+**Still owed by the client for #9:** real lab example photographs for each angle — the strip is ready for them.
+**Tier 2/3 not started** — see the Word triage; three items need Gitai's decision first.
+
+---
+
 ## Do now — nothing blocking these
 
 - [x] **1. Remove "Open full record →" from the chat rail.** _(≈2:03–3:55)_ — `src/app/admin/chat/page.tsx:894`
