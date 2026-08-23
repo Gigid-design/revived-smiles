@@ -143,11 +143,11 @@ function formatPlaced(iso: string): string {
   });
 }
 
-/* The domain model has no customer-facing order reference, so the one shown here
-   is derived from the submission id — the same reference printed on the return
-   shipping label, so the two always agree. */
-function orderReference(id: string): string {
-  return `RS-${id.slice(0, 8).toUpperCase()}`;
+/* The Shopify order number is the reference the patient, support and the lab
+   all share, so it leads platform-wide (Aug 21 client review). The derived
+   RS- ref only stands in when an order hasn't synced its number yet. */
+function orderReference(order: { id: string; orderNumber?: string | null }): string {
+  return order.orderNumber ? `Order ${order.orderNumber}` : `RS-${order.id.slice(0, 8).toUpperCase()}`;
 }
 
 /* A patient-facing "arrives by" estimate. Firm once shipped (a few days from
@@ -326,7 +326,7 @@ export default function MyOrder() {
                 aria-label={hasMultiple ? "Switch order" : undefined}
               >
                 <span className={styles.orderBarText}>
-                  <span className={styles.orderRef}>{orderReference(order.id)}</span>
+                  <span className={styles.orderRef}>{orderReference(order)}</span>
                   <span className={styles.orderPlaced}>Placed {formatPlaced(order.createdAt)}</span>
                 </span>
                 <span className={`${styles.orderStatus} ${isBlocked ? styles.orderStatusBlocked : ""}`}>{ORDER_STATUS_COPY[effectiveStatus ?? order.status]}</span>
@@ -361,7 +361,7 @@ export default function MyOrder() {
                             {o.products.length ? productLabels(o.products) : "Your order"}
                           </span>
                           <span className={styles.orderMenuMeta}>
-                            {orderReference(o.id)} · {ORDER_STATUS_COPY[o.status]}
+                            {orderReference(o)} · {ORDER_STATUS_COPY[o.status]}
                           </span>
                         </div>
                         {selected && (

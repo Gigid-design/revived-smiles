@@ -9,11 +9,15 @@ import { useSubmission } from "../context/SubmissionContext";
 import { api, ApiError } from "@/lib/api";
 import type { ImpressionPhoto } from "@/lib/api";
 
+/* Each slot names the exact angle the lab grades from — "Angle 1 / Angle 2"
+   told the patient nothing (Aug 21 client review). `how` is the one-line
+   instruction shown on the card; the lab's real example photos drop into the
+   example strip once the client supplies them. */
 const SLOTS = [
-  { id: 1, label: "Upper Impression 1", sub: "Angle 1", tray: "imp-tray-upper-1.svg", flip: false },
-  { id: 2, label: "Upper Impression 2", sub: "Angle 2", tray: "imp-tray-upper-2.svg", flip: false },
-  { id: 3, label: "Lower Impression 1", sub: "Angle 1", tray: "imp-tray-lower.svg",   flip: false },
-  { id: 4, label: "Lower Impression 2", sub: "Angle 2", tray: "imp-tray-upper.svg",   flip: true  },
+  { id: 1, label: "Upper impression", sub: "Straight down", how: "Hold the phone directly above the tray so you see the whole horseshoe.", tray: "imp-tray-upper-1.svg", flip: false },
+  { id: 2, label: "Upper impression", sub: "Front edge, tilted", how: "Tilt the tray toward you so the front teeth and their depth are visible.", tray: "imp-tray-upper-2.svg", flip: false },
+  { id: 3, label: "Lower impression", sub: "Straight down", how: "Directly above the tray — the full arch, no fingers over the edges.", tray: "imp-tray-lower.svg",   flip: false },
+  { id: 4, label: "Lower impression", sub: "Front edge, tilted", how: "Tilt toward you so the front teeth and the tray rim both show.", tray: "imp-tray-upper.svg",   flip: true  },
 ];
 
 interface PhotoEntry {
@@ -197,7 +201,8 @@ export default function ImpressionPhotos() {
             </div>
           </div>
           <p className={styles.exampleHint}>
-            Place mold on a white surface with good lighting. Ensure the arch shape is clearly visible.
+            <strong>Good:</strong> white surface, daylight, whole arch in frame, tray edges visible.{" "}
+            <strong>Bad:</strong> dark or shadowed, cropped arch, fingers over the impression, blurry.
           </p>
         </div>
 
@@ -255,6 +260,7 @@ export default function ImpressionPhotos() {
                 <>
                   <p className={styles.photoLabel}>{slot.label}</p>
                   <p className={styles.photoSub}>{slot.sub}</p>
+                  <p className={styles.photoHow}>{slot.how}</p>
                 </>
               )}
               <input
@@ -305,6 +311,7 @@ export default function ImpressionPhotos() {
                 <>
                   <p className={styles.photoLabel}>{slot.label}</p>
                   <p className={styles.photoSub}>{slot.sub}</p>
+                  <p className={styles.photoHow}>{slot.how}</p>
                 </>
               )}
               <input

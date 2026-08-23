@@ -143,16 +143,17 @@ export default function ProfilePage() {
                 </svg>
               </Link>
 
-              <a href="mailto:support@revivedsmiles.com" className={styles.actionRow}>
+              {/* Chat, not email — support lives in the in-app thread so it's
+                  tracked and answered there (Aug 21 client review). */}
+              <Link href="/messages" className={styles.actionRow}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                  <polyline points="22,6 12,13 2,6" />
+                  <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z" />
                 </svg>
-                <span>Contact Support</span>
+                <span>Chat with the Care Team</span>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className={styles.chevron}>
                   <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-              </a>
+              </Link>
 
               <button
                 className={styles.signOutBtn}

@@ -389,7 +389,10 @@ function Landing() {
             {showTimeline && (
               <section className={styles.progressCard}>
                 <div className={styles.progressHead}>
-                  <h2 className={styles.cardTitle}>Your Progress</h2>
+                  <h2 className={styles.cardTitle}>
+                    Your Progress
+                    {submission?.orderNumber && <span className={styles.cardTitleOrder}>Order {submission.orderNumber}</span>}
+                  </h2>
                   <span className={styles.progressCount}>{doneCount} done</span>
                 </div>
 

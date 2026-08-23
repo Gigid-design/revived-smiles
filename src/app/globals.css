@@ -110,9 +110,8 @@ html {
 }
 
 /* Hide the scrollbar chrome app-wide but keep scrolling fully functional
-   (wheel, trackpad, keyboard, touch all still work). The patient pages scroll
-   on `body > main` — it gets overflow-x:hidden for the responsive frame, which
-   per spec forces overflow-y to auto, so that's where the scrollbar lives. */
+   (wheel, trackpad, keyboard, touch all still work). The document is the
+   scroller — see the `body > main` note below. */
 html,
 body,
 body > main {
@@ -137,6 +136,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   display: flex;
   justify-content: center;
+  /* Let main grow with its content instead of stretching to the viewport. */
+  align-items: flex-start;
   min-height: 100dvh;
 }
 
@@ -160,7 +161,14 @@ body > main {
   max-width: var(--app-max);
   min-height: 100dvh;
   background-color: var(--surface);
-  overflow-x: hidden;
+  /* `clip`, not `hidden`. `hidden` forces overflow-y to auto, and with the
+     flex body stretching main to exactly one viewport tall, main became an
+     inner scroll container: on desktop the wheel only worked with the cursor
+     over the phone column, and on mobile the address bar never collapsed and
+     scrolling felt trapped (Aug 21 client review). `clip` still hides the
+     horizontal bleed but creates no scroll container, so the document scrolls
+     natively everywhere. */
+  overflow-x: clip;
 }
 
 /* Tablet — a touch wider. Flat white, no framing shadow. */

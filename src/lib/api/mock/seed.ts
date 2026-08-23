@@ -230,6 +230,9 @@ function buildQueue(): Submission[] {
   return QUEUE.map((row, i) =>
     submissionWithAddress({
       id: `sub-${String(i + 2).padStart(3, "0")}`,
+      /* Every submission carries its Shopify order number, platform-wide
+         (Aug 21 client review) — deterministic so demos don't reshuffle. */
+      orderNumber: `#${1101 + i * 7}`,
       email: row.email,
       name: row.name,
       state: row.state,

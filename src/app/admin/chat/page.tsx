@@ -484,7 +484,9 @@ export default function AdminChatPage() {
                         </span>
                         <span className={styles.rowTime}>{formatWhen(c.last?.createdAt)}</span>
                       </div>
-                      <div className={styles.rowMeta}>{productLabels(c.sub.products ?? []) || "—"}</div>
+                      <div className={styles.rowMeta}>
+                        {c.sub.orderNumber ? `${c.sub.orderNumber} · ` : ""}{productLabels(c.sub.products ?? []) || "—"}
+                      </div>
                       <div className={styles.rowBottom}>
                         <span className={styles.rowPreview}>{preview(c.last)}</span>
                         {c.unread > 0 && <span className={styles.unread}>{c.unread}</span>}

@@ -137,6 +137,7 @@ export default function SubmissionsListPage() {
                     <input type="checkbox" className={styles.checkbox} disabled title="Bulk actions coming soon" />
                   </th>
                   <th>Patient</th>
+                  <th>Order</th>
                   <th>State</th>
                   <th>Products</th>
                   <th>Status</th>
@@ -157,6 +158,7 @@ export default function SubmissionsListPage() {
                         <span className={styles.emailText}>{sub.email}</span>
                       </Link>
                     </td>
+                    <td><span className={styles.dateText}>{sub.orderNumber || "—"}</span></td>
                     <td>{sub.state || "—"}</td>
                     <td>
                       {sub.products?.length

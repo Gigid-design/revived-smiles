@@ -291,6 +291,15 @@
 }
 
 /* Green count chip — reads as a win at a glance */
+.cardTitleOrder {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: 0.75em;
+  font-weight: 500;
+  color: #9299a5;
+}
+
 .progressCount {
   flex-shrink: 0;
   font-family: var(--font-heading);

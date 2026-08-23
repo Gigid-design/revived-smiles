@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
+import { api } from "@/lib/api";
 
 /* Deterministic confetti pieces — values derived from the index (not
    Math.random) so server and client render identically (no hydration
@@ -19,6 +21,17 @@ const CONFETTI = Array.from({ length: 32 }, (_, i) => ({
 }));
 
 export default function Complete() {
+  /* The order number rides along on every submission touchpoint, so the
+     patient and support always talk about the same thing (Aug 21 review). */
+  const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    api.submissions.getMine()
+      .then((mine) => { if (!cancelled && mine?.orderNumber) setOrderNumber(mine.orderNumber); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <main className={styles.screen}>
       <a href="#main-content" className="sr-only">Skip to main content</a>
@@ -88,7 +101,8 @@ export default function Complete() {
         {/* Intro + concrete next steps */}
         <div className={styles.body}>
           <p className={styles.desc}>
-            Thank you for completing the impression process! Here&apos;s what happens next:
+            Thank you for completing the impression process
+            {orderNumber ? <> for <strong>Order {orderNumber}</strong></> : null}! Here&apos;s what happens next:
           </p>
 
           <ol className={styles.steps}>
