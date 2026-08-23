@@ -257,6 +257,7 @@ function Landing() {
         "stick the label on, and drop it off. We'll take it from here.",
       onAction: () => setLabelOpen(true),
     });
+    steps.push({ label: "Impressions received", state: "upcoming", action: null });
     steps.push({ label: "In production", state: "upcoming", action: null });
     steps.push({ label: "On its way to you", state: "upcoming", action: null });
   }

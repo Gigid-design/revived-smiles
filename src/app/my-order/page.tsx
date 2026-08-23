@@ -43,12 +43,15 @@ import { useMessages, REQUEST_LABELS, RequestStatus } from "@/app/context/Messag
 /* Fulfilment stages shown in the tracker, in order. "Review completed" sits
    between the care-team review and production: it's the gate the primary
    action waits on — the patient can open the full order once review is done. */
+/* Order per the Aug 21 client review: the care team reviews the *photos*
+   first; the physical impressions arrive at the lab only after approval and
+   the return label. So "Impressions received" sits after "Review completed". */
 const STAGE_LABELS = [
   "Order placed",
   "Impression kit shipped",
-  "Impressions received",
   "In review by your care team",
   "Review completed",
+  "Impressions received",
   "In production",
   "On its way to you",
   "Delivered",
@@ -62,14 +65,15 @@ const REVIEW_COMPLETE_INDEX = STAGE_LABELS.indexOf("Review completed");
    `approved` is the moment review is complete, so it clears that new stage. */
 const STAGES_COMPLETE: Record<SubmissionStatus, number> = {
   draft: 2,
+  /* Photos submitted, waiting on the care team — "In review" is current. */
   pending: 3,
-  in_review: 4,
-  changes_requested: 4,
-  rejected: 4,
-  approved: 5,
-  /* Retake found at the lab: review stayed complete — the stop sits past it,
-     on the production slot that can't start until the fresh impression lands. */
-  lab_retake: 6,
+  in_review: 3,
+  changes_requested: 3,
+  rejected: 3,
+  approved: 4,
+  /* Retake found at the lab: the impressions *were* received — that stage is
+     exactly where the stop belongs, with review still green above it. */
+  lab_retake: 5,
   in_fabrication: 6,
   shipped: 7,
   completed: 8,
