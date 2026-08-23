@@ -32,7 +32,7 @@ interface MessagesContextValue {
   sendRequest: (kind: RequestKind, detail: string, note: string, photos?: string[]) => Promise<void>;
   markRead: () => Promise<void>;
   /** Simulates the care team's decision. Admin-only once a backend lands. */
-  setRequestStatus: (messageId: string, status: RequestStatus) => Promise<void>;
+  setRequestStatus: (messageId: string, status: RequestStatus, reason?: string) => Promise<void>;
 }
 
 const MessagesContext = createContext<MessagesContextValue | null>(null);
@@ -119,8 +119,8 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   }, [submissionId, messages]);
 
   const setRequestStatus = useCallback(
-    async (messageId: string, status: RequestStatus) => {
-      applyMessage(await api.messages.setRequestStatus(messageId, status));
+    async (messageId: string, status: RequestStatus, reason?: string) => {
+      applyMessage(await api.messages.setRequestStatus(messageId, status, reason));
     },
     [applyMessage],
   );

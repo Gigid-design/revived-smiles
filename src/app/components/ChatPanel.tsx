@@ -148,11 +148,21 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
     await sendMessage(macro.body);
   }
 
-  async function decideRequest(messageId: string, status: RequestStatus) {
+  /* Declining opens an inline reason box; the reply IS the reason (Aug 21
+     client review — every decline must explain why). */
+  const [decliningId, setDecliningId] = useState<string | null>(null);
+  const [declineReason, setDeclineReason] = useState("");
+
+  async function decideRequest(messageId: string, status: RequestStatus, reason?: string) {
     if (deciding) return;
     setDeciding(messageId);
-    await setRequestStatus(messageId, status);
-    setDeciding(null);
+    try {
+      await setRequestStatus(messageId, status, reason);
+      setDecliningId(null);
+      setDeclineReason("");
+    } finally {
+      setDeciding(null);
+    }
   }
 
   /** A supplies request renders as a status card the care team can action,
@@ -230,10 +240,36 @@ export function ChatPanel({ submissionId, currentRole, currentName, onOpenForm, 
                 type="button"
                 className={styles.declineBtn}
                 disabled={busy}
-                onClick={() => void decideRequest(msg.id, "rejected")}
+                onClick={() => { setDecliningId(msg.id); setDeclineReason(""); }}
               >
                 Decline
               </button>
+            </div>
+          )}
+          {decliningId === msg.id && status === "pending" && (
+            <div className={styles.declineBox}>
+              <label className={styles.declineLabel} htmlFor={`decline-${msg.id}`}>
+                Tell the patient why <span className={styles.declineRequired}>required</span>
+              </label>
+              <textarea
+                id={`decline-${msg.id}`}
+                className={styles.declineInput}
+                rows={2}
+                placeholder="e.g. Your current trays are the right size for your arch — the fit issue is the impression technique, not the tray. Let's walk through it here."
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+              />
+              <div className={styles.declineActions}>
+                <button
+                  type="button"
+                  className={styles.declineBtn}
+                  disabled={busy || !declineReason.trim()}
+                  onClick={() => void decideRequest(msg.id, "rejected", declineReason)}
+                >
+                  {busy ? "Sending…" : "Send decline"}
+                </button>
+                <button type="button" className={styles.declineCancel} onClick={() => setDecliningId(null)}>Cancel</button>
+              </div>
             </div>
           )}
         </div>

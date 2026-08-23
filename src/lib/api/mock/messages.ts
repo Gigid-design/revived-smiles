@@ -70,8 +70,11 @@ export const mockMessages: MessagesApi = {
     return clone(message);
   },
 
-  async setRequestStatus(messageId, status: RequestStatus) {
+  async setRequestStatus(messageId, status, reason) {
     await delay();
+    if (status === "rejected" && !reason?.trim()) {
+      throw new ApiError("validation", "Add a reply explaining why before declining.");
+    }
 
     const { updated, reply } = mutate((db) => {
       const target = db.messages.find((m) => m.id === messageId);
@@ -93,10 +96,8 @@ export const mockMessages: MessagesApi = {
       } else {
         target.request.outcome = null;
         target.request.trackingNumber = null;
-        body =
-          `We've taken a look and think your current ` +
-          `${target.request.kind === "trays" ? "trays" : "material"} will work. ` +
-          `Message us here if you'd like to talk it through.`;
+        /* The decline reply is the agent's own explanation — required. */
+        body = reason!.trim();
       }
 
       /* Support answers in the same conversation — there is nowhere else for

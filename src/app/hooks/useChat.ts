@@ -12,7 +12,7 @@ interface UseChatReturn {
   sendMessage: (body: string) => Promise<void>;
   sendRequest: (kind: RequestKind, detail: string, note: string) => Promise<void>;
   /** Support's decision on a supplies request. Admin-only in a real backend. */
-  setRequestStatus: (messageId: string, status: RequestStatus) => Promise<void>;
+  setRequestStatus: (messageId: string, status: RequestStatus, reason?: string) => Promise<void>;
   markAsRead: () => Promise<void>;
   unreadCount: number;
   loading: boolean;
@@ -93,9 +93,9 @@ export function useChat(
   );
 
   const setRequestStatus = useCallback(
-    async (messageId: string, status: RequestStatus) => {
+    async (messageId: string, status: RequestStatus, reason?: string) => {
       try {
-        const updated = await api.messages.setRequestStatus(messageId, status);
+        const updated = await api.messages.setRequestStatus(messageId, status, reason);
         /* The decision updates the request message in place; the care team's
            reply arrives separately through the subscription. */
         setMessages((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));

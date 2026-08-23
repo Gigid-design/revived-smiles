@@ -298,9 +298,11 @@ export interface MessagesApi {
    * ADMIN-ONLY in a real backend, which must reject this from a patient
    * session. On acceptance it must set `outcome` and a genuine carrier
    * tracking number, and post the care team's reply into the same
-   * conversation. The demo simulates all three.
+   * conversation. The demo simulates all three. Declining REQUIRES `reason`
+   * — it becomes the care team's reply, in their own words (Aug 21 client
+   * review: every decline carries an explanation).
    */
-  setRequestStatus(messageId: string, status: RequestStatus): Promise<ChatMessage>;
+  setRequestStatus(messageId: string, status: RequestStatus, reason?: string): Promise<ChatMessage>;
 }
 
 /* ------------------------------------------------------------------ */
