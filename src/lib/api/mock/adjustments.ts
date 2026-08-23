@@ -204,9 +204,15 @@ export const mockAdjustments: AdjustmentsApi = {
 
       const at = nowIso();
       row.status = decision.status;
-      row.reviewedBy = decision.reviewedBy;
-      row.reviewedAt = at;
-      row.reviewNotes = decision.reviewNotes?.trim() ?? null;
+      /* Fulfilment steps after approval only stamp their own date — the
+         original reviewer and note stay on the record. */
+      if (decision.status === "received") { row.receivedAt = at; }
+      else if (decision.status === "delivered") { row.deliveredAt = at; }
+      else {
+        row.reviewedBy = decision.reviewedBy;
+        row.reviewedAt = at;
+        row.reviewNotes = decision.reviewNotes?.trim() ?? null;
+      }
 
       /* On approval, hand the customer their prepaid return label + packing
          slip right here in the conversation — the documents belong to them, not

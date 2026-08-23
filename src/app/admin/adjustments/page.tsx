@@ -14,7 +14,9 @@ const STATUS_OPTIONS: { value: AdjustmentStatus | ""; label: string }[] = [
   { value: "pending", label: "Pending Review" },
   { value: "changes_requested", label: "Changes Requested" },
   { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
+  { value: "received", label: "Received at Lab" },
+  { value: "delivered", label: "Adjusted & Delivered" },
+  { value: "rejected", label: "Unable to Adjust" },
 ];
 
 /** Patient identity, joined from the submission the request is raised against. */

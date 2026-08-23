@@ -11,7 +11,7 @@ import type { AdjustmentRequest, AdjustmentStatus, Submission } from "@/lib/api"
 import { productLabel } from "@/app/context/productConfig";
 import { ADJ_STATUS_META, answerRows, issueLabel, photoList } from "../format";
 
-type Decision = Extract<AdjustmentStatus, "approved" | "changes_requested" | "rejected">;
+type Decision = Extract<AdjustmentStatus, "approved" | "changes_requested" | "rejected" | "received" | "delivered">;
 
 const NOTE_TEMPLATES = [
   "The in-mouth photo is too dark to judge — please retake in daylight with your lips held back.",
@@ -86,7 +86,7 @@ export default function AdjustmentDetailPage() {
 
     if (status === "rejected") {
       const ok = window.confirm(
-        "Reject this adjustment request? The patient will be routed to customer service.",
+        "Mark this request as unable to adjust? The patient will see your reason and be routed to customer service.",
       );
       if (!ok) return;
     }
@@ -100,7 +100,11 @@ export default function AdjustmentDetailPage() {
       });
       setRequest(updated);
       const label =
-        status === "approved" ? "approved" : status === "rejected" ? "rejected" : "sent back for changes";
+        status === "approved" ? "approved"
+          : status === "rejected" ? "marked unable to adjust"
+            : status === "received" ? "marked received at the lab"
+              : status === "delivered" ? "marked delivered"
+                : "sent back for changes";
       showToast(`Request ${label}.`);
     } catch (err) {
       showToast(err instanceof ApiError ? err.message : "Something went wrong.", "error");
@@ -260,7 +264,7 @@ export default function AdjustmentDetailPage() {
                     Request Changes
                   </button>
                   <button className={styles.btnReject} onClick={() => decide("rejected")} disabled={saving}>
-                    Reject
+                    Unable to adjust
                   </button>
                 </div>
                 <p className={styles.hint}>
@@ -282,6 +286,22 @@ export default function AdjustmentDetailPage() {
                   </svg>
                   The customer received their prepaid return label and packing slip in chat.
                 </p>
+              </div>
+            )}
+
+            {/* Fulfilment after approval — each step advances the patient's
+                tracker: Adjustment submitted → received → delivered (Aug 21). */}
+            {(request.status === "approved" || request.status === "received") && (
+              <div className={styles.actions} style={{ marginTop: "0.75rem" }}>
+                {request.status === "approved" ? (
+                  <button className={styles.btnApprove} onClick={() => decide("received")} disabled={saving}>
+                    Mark received at lab
+                  </button>
+                ) : (
+                  <button className={styles.btnApprove} onClick={() => decide("delivered")} disabled={saving}>
+                    Mark adjusted &amp; delivered
+                  </button>
+                )}
               </div>
             )}
           </section>

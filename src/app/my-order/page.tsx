@@ -5,7 +5,7 @@ import Link from "next/link";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
 import { api } from "@/lib/api";
-import type { Submission, SubmissionStatus } from "@/lib/api";
+import type { AdjustmentRequest, AdjustmentStatus, Submission, SubmissionStatus } from "@/lib/api";
 import { BottomNav } from "@/app/components/BottomNav";
 import { SubscriptionCard } from "@/app/components/SubscriptionCard";
 import { InsuranceCard } from "@/app/components/InsuranceCard";
@@ -181,6 +181,11 @@ export default function MyOrder() {
   /* Demo affordance: lets the tracker be viewed in a state an admin would
      otherwise have to set up — `?preview=delivered` or `?preview=lab_retake`. */
   const [forceStatus, setForceStatus] = useState<SubmissionStatus | null>(null);
+  /* Adjustment requests raised against the displayed order — the tracker
+     extends past Delivered with their round-trip (Aug 21 client review).
+     `?preview=adjustment_<status>` synthesises one for a demo. */
+  const [adjustments, setAdjustments] = useState<AdjustmentRequest[]>([]);
+  const [forceAdjustment, setForceAdjustment] = useState<AdjustmentStatus | null>(null);
 
   const headRef = useRef<HTMLDivElement>(null);
 
@@ -191,6 +196,13 @@ export default function MyOrder() {
     if (preview === "delivered") setForceStatus("completed");
     else if (preview === "lab_retake") setForceStatus("lab_retake");
     else if (preview === "in_production") setForceStatus("in_fabrication");
+    else if (preview?.startsWith("adjustment_")) {
+      const st = preview.slice("adjustment_".length) as AdjustmentStatus;
+      if (["pending", "approved", "received", "delivered", "rejected"].includes(st)) {
+        setForceStatus("completed");
+        setForceAdjustment(st);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -222,6 +234,21 @@ export default function MyOrder() {
 
   /* The order on show — the one picked in the switcher, or the newest. */
   const order = orders.find((o) => o.id === selectedId) ?? orders[0] ?? null;
+
+  useEffect(() => {
+    if (!order) return;
+    let cancelled = false;
+    api.adjustments.listForSubmission(order.id)
+      .then((rows) => { if (!cancelled) setAdjustments(rows); })
+      .catch(() => { if (!cancelled) setAdjustments([]); });
+    return () => { cancelled = true; };
+  }, [order?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- keyed on the id on purpose
+
+  /* The adjustment the tracker narrates: the newest non-draft one, or the
+     demo-forced one. */
+  const activeAdjustment: Pick<AdjustmentRequest, "status" | "reviewNotes" | "product"> | null = forceAdjustment
+    ? { status: forceAdjustment, product: order?.products?.[0] ?? "", reviewNotes: forceAdjustment === "rejected" ? "The appliance shows wear beyond what an adjustment can correct — a remake is the right path. Customer service will reach out with options." : null }
+    : adjustments.find((a) => a.status !== "draft") ?? null;
   const hasMultiple = orders.length > 1;
 
   /* Close the order switcher on an outside click or Escape. */
@@ -457,7 +484,70 @@ export default function MyOrder() {
                   </li>
                 );
               })}
+
+              {/* ── Adjustment round-trip — continues the tracker past Delivered
+                  once the patient has raised an adjustment (Aug 21 client
+                  review): Submitted → Received → Delivered, or a red
+                  "Unable to adjust" stop with the team's reason. ── */}
+              {activeAdjustment && stagesComplete >= STAGE_LABELS.length && (() => {
+                const st = activeAdjustment.status;
+                const rejectedAdj = st === "rejected";
+                const rows: { label: string; done: boolean; current: boolean }[] = rejectedAdj
+                  ? [
+                      { label: "Adjustment submitted", done: true, current: false },
+                      { label: "Unable to adjust", done: false, current: true },
+                    ]
+                  : [
+                      { label: "Adjustment submitted", done: true, current: st === "pending" || st === "changes_requested" || st === "approved" },
+                      { label: "Adjustment received", done: st === "received" || st === "delivered", current: st === "received" },
+                      { label: "Adjustment delivered", done: st === "delivered", current: st === "delivered" },
+                    ];
+                return rows.map((r) => (
+                  <li
+                    key={r.label}
+                    className={`${styles.stage} ${styles.stageAdjustment} ${r.done ? styles.stageDone : ""} ${r.current ? styles.stageCurrent : ""} ${rejectedAdj && r.current ? styles.stageBlockedRed : ""}`}
+                  >
+                    <span
+                      className={styles.stageDot}
+                      aria-hidden="true"
+                      style={r.done ? { background: "#121723", borderColor: "#121723" } : undefined}
+                    />
+                    <span className={styles.stageText}>
+                      <span className={styles.stageLabel}>{r.label}</span>
+                      {r.current && st === "approved" && (
+                        <span className={styles.stageMeta}>Approved — send your appliance back with the return label in your messages</span>
+                      )}
+                      {r.current && st === "pending" && (
+                        <span className={styles.stageMeta}>Our care team is reviewing your request</span>
+                      )}
+                      {r.current && st === "received" && (
+                        <span className={styles.stageMeta}>Your appliance is at the lab — please allow 5–7 business days</span>
+                      )}
+                    </span>
+                  </li>
+                ));
+              })()}
             </ol>
+
+            {/* Unable to adjust — the reason, in the team's words, with the
+                care-team route (same copy the admin sees). */}
+            {activeAdjustment?.status === "rejected" && stagesComplete >= STAGE_LABELS.length && (
+              <div className={`${styles.blockerCard} ${styles.blockerCardRed}`}>
+                <div className={styles.blockerHead}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M15 9l-6 6M9 9l6 6" />
+                  </svg>
+                  Unable to adjust
+                </div>
+                <p className={styles.blockerText}>
+                  {activeAdjustment.reviewNotes || "We couldn't adjust this appliance. Our care team will follow up with next steps."}
+                </p>
+                <div className={styles.blockerActions}>
+                  <Link href="/messages" className={`${styles.blockerBtn} ${styles.blockerBtnRed}`}>Message the care team</Link>
+                </div>
+              </div>
+            )}
 
             {/* Resubmission blocker — the targeted action item. Shows what the
                 lab needs and routes straight to a retake, rather than sending

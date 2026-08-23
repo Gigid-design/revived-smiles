@@ -531,6 +531,10 @@ export type AdjustmentStatus =
   | "pending"
   | "changes_requested"
   | "approved"
+  /* The physical round-trip after approval — the patient tracker shows
+     Submitted → Received → Delivered (Aug 21 client review). */
+  | "received"
+  | "delivered"
   | "rejected";
 
 /**
@@ -611,6 +615,9 @@ export interface AdjustmentRequest {
   reviewedBy: string | null;
   reviewedAt: Timestamp | null;
   approvedAt: Timestamp | null;
+  /* Appliance back at the lab / adjusted appliance delivered to the patient. */
+  receivedAt?: Timestamp | null;
+  deliveredAt?: Timestamp | null;
   createdAt: Timestamp;
   submittedAt: Timestamp | null;
 }
@@ -630,7 +637,7 @@ export interface NewAdjustmentRequest {
 
 /** The team's decision on an adjustment request. */
 export interface AdjustmentDecision {
-  status: Extract<AdjustmentStatus, "approved" | "changes_requested" | "rejected">;
+  status: Extract<AdjustmentStatus, "approved" | "changes_requested" | "rejected" | "received" | "delivered">;
   reviewedBy: string;
   /** Required for `changes_requested` and `rejected`. */
   reviewNotes?: string;

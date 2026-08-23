@@ -22,7 +22,10 @@ export const ADJ_STATUS_META: Record<
   pending: { label: "Pending Review", bg: "#fef3c7", text: "#92400e" },
   changes_requested: { label: "Changes Requested", bg: "#ffedd5", text: "#9a3412" },
   approved: { label: "Approved", bg: "#dcfce7", text: "#166534" },
-  rejected: { label: "Rejected", bg: "#fee2e2", text: "#991b1b" },
+  received: { label: "Received at Lab", bg: "#e0e7ff", text: "#3730a3" },
+  delivered: { label: "Adjusted & Delivered", bg: "#dcfce7", text: "#166534" },
+  /* Client copy (Aug 21): the same words the patient sees. */
+  rejected: { label: "Unable to Adjust", bg: "#fee2e2", text: "#991b1b" },
 };
 
 /** Human label for one stored issue id. */

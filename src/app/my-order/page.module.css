@@ -711,6 +711,20 @@
   font-weight: 700;
 }
 
+/* Adjustment round-trip rows, continuing the tracker past Delivered. */
+.stageAdjustment .stageLabel { color: #9ca3af; }
+.stageAdjustment.stageDone .stageLabel { color: #6b7280; }
+.stageAdjustment.stageCurrent .stageLabel { color: #121723; font-weight: 700; }
+.stageBlockedRed .stageDot {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.14);
+}
+.stageBlockedRed .stageLabel { color: #991b1b !important; font-weight: 700; }
+.blockerCardRed { background: #fef2f2; border-color: #fecaca; }
+.blockerCardRed .blockerHead { color: #991b1b; }
+.blockerBtnRed { background: #dc2626; box-shadow: 0 2px 10px -2px rgba(220, 38, 38, 0.5); }
+
 .blockerCard {
   margin: 0.875rem 0 0;
   padding: 1rem 1.125rem;
