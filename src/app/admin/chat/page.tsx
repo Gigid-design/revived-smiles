@@ -87,6 +87,47 @@ interface Conversation {
   sub: Submission;
   last: ChatMessage | null;
   unread: number;
+  /* When the patient has been waiting: the time of the FIRST patient message
+     since the team's last reply — not the latest one — so a follow-up nudge
+     never resets the clock or pushes the thread back down (Aug 21 review). */
+  waitingSince: string | null;
+}
+
+/** Business hours elapsed between two instants — Mon–Fri, 9am–6pm local. */
+const WORK_START = 9;
+const WORK_END = 18;
+function businessHoursBetween(fromIso: string, to: Date): number {
+  const from = new Date(fromIso);
+  if (!(from < to)) return 0;
+  let hours = 0;
+  const cursor = new Date(from);
+  while (cursor < to) {
+    const day = cursor.getDay();
+    const h = cursor.getHours() + cursor.getMinutes() / 60;
+    if (day >= 1 && day <= 5 && h >= WORK_START && h < WORK_END) {
+      const stepEnd = new Date(cursor); stepEnd.setHours(WORK_END, 0, 0, 0);
+      const end = stepEnd < to ? stepEnd : to;
+      hours += (end.getTime() - cursor.getTime()) / 3_600_000;
+      cursor.setTime(end.getTime());
+    } else {
+      /* Jump to the next working moment. */
+      if (day >= 1 && day <= 5 && h < WORK_START) cursor.setHours(WORK_START, 0, 0, 0);
+      else { cursor.setDate(cursor.getDate() + 1); cursor.setHours(WORK_START, 0, 0, 0); }
+    }
+  }
+  return hours;
+}
+const OVERDUE_AFTER_HOURS = 12;
+
+/** The first patient message after the team's last reply, if the thread is
+    waiting on the team. */
+function firstUnansweredAt(thread: ChatMessage[]): string | null {
+  let since: string | null = null;
+  for (const m of thread) {
+    if (m.senderRole === "admin") since = null;
+    else if (m.senderRole === "patient" && since === null) since = m.createdAt;
+  }
+  return since;
 }
 
 function initials(name: string | null): string {
@@ -127,10 +168,21 @@ function preview(last: ChatMessage | null): string {
   return `${who}${last.body.replace(/\n+/g, " ")}`;
 }
 
-/** Sort conversations with real activity first (newest reply on top), the
-    rest by most recently submitted — the way a support inbox reads. */
+/** Inbox order (Aug 21 client review): threads the patient has been waiting
+    on for 12+ business hours first (longest wait on top), then every other
+    thread awaiting the team (oldest wait first), then the rest by activity.
+    Waiting time counts from the first unanswered message, so a patient
+    replying again never drops their thread down the list. */
 function sortConversations(rows: Conversation[]): Conversation[] {
+  const now = new Date();
+  const rank = (c: Conversation) => {
+    if (!c.waitingSince) return 2;
+    return businessHoursBetween(c.waitingSince, now) >= OVERDUE_AFTER_HOURS ? 0 : 1;
+  };
   return [...rows].sort((a, b) => {
+    const ra = rank(a), rb = rank(b);
+    if (ra !== rb) return ra - rb;
+    if (ra < 2) return (a.waitingSince ?? "").localeCompare(b.waitingSince ?? "");
     const at = a.last?.createdAt ?? "";
     const bt = b.last?.createdAt ?? "";
     if (at && bt) return bt.localeCompare(at);
@@ -188,12 +240,13 @@ export default function AdminChatPage() {
           ids.map((id) =>
             api.messages
               .list(id)
-              .then((ms) => [id, ms[ms.length - 1] ?? null] as const)
-              .catch(() => [id, null] as const),
+              .then((ms) => [id, ms[ms.length - 1] ?? null, firstUnansweredAt(ms)] as const)
+              .catch(() => [id, null, null] as const),
           ),
         ),
       ]);
-      const lastById = new Map(threads);
+      const lastById = new Map(threads.map(([id, last]) => [id, last] as const));
+      const waitingById = new Map(threads.map(([id, , since]) => [id, since] as const));
       /* A conversation with any history is one an agent is already handling. */
       setAssigned((prev) => {
         const next = new Set(prev);
@@ -206,6 +259,7 @@ export default function AdminChatPage() {
             sub,
             last: lastById.get(sub.id) ?? null,
             unread: unread[sub.id] ?? 0,
+            waitingSince: waitingById.get(sub.id) ?? null,
           })),
         ),
       );
@@ -493,6 +547,11 @@ export default function AdminChatPage() {
                       </div>
                       <div className={styles.rowBottom}>
                         <span className={styles.rowPreview}>{preview(c.last)}</span>
+                        {c.waitingSince && businessHoursBetween(c.waitingSince, new Date()) >= OVERDUE_AFTER_HOURS && (
+                          <span className={styles.overdueChip} title="Waiting on the team for 12+ business hours">
+                            {Math.floor(businessHoursBetween(c.waitingSince, new Date()))}h
+                          </span>
+                        )}
                         {c.unread > 0 && <span className={styles.unread}>{c.unread}</span>}
                       </div>
                     </div>
