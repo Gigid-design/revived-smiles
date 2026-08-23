@@ -87,6 +87,14 @@
   gap: 0.25em;
 }
 
+/* Over the six-tooth limit for a partial — the summary turns into the prompt. */
+.summaryOver {
+  background: #fff7ed;
+  box-shadow: inset 0 0 0 1px #fed7aa;
+}
+.summaryOver .summaryTitle { color: #c2410c; }
+.summaryOver .summarySubtitle { color: #9a3412; }
+
 .summaryTitle {
   font-family: var(--font-heading);
   font-weight: 700;

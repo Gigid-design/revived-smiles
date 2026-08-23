@@ -49,6 +49,13 @@ function TeethForm({ stopIndex, stops }: { stopIndex: number; stops: DetailStop[
 
   const count = selectedTeeth.size;
 
+  /* Flexible and acrylic partials replace at most six teeth — past that the
+     lab can't make the appliance, so the chart says so the moment a seventh
+     is tapped rather than at review (Aug 21 client review). */
+  const MAX_PARTIAL_TEETH = 6;
+  const limitedProduct = data.products.some((id) => id === "flexible-partial" || id === "acrylic-partial");
+  const overLimit = limitedProduct && count > MAX_PARTIAL_TEETH;
+
   /* Read as sentences rather than as a template: the old one-liner produced
      "2 tooth teeth marked" for any count above one. */
   function summaryTitle(): string {
@@ -90,10 +97,14 @@ function TeethForm({ stopIndex, stops }: { stopIndex: number; stops: DetailStop[
         </p>
 
         {/* Selected summary */}
-        <div className={styles.summary}>
+        <div className={`${styles.summary} ${overLimit ? styles.summaryOver : ""}`}>
           <div className={styles.summaryText}>
             <span className={styles.summaryTitle}>{summaryTitle()}</span>
-            <span className={styles.summarySubtitle}>{summarySubtitle()}</span>
+            <span className={styles.summarySubtitle}>
+              {overLimit
+                ? `We can replace up to ${MAX_PARTIAL_TEETH} teeth with this appliance — please unselect ${count - MAX_PARTIAL_TEETH}, or message the care team about a full denture.`
+                : summarySubtitle()}
+            </span>
           </div>
         </div>
 
@@ -134,8 +145,10 @@ function TeethForm({ stopIndex, stops }: { stopIndex: number; stops: DetailStop[
       </div>
 
       <div className={styles.buttonWrapper}>
-        <button type="button" className={`${styles.btn} ${styles.btnActive}`}
+        <button type="button" className={`${styles.btn} ${overLimit ? "" : styles.btnActive}`}
+          disabled={overLimit}
           onClick={async () => {
+          if (overLimit) return;
           await saveSharedDetail(
             { selectedTeeth: [...selectedTeeth], teethNotSure: notSure, notes: notes.trim() || null },
             productNeedsTeethChart,
