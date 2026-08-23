@@ -264,9 +264,18 @@ export default function ImpressionPhotos() {
               {photos[slot.id] ? (
                 <>
                   <img src={photos[slot.id].preview} alt={slot.label} className={styles.uploadedPhoto} />
-                  <button className={styles.removeBadge} onClick={(e) => handleRemove(slot.id, e)} aria-label={`Remove ${slot.label}`}>
+                  {/* A span, not a button — a <button> can't nest inside the
+                      card <button> (invalid HTML, hydration warning). */}
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className={styles.removeBadge}
+                    onClick={(e) => handleRemove(slot.id, e)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleRemove(slot.id, e as unknown as React.MouseEvent); } }}
+                    aria-label={`Remove ${slot.label}`}
+                  >
                     <Image src="/assets/images/imp-icon-close-sm.svg" alt="" width={10} height={10} unoptimized />
-                  </button>
+                  </span>
                 </>
               ) : uploading === slot.id ? (
                 <div className={styles.photoCardInner}>
@@ -331,9 +340,18 @@ export default function ImpressionPhotos() {
               {photos[slot.id] ? (
                 <>
                   <img src={photos[slot.id].preview} alt={slot.label} className={styles.uploadedPhoto} />
-                  <button className={styles.removeBadge} onClick={(e) => handleRemove(slot.id, e)} aria-label={`Remove ${slot.label}`}>
+                  {/* A span, not a button — a <button> can't nest inside the
+                      card <button> (invalid HTML, hydration warning). */}
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className={styles.removeBadge}
+                    onClick={(e) => handleRemove(slot.id, e)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleRemove(slot.id, e as unknown as React.MouseEvent); } }}
+                    aria-label={`Remove ${slot.label}`}
+                  >
                     <Image src="/assets/images/imp-icon-close-sm.svg" alt="" width={10} height={10} unoptimized />
-                  </button>
+                  </span>
                 </>
               ) : uploading === slot.id ? (
                 <div className={styles.photoCardInner}>
