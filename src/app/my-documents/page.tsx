@@ -275,26 +275,19 @@ function MyDocuments() {
               </dl>
             </section>
 
-            {/* Documents — per product */}
+            {/* Documents — one invoice and one prescription per ORDER, covering
+                every item on it (Aug 21 client review: "per order rather than
+                per product"). The per-item split is gone from this view. */}
             {REVIEWED_STATUSES.includes(order.status) ? (
-              activeProduct ? (
-                <section className={styles.card}>
-                  <h2 className={styles.sectionTitle}>Documents</h2>
-                  <p className={styles.cardHint}>For HSA, FSA &amp; insurance reimbursement.</p>
-                  <DownloadLinks orderId={order.id} product={activeProduct} />
-                </section>
-              ) : (
-                <section className={styles.card}>
-                  <h2 className={styles.sectionTitle}>Documents by item</h2>
-                  <p className={styles.cardHint}>For HSA, FSA &amp; insurance reimbursement.</p>
-                  {order.products.map((slug) => (
-                    <div key={slug} className={styles.productDocs}>
-                      <p className={styles.productDocsName}>{productLabel(slug)}</p>
-                      <DownloadLinks orderId={order.id} product={slug} />
-                    </div>
-                  ))}
-                </section>
-              )
+              <section className={styles.card}>
+                <h2 className={styles.sectionTitle}>Documents</h2>
+                <p className={styles.cardHint}>
+                  One invoice and one prescription for this order
+                  {order.products.length > 1 ? ` — covers ${productLabels(order.products)}.` : "."}
+                  {" "}For HSA, FSA &amp; insurance reimbursement.
+                </p>
+                <DownloadLinks orderId={order.id} />
+              </section>
             ) : activeProduct ? (
               /* Single-item view before review. A claim invoice is always
                  available; an appliance's docs wait for review. */
