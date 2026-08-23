@@ -67,7 +67,25 @@ Source: *Unosquare Internal Team Meeting Notes 8-21-26* · full triage in `Clien
 | 10 | Scrolling: document is the scroller again (was an inner `main` scroller — wheel dead in desktop gutters, trapped feel on mobile) | any customer page |
 
 **Still owed by the client for #9:** real lab example photographs for each angle — the strip is ready for them.
-**Tier 2/3 not started** — see the Word triage; three items need Gitai's decision first.
+## Aug 21 client review — Tier 2 (contained logic) ✅ 10 of 13 shipped
+
+Commits `96e6acc`…`f4a0175`; live. Full status + links in `Client Change Requests — Aug 21 Review.docx`.
+
+| # | Request | Where to see it |
+| --- | --- | --- |
+| 1 | Tracker reorder — review before "Impressions received" | /my-order?preview=lab_retake |
+| 3 | Adjustments on the tracker (Submitted → Received → Delivered) · "Unable to adjust" + reason, both portals | /my-order?preview=adjustment_received · ?preview=adjustment_rejected · /admin/adjustments |
+| 4 | >6 teeth on flexible/acrylic → prompt, Continue disabled | /step5 |
+| 5 | "Arrived damaged" requires a photo; admin card shows it | /my-order?preview=delivered → Report an issue |
+| 6 | Any decline requires a written reason (becomes the reply) | /admin/chat → Dolores Hunt → Decline |
+| 7 | "Can't proceed" available at every stage | /admin/chat → any post-review order |
+| 8 | Documents per order | /my-documents |
+| 9 | Lab retake uploads only the needed impression | /impression-photos?area=upper |
+| 11 | Inbox priority by business-hours wait (12h), follow-ups don't reset it | /admin/chat |
+| 13 | Return label re-issued after retake — already true | /dashboard?preview=approved |
+
+**Held:** #2 rejected = no retake (reverses Aug 18 — needs Gitai) · #12 pending vs in review (answer first) · #10 multiple orders (after the chat-model decision).
+**Tier 3 not started** — the scope conversation.
 
 ---
 
