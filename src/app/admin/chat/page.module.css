@@ -1295,3 +1295,12 @@
     font-size: 0.625rem;
   }
 }
+
+/* "Can't proceed" disclosure on post-review stages. */
+.cantProceedWrap { margin-top: 0.625rem; }
+.cantProceedLink {
+  border: none; background: transparent; padding: 0;
+  font-size: 0.6875rem; font-weight: 600; color: var(--admin-text-muted);
+  text-decoration: underline; cursor: pointer;
+}
+.cantProceedLink:hover { color: #991b1b; }

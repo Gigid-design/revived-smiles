@@ -170,6 +170,10 @@ export default function AdminChatPage() {
 
   /* Per-order side data the rail shows: the protection plan and recent payments. */
   const [insurance, setInsurance] = useState<Insurance | null>(null);
+  /* "Can't proceed" is available at every stage, not just review (Aug 21
+     client review) — outside review it sits behind a disclosure so the
+     primary action for the stage stays primary. */
+  const [cantProceedOpen, setCantProceedOpen] = useState(false);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   /* Build the inbox: every submission is a possible conversation, decorated
@@ -694,6 +698,32 @@ export default function AdminChatPage() {
                 )}
                 {status === "shipped" && (
                   <button className={styles.btnPrimary} disabled={saving} onClick={() => void handleStatusUpdate(sub, "completed")}>Confirm Delivery</button>
+                )}
+
+                {/* Stop the order at any later stage — with a required reason. */}
+                {["approved", "lab_retake", "in_fabrication", "shipped"].includes(status) && (
+                  <div className={styles.cantProceedWrap}>
+                    {!cantProceedOpen ? (
+                      <button type="button" className={styles.cantProceedLink} onClick={() => setCantProceedOpen(true)}>
+                        Can&apos;t proceed with this order?
+                      </button>
+                    ) : (
+                      <div className={styles.actionBlock}>
+                        <textarea
+                          className={styles.notesTextarea}
+                          placeholder="Tell the patient why we can't continue (required)…"
+                          value={reviewNotes}
+                          onChange={(e) => setReviewNotes(e.target.value)}
+                        />
+                        <div className={styles.actionBtns}>
+                          <button className={styles.btnReject} disabled={saving || !reviewNotes.trim()} onClick={() => void handleStatusUpdate(sub, "rejected")}>
+                            Can&apos;t proceed with order
+                          </button>
+                          <button type="button" className={styles.cantProceedLink} onClick={() => { setCantProceedOpen(false); setReviewNotes(""); }}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
                 {status === "rejected" && sub.reviewNotes && (
                   <div className={styles.rejectReason}>
