@@ -11,7 +11,40 @@ interface ShippingLabelModalProps {
   patientName: string;
 }
 
+/* A deterministic stand-in QR (real one comes from ShipStation's UPS
+   paperless option — Aug 24, Nathan: "looks possible in ShipStation").
+   Derived from the submission id so it's stable per order. */
+function FakeQr({ seed }: { seed: string }) {
+  let h = 0;
+  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const cells: boolean[] = [];
+  let x = h || 1;
+  for (let i = 0; i < 441; i++) { x = (x * 1103515245 + 12345) >>> 0; cells.push(((x >> 16) & 1) === 1); }
+  const N = 21;
+  const finder = (r: number, c: number) =>
+    (r < 7 && c < 7) || (r < 7 && c >= N - 7) || (r >= N - 7 && c < 7);
+  return (
+    <svg viewBox={`0 0 ${N} ${N}`} width="176" height="176" role="img" aria-label="Shipping QR code">
+      <rect width={N} height={N} fill="#fff" />
+      {cells.map((on, i) => {
+        const r = Math.floor(i / N), c = i % N;
+        if (finder(r, c)) {
+          const inRing = (rr: number, cc: number, r0: number, c0: number) => {
+            const dr = rr - r0, dc = cc - c0;
+            return (dr === 0 || dr === 6 || dc === 0 || dc === 6) || (dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4);
+          };
+          const origins: [number, number][] = [[0, 0], [0, N - 7], [N - 7, 0]];
+          const o = origins.find(([r0, c0]) => r >= r0 && r < r0 + 7 && c >= c0 && c < c0 + 7)!;
+          return inRing(r, c, o[0], o[1]) ? <rect key={i} x={c} y={r} width="1" height="1" fill="#121723" /> : null;
+        }
+        return on ? <rect key={i} x={c} y={r} width="1" height="1" fill="#121723" /> : null;
+      })}
+    </svg>
+  );
+}
+
 export function ShippingLabelModal({ open, onClose, submissionId, patientName }: ShippingLabelModalProps) {
+  const [mode, setMode] = useState<"label" | "qr">("label");
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -131,7 +164,22 @@ export function ShippingLabelModal({ open, onClose, submissionId, patientName }:
           <p className={styles.viewerTitle}>Shipping Label</p>
         </div>
 
-        {/* PDF iframe / loading / error */}
+        {/* Label vs QR — for customers without a printer: show the code at
+            any UPS location and they print the label there. */}
+        <div className={styles.modeRow} role="tablist" aria-label="Label format">
+          <button type="button" role="tab" aria-selected={mode === "label"} className={`${styles.modeBtn} ${mode === "label" ? styles.modeBtnOn : ""}`} onClick={() => setMode("label")}>Print label</button>
+          <button type="button" role="tab" aria-selected={mode === "qr"} className={`${styles.modeBtn} ${mode === "qr" ? styles.modeBtnOn : ""}`} onClick={() => setMode("qr")}>No printer? QR code</button>
+        </div>
+
+        {mode === "qr" ? (
+          <div className={styles.qrWrap}>
+            <FakeQr seed={submissionId} />
+            <p className={styles.qrHint}>
+              Show this code at any <strong>UPS location</strong> — they&apos;ll scan it and print
+              the label for you. Nothing to print at home.
+            </p>
+          </div>
+        ) : (
         <div className={styles.pdfWrap}>
           {loading && (
             <div className={styles.statusState}>
@@ -153,6 +201,7 @@ export function ShippingLabelModal({ open, onClose, submissionId, patientName }:
             />
           )}
         </div>
+        )}
 
         {/* Action bar */}
         <div className={styles.actionBar}>
