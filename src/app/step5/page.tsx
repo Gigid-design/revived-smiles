@@ -33,11 +33,39 @@ function TeethForm({ stopIndex, stops }: { stopIndex: number; stops: DetailStop[
 
   const NOTES_MAX = 300;
 
+  /* Unilateral partials replace up to three NEIGHBOURING teeth on one side of
+     one arch. Rather than letting any selection through and failing it later,
+     taps outside the rule are blocked with an explanation, and a selection
+     that outgrows a unilateral prompts the appliance conversation (Aug 24,
+     Nathan: "only enable teeth selection for neighbour teeth"). */
+  const isUnilateral = data.products.some((id) => id.includes("unilateral"));
+  const MAX_UNILATERAL_TEETH = 3;
+  const [ruleHint, setRuleHint] = useState<string | null>(null);
+
+  function unilateralAllows(next: number, current: Set<number>): string | null {
+    if (current.size === 0) return null;
+    const sorted = [...current].sort((a, b) => a - b);
+    const min = sorted[0], max = sorted[sorted.length - 1];
+    const sameArch = (a: number, b: number) => (a <= 15) === (b <= 15);
+    if (!sameArch(next, min)) return "A unilateral covers one side of one arch — pick teeth on the same arch.";
+    if (next !== min - 1 && next !== max + 1)
+      return "A unilateral covers neighbouring teeth — pick a tooth right next to your selection, or message the care team if your missing teeth are in different spots.";
+    if (current.size >= MAX_UNILATERAL_TEETH)
+      return `A unilateral covers up to ${MAX_UNILATERAL_TEETH} teeth in a row. For more, a flexible or acrylic partial is the right appliance — message the care team and we'll update your order.`;
+    return null;
+  }
+
   function toggleTooth(num: number) {
     setNotSure(false);
+    setRuleHint(null);
     setSelectedTeeth(prev => {
       const next = new Set(prev);
-      if (next.has(num)) next.delete(num); else next.add(num);
+      if (next.has(num)) { next.delete(num); return next; }
+      if (isUnilateral) {
+        const blocked = unilateralAllows(num, prev);
+        if (blocked) { setRuleHint(blocked); return prev; }
+      }
+      next.add(num);
       return next;
     });
   }
@@ -97,13 +125,15 @@ function TeethForm({ stopIndex, stops }: { stopIndex: number; stops: DetailStop[
         </p>
 
         {/* Selected summary */}
-        <div className={`${styles.summary} ${overLimit ? styles.summaryOver : ""}`}>
+        <div className={`${styles.summary} ${(overLimit || ruleHint) ? styles.summaryOver : ""}`}>
           <div className={styles.summaryText}>
             <span className={styles.summaryTitle}>{summaryTitle()}</span>
             <span className={styles.summarySubtitle}>
-              {overLimit
-                ? `We can replace up to ${MAX_PARTIAL_TEETH} teeth with this appliance — please unselect ${count - MAX_PARTIAL_TEETH}, or message the care team about a full denture.`
-                : summarySubtitle()}
+              {ruleHint
+                ? ruleHint
+                : overLimit
+                  ? `We can replace up to ${MAX_PARTIAL_TEETH} teeth with this appliance — please unselect ${count - MAX_PARTIAL_TEETH}, or message the care team about a full denture.`
+                  : summarySubtitle()}
             </span>
           </div>
         </div>
