@@ -621,6 +621,8 @@ export interface AdjustmentRequest {
   reviewedBy: string | null;
   reviewedAt: Timestamp | null;
   approvedAt: Timestamp | null;
+  /* Why it couldn't be adjusted (or went to remake) — see ADJUSTMENT_REASON_TAGS. */
+  reasonTag?: AdjustmentReasonTag | null;
   /* Appliance back at the lab / adjusted appliance delivered to the patient. */
   receivedAt?: Timestamp | null;
   deliveredAt?: Timestamp | null;
@@ -641,12 +643,28 @@ export interface NewAdjustmentRequest {
   description: string;
 }
 
+/** Why an adjustment was declined or sent to remake — structured for the
+    analytics the client asked for (Aug 21: "adjustments/remakes and their
+    reasoning tags"). Free-text notes stay; the tag is what charts. */
+export const ADJUSTMENT_REASON_TAGS = [
+  "Fit — too tight",
+  "Fit — too loose",
+  "Wear or damage",
+  "Beyond adjustment — remake",
+  "Patient error",
+  "Manufacturing defect",
+  "Other",
+] as const;
+export type AdjustmentReasonTag = (typeof ADJUSTMENT_REASON_TAGS)[number];
+
 /** The team's decision on an adjustment request. */
 export interface AdjustmentDecision {
   status: Extract<AdjustmentStatus, "approved" | "changes_requested" | "rejected" | "received" | "delivered">;
   reviewedBy: string;
   /** Required for `changes_requested` and `rejected`. */
   reviewNotes?: string;
+  /** Required alongside a `rejected` decision — feeds the reason analytics. */
+  reasonTag?: AdjustmentReasonTag;
 }
 
 /** `changes_requested` and `rejected` require a note explaining why. */

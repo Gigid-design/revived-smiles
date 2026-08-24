@@ -47,6 +47,7 @@ export type {
   AdjustmentPhotos,
   AdjustmentRequest,
   AdjustmentStatus,
+  AdjustmentReasonTag,
   AdminUser,
   AdvisorContext,
   AdvisorMessage,
@@ -104,6 +105,7 @@ export type {
 export {
   adjustmentRequiresNotes,
   ApiError,
+  ADJUSTMENT_REASON_TAGS,
   BRANCH_STATUSES,
   PHOTO_TYPE_LABELS,
   PHOTO_TYPE_SLOTS,

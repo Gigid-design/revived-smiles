@@ -10,6 +10,8 @@ import { api, ApiError, adjustmentRequiresNotes } from "@/lib/api";
 import type { AdjustmentRequest, AdjustmentStatus, Submission } from "@/lib/api";
 import { productLabel } from "@/app/context/productConfig";
 import { ADJ_STATUS_META, answerRows, issueLabel, photoList } from "../format";
+import { ADJUSTMENT_REASON_TAGS } from "@/lib/api";
+import type { AdjustmentReasonTag } from "@/lib/api";
 
 type Decision = Extract<AdjustmentStatus, "approved" | "changes_requested" | "rejected" | "received" | "delivered">;
 
@@ -40,6 +42,7 @@ export default function AdjustmentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reviewNotes, setReviewNotes] = useState("");
+  const [reasonTag, setReasonTag] = useState<AdjustmentReasonTag | null>(null);
   const [saving, setSaving] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -84,6 +87,10 @@ export default function AdjustmentDetailPage() {
       return;
     }
 
+    if (status === "rejected" && !reasonTag) {
+      showToast("Pick a reason tag before marking unable to adjust — it feeds the analytics.", "error");
+      return;
+    }
     if (status === "rejected") {
       const ok = window.confirm(
         "Mark this request as unable to adjust? The patient will see your reason and be routed to customer service.",
@@ -97,6 +104,7 @@ export default function AdjustmentDetailPage() {
         status,
         reviewedBy: adminUser?.name ?? "Admin User",
         reviewNotes: reviewNotes.trim() || undefined,
+        ...(status === "rejected" && reasonTag ? { reasonTag } : {}),
       });
       setRequest(updated);
       const label =
@@ -228,6 +236,7 @@ export default function AdjustmentDetailPage() {
               <div className={styles.reviewedBanner}>
                 <span className={styles.reviewedLabel}>
                   {meta.label} by {request.reviewedBy}
+                  {request.reasonTag ? <> · <strong>{request.reasonTag}</strong></> : null}
                 </span>
                 <span className={styles.reviewedMeta}>{formatDateTime(request.reviewedAt)}</span>
                 {request.reviewNotes && <p className={styles.reviewedNotes}>{request.reviewNotes}</p>}
@@ -255,6 +264,23 @@ export default function AdjustmentDetailPage() {
                   value={reviewNotes}
                   onChange={(e) => setReviewNotes(e.target.value)}
                 />
+
+                {/* Reason tags — structured "why", charted later; the note
+                    stays the human words (Aug 21 analytics ask). */}
+                <div className={styles.reasonTags} role="radiogroup" aria-label="Reason tag">
+                  {ADJUSTMENT_REASON_TAGS.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      role="radio"
+                      aria-checked={reasonTag === tag}
+                      className={`${styles.reasonTagChip} ${reasonTag === tag ? styles.reasonTagChipOn : ""}`}
+                      onClick={() => setReasonTag(reasonTag === tag ? null : tag)}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
 
                 <div className={styles.actions}>
                   <button className={styles.btnApprove} onClick={() => decide("approved")} disabled={saving}>

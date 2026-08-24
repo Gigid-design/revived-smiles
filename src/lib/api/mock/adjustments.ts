@@ -197,6 +197,9 @@ export const mockAdjustments: AdjustmentsApi = {
     if (adjustmentRequiresNotes(decision.status) && !decision.reviewNotes?.trim()) {
       throw new ApiError("validation", "Add a note explaining what the patient needs to do.");
     }
+    if (decision.status === "rejected" && !decision.reasonTag) {
+      throw new ApiError("validation", "Pick a reason tag — it feeds the adjustment analytics.");
+    }
 
     const { request, reply, approval } = mutate((db) => {
       const row = db.adjustmentRequests.find((r) => r.id === id);
@@ -212,6 +215,7 @@ export const mockAdjustments: AdjustmentsApi = {
         row.reviewedBy = decision.reviewedBy;
         row.reviewedAt = at;
         row.reviewNotes = decision.reviewNotes?.trim() ?? null;
+        if (decision.reasonTag !== undefined) row.reasonTag = decision.reasonTag;
       }
 
       /* On approval, hand the customer their prepaid return label + packing
