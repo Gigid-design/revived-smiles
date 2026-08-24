@@ -57,6 +57,9 @@ export default function Messages() {
     messages,
     ready,
     unreadCount,
+    orders,
+    activeOrderId,
+    setActiveOrder,
     send,
     sendRequest,
     markRead,
@@ -211,6 +214,34 @@ export default function Messages() {
         <div className={styles.topBar}>
           <h1 className={styles.heading}>Messages</h1>
         </div>
+
+        {/* Which order this conversation is about. One order → a quiet chip;
+            several → chips become a picker, so "chat about order X" is one tap
+            (Aug 24 — the answer to how a customer opens a chat for a specific
+            order; under one-thread-per-customer these become context tags). */}
+        {orders.length > 0 && (
+          <div className={styles.orderChips} role={orders.length > 1 ? "tablist" : undefined} aria-label="Conversation order">
+            <span className={styles.orderChipsLabel}>About</span>
+            {orders.map((o) => {
+              const label = o.orderNumber ? `Order ${o.orderNumber}` : `Order ${o.id.slice(0, 6).toUpperCase()}`;
+              const active = o.id === activeOrderId;
+              return orders.length === 1 ? (
+                <span key={o.id} className={`${styles.orderChip} ${styles.orderChipActive}`}>{label}</span>
+              ) : (
+                <button
+                  key={o.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  className={`${styles.orderChip} ${active ? styles.orderChipActive : ""}`}
+                  onClick={() => setActiveOrder(o.id)}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* The one scrolling region — loading, empty and full states all live
             inside it so the composer below never moves. */}

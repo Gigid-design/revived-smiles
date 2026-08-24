@@ -1,9 +1,9 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
 
 import { api, CARE_TEAM_NAME } from "@/lib/api";
-import type { ChatMessage, RequestKind, RequestStatus } from "@/lib/api";
+import type { ChatMessage, Submission, RequestKind, RequestStatus } from "@/lib/api";
 
 /**
  * The patient's conversation with the care team.
@@ -28,6 +28,12 @@ interface MessagesContextValue {
   unreadCount: number;
   /** Every supplies request she's raised, newest first. Drives /my-order. */
   requests: ChatMessage[];
+  /* The patient's orders and which one this conversation is about — the chat
+     shows an order chip and, with several orders, a picker (Aug 24, Nathan's
+     question: "how does a customer open a chat for a specific order?"). */
+  orders: Submission[];
+  activeOrderId: string | null;
+  setActiveOrder: (id: string) => void;
   send: (body: string) => Promise<void>;
   sendRequest: (kind: RequestKind, detail: string, note: string, photos?: string[]) => Promise<void>;
   markRead: () => Promise<void>;
@@ -42,6 +48,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [patientName, setPatientName] = useState("You");
+  const [orders, setOrders] = useState<Submission[]>([]);
 
   /* Resolve the order this conversation belongs to, then load and subscribe. */
   useEffect(() => {
@@ -50,13 +57,15 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
 
     async function open() {
       try {
-        const [mine, user] = await Promise.all([
+        const [mine, all, user] = await Promise.all([
           api.submissions.getMine(),
+          api.submissions.listMine().catch(() => [] as Submission[]),
           api.auth.getUser(),
         ]);
         if (cancelled) return;
 
         if (user?.name) setPatientName(user.name);
+        setOrders(all);
         if (!mine) return;
 
         setSubmissionId(mine.id);
@@ -83,6 +92,23 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       unsubscribe?.();
     };
   }, []);
+
+  /* Point the conversation at a different order: load its thread and swap the
+     subscription. Under the future one-thread-per-customer model this becomes
+     a context tag on the thread instead of a reload. */
+  const unsubscribeRef = useRef<(() => void) | undefined>(undefined);
+  const setActiveOrder = useCallback((id: string) => {
+    if (id === submissionId) return;
+    setSubmissionId(id);
+    setMessages([]);
+    void api.messages.list(id).then((loaded) => {
+      setMessages(loaded);
+      unsubscribeRef.current?.();
+      unsubscribeRef.current = api.messages.subscribe(id, (incoming) => {
+        setMessages((prev) => (prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming]));
+      });
+    });
+  }, [submissionId]);
 
   /** Replaces a message in place, keeping the conversation's order. */
   const applyMessage = useCallback((updated: ChatMessage) => {
@@ -135,6 +161,9 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         ready,
         unreadCount,
         requests,
+        orders,
+        activeOrderId: submissionId,
+        setActiveOrder,
         send,
         sendRequest,
         markRead,
