@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { useRef, useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
@@ -41,6 +42,10 @@ function AlertIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/* After this many failed AI checks and retakes, offer a person instead of an
+   endless loop (Aug 24, Nathan: "after N retakes, allow Speak to support"). */
+const MAX_RETAKES = 2;
 
 export default function OpenBite2() {
   const { navigate } = usePageTransition();
@@ -160,6 +165,7 @@ export default function OpenBite2() {
   };
 
   const [submitting, setSubmitting] = useState(false);
+  const [retakeCount, setRetakeCount] = useState(0);
 
   const handleSubmitPhoto = async () => {
     if (submitting) return;
@@ -373,6 +379,7 @@ export default function OpenBite2() {
         {state === "warning" && (
           <div className={styles.warningControls}>
             <button className={styles.retakeBtn} onClick={() => {
+              setRetakeCount((n) => n + 1);
               setCapturedImage(null);
               setPill(null);
               setTip(null);
@@ -382,6 +389,11 @@ export default function OpenBite2() {
             }}>Retake Photo</button>
             <button className={styles.continueAnywayBtn} onClick={handleSubmitPhoto}>{submitting ? "Saving…" : "Continue Anyway"}</button>
           </div>
+        )}
+        {state === "warning" && retakeCount >= MAX_RETAKES && (
+          <Link href="/messages" className={styles.supportAfterRetakes}>
+            Still not passing? Speak to support — we&apos;ll help you get the shot.
+          </Link>
         )}
         {state === "pass" && (
           <div className={styles.submitRow}>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRef, useEffect, useState, useCallback } from "react";
 import styles from "./page.module.css";
 import { usePageTransition } from "../hooks/usePageTransition";
@@ -41,6 +42,10 @@ function AlertIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/* After this many failed AI checks and retakes, offer a person instead of an
+   endless loop (Aug 24, Nathan: "after N retakes, allow Speak to support"). */
+const MAX_RETAKES = 2;
 
 export default function Camera() {
   const { navigate } = usePageTransition();
@@ -106,6 +111,15 @@ export default function Camera() {
     }
   }, []);
 
+  /* Demo affordance: `?ai=fail` makes every check fail, so the retake loop
+     and the after-N "Speak to support" path can be shown without a genuinely
+     bad photo (the mock otherwise always passes on purpose). */
+  const [forceFail, setForceFail] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- URL param on mount
+    setForceFail(new URLSearchParams(window.location.search).get("ai") === "fail");
+  }, []);
+
   /* One analysis path for both the shutter and the gallery picker. */
   const analyzePhoto = useCallback(async (dataUrl: string) => {
     setCapturedImage(dataUrl);
@@ -113,7 +127,16 @@ export default function Camera() {
     setPill({ label: "Starting scan…", detail: "", status: "checking" });
 
     try {
-      const result = await api.photos.analyze(dataUrl, PHOTO_TYPE);
+      let result = await api.photos.analyze(dataUrl, PHOTO_TYPE);
+      if (forceFail) {
+        result = {
+          ...result,
+          pass: false,
+          checks: result.checks.map((c, i) =>
+            i < 2 ? { ...c, pass: false, detail: i === 0 ? "Too dark to grade — retake near a window." : "Motion blur — hold steady and retake." } : c,
+          ),
+        };
+      }
       setAnalysis(result);
       if (result.teethCenter) setTeethCenter(result.teethCenter);
       await runChecks(result.checks);
@@ -129,7 +152,7 @@ export default function Camera() {
       setAnalysis(fallback);
       await runChecks(fallback.checks);
     }
-  }, [runChecks]);
+  }, [runChecks, forceFail]);
 
   const captureAndAnalyze = async () => {
     /* Demo builds show the sample photo rather than the live frame, so the
@@ -160,7 +183,9 @@ export default function Camera() {
     fileInputRef.current?.click();
   };
 
+  const [retakeCount, setRetakeCount] = useState(0);
   const retake = () => {
+    setRetakeCount((n) => n + 1);
     setCapturedImage(null);
     setPill(null);
     setTip(null);
@@ -385,6 +410,11 @@ export default function Camera() {
             <button className={styles.retakeBtn} onClick={retake}>Retake Photo</button>
             <button className={styles.continueAnywayBtn} onClick={handleSubmitPhoto}>{submitting ? "Saving…" : "Continue Anyway"}</button>
           </div>
+        )}
+        {state === "warning" && retakeCount >= MAX_RETAKES && (
+          <Link href="/messages" className={styles.supportAfterRetakes}>
+            Still not passing? Speak to support — we&apos;ll help you get the shot.
+          </Link>
         )}
         {state === "pass" && (
           <div className={styles.submitRow}>

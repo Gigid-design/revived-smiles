@@ -877,3 +877,16 @@
   right: max(1em, calc((100vw - var(--app-max)) / 2 + 1em));
   z-index: 21;
 }
+
+/* "Speak to support" after repeated failed AI checks. */
+.supportAfterRetakes {
+  display: block;
+  margin: 0.625rem auto 0;
+  max-width: 22rem;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  text-decoration: underline;
+}
