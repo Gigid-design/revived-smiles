@@ -225,6 +225,12 @@ export default function AdminChatPage() {
      client review) — outside review it sits behind a disclosure so the
      primary action for the stage stays primary. */
   const [cantProceedOpen, setCantProceedOpen] = useState(false);
+  /* Inline intake correction (Aug 24, Nathan: "no problems here"). */
+  const [intakeEditing, setIntakeEditing] = useState(false);
+  const [editShade, setEditShade] = useState("");
+  const [editGum, setEditGum] = useState("");
+  const [editTeeth, setEditTeeth] = useState("");
+  const [intakeSaving, setIntakeSaving] = useState(false);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   /* Build the inbox: every submission is a possible conversation, decorated
@@ -377,6 +383,28 @@ export default function AdminChatPage() {
 
   /* The review/stage action, mirroring the submission detail: reject and
      changes-requested need a note; reject confirms; shipping carries tracking. */
+  const saveIntakeEdit = useCallback(async (sub: Submission) => {
+    if (intakeSaving) return;
+    setIntakeSaving(true);
+    try {
+      const teeth = editTeeth
+        .split(/[,\s]+/)
+        .map((x) => parseInt(x, 10))
+        .filter((n) => Number.isFinite(n) && n >= 1 && n <= 32);
+      const updated = await api.submissions.updateIntake(
+        sub.id,
+        { whiteShade: editShade || null, gumShade: editGum || null, selectedTeeth: teeth },
+        adminUser?.name ?? "Admin User",
+      );
+      patchSub(updated);
+      setIntakeEditing(false);
+    } catch (err) {
+      console.error("Could not save intake edit:", err);
+    } finally {
+      setIntakeSaving(false);
+    }
+  }, [intakeSaving, editShade, editGum, editTeeth, adminUser]);
+
   const handleStatusUpdate = useCallback(
     async (sub: Submission, newStatus: SubmissionStatus) => {
       if (saving) return;
@@ -928,6 +956,47 @@ export default function AdminChatPage() {
                 </button>
                 {intakeOpen && (
                   <div className={styles.collapseBody}>
+                    {!intakeEditing ? (
+                      <button
+                        type="button"
+                        className={styles.cantProceedLink}
+                        onClick={() => {
+                          setEditShade(sub.whiteShade ?? "");
+                          setEditGum(sub.gumShade ?? "");
+                          setEditTeeth((sub.selectedTeeth ?? []).join(", "));
+                          setIntakeEditing(true);
+                        }}
+                      >
+                        Edit intake details
+                      </button>
+                    ) : (
+                      <div className={styles.intakeEdit}>
+                        <label className={styles.intakeLabel}>
+                          Tooth shade
+                          <select className={styles.intakeSelect} value={editShade} onChange={(e) => setEditShade(e.target.value)}>
+                            <option value="">—</option>
+                            {["A1", "A2", "A3", "A4"].map((v) => <option key={v} value={v}>{v}</option>)}
+                          </select>
+                        </label>
+                        <label className={styles.intakeLabel}>
+                          Gum shade
+                          <select className={styles.intakeSelect} value={editGum} onChange={(e) => setEditGum(e.target.value)}>
+                            <option value="">—</option>
+                            {["Dark", "Pink", "Clear"].map((v) => <option key={v} value={v}>{v}</option>)}
+                          </select>
+                        </label>
+                        <label className={styles.intakeLabel}>
+                          Teeth (1–32, comma-separated)
+                          <input className={styles.intakeSelect} value={editTeeth} onChange={(e) => setEditTeeth(e.target.value)} placeholder="e.g. 12, 13, 14" />
+                        </label>
+                        <div className={styles.actionBtns}>
+                          <button className={styles.btnPrimary} disabled={intakeSaving} onClick={() => void saveIntakeEdit(sub)}>
+                            {intakeSaving ? "Saving…" : "Save & notify patient"}
+                          </button>
+                          <button type="button" className={styles.cantProceedLink} onClick={() => setIntakeEditing(false)}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
                     <dl className={styles.metaList}>
                       <div className={styles.metaRow}><dt>Tooth shade</dt><dd>{sub.whiteShade || "—"}</dd></div>
                       <div className={styles.metaRow}><dt>Gum shade</dt><dd>{sub.gumShade || "—"}</dd></div>

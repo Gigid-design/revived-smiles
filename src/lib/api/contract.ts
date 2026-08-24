@@ -187,6 +187,18 @@ export interface SubmissionsApi {
   updateStatus(id: string, update: StatusUpdate): Promise<Submission>;
 
   /**
+   * Corrects intake details on a submitted order — shades, teeth selection.
+   * ADMIN-ONLY in a real backend (Aug 24, Nathan: "no problems here"); every
+   * edit must be attributed and audit-logged, and a correction note posted to
+   * the order conversation so the patient sees what changed.
+   */
+  updateIntake(
+    id: string,
+    patch: Partial<Pick<Submission, "whiteShade" | "gumShade" | "selectedTeeth" | "teethNotSure">>,
+    editedBy: string,
+  ): Promise<Submission>;
+
+  /**
    * Live submission activity, for the admin lists. Replaces the database
    * change-feed subscription; any transport (websocket, SSE, polling) is fine.
    */

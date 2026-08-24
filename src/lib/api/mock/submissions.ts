@@ -341,6 +341,32 @@ export const mockSubmissions: SubmissionsApi = {
     };
   },
 
+  async updateIntake(id, patch, editedBy) {
+    await delay();
+    const { row, note } = mutate((db) => {
+      const row = db.submissions.find((s) => s.id === id);
+      if (!row) throw new ApiError("not_found", "That order could not be found.");
+      if (patch.whiteShade !== undefined) row.whiteShade = patch.whiteShade;
+      if (patch.gumShade !== undefined) row.gumShade = patch.gumShade;
+      if (patch.selectedTeeth !== undefined) { row.selectedTeeth = patch.selectedTeeth; row.teethNotSure = false; }
+      if (patch.teethNotSure !== undefined) row.teethNotSure = patch.teethNotSure;
+      /* The correction is visible to the patient, not silent. */
+      const note: ChatMessage = {
+        id: `msg-${nanoid(8)}`,
+        submissionId: id,
+        senderRole: "admin",
+        senderName: editedBy,
+        body: "We've updated your intake details on your behalf — check My Order and tell us if anything looks off.",
+        createdAt: nowIso(),
+        readAt: null,
+      };
+      db.messages.push(note);
+      return { row, note };
+    });
+    emitMessage(note);
+    return clone(row);
+  },
+
   async updateStatus(id, update) {
     await delay();
 
