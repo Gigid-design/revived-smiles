@@ -312,7 +312,9 @@ export const mockSubmissions: SubmissionsApi = {
 
     const matched = getDb()
       .submissions.filter((s) => s.status !== "draft")
-      .filter((s) => (status ? s.status === status : true))
+      /* The UI shows one "In Review" stage — its filter matches both values
+         (pending collapsed, Aug 24). */
+      .filter((s) => (status ? (status === "in_review" ? s.status === "in_review" || s.status === "pending" : s.status === status) : true))
       .filter((s) =>
         needle
           ? (s.name ?? "").toLowerCase().includes(needle) || s.email.toLowerCase().includes(needle)

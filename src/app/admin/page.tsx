@@ -92,7 +92,7 @@ export default function AdminDashboard() {
           }
         />
         <StatsCard
-          title="Pending Review"
+          title="Awaiting Review"
           value={stats.pending}
           color="var(--admin-warning)"
           icon={

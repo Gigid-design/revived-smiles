@@ -12,7 +12,6 @@ import { useRealtimeContext } from "../AdminShell";
 const PAGE_SIZE = 25;
 const STATUS_OPTIONS: { value: SubmissionStatus | ""; label: string }[] = [
   { value: "", label: "All Statuses" },
-  { value: "pending", label: "Pending" },
   { value: "in_review", label: "In Review" },
   { value: "approved", label: "Approved" },
   { value: "rejected", label: "Can't Proceed" },

@@ -25,7 +25,6 @@ const OPEN_BITE_LABELS = ["Open Bite — Front", "Open Bite — Side"];
 
 /** The order lifecycle, as the compact stage tracker in the rail draws it. */
 const WORKFLOW_STEPS: { key: SubmissionStatus; label: string }[] = [
-  { key: "pending", label: "Pending" },
   { key: "in_review", label: "Review" },
   { key: "approved", label: "Approved" },
   { key: "in_fabrication", label: "Fabrication" },
@@ -647,14 +646,15 @@ export default function AdminChatPage() {
         {/* ── Order context — the full submission, in view while chatting ── */}
         {active && (() => {
           const sub = active.sub;
-          const status = sub.status;
+          /* Pending collapsed into Review (Aug 24) — one stage on the tracker. */
+          const status = sub.status === "pending" ? "in_review" : sub.status;
           const currentIdx = WORKFLOW_STEPS.findIndex((s) => s.key === status);
           const isBranch = status === "changes_requested" || status === "rejected" || status === "lab_retake";
-          const isReviewable = status === "pending" || status === "in_review" || status === "changes_requested";
+          const isReviewable = status === "in_review" || status === "changes_requested";
           /* A review-stage branch stops the track at Review; a lab retake
              happened after approval, so the track holds at Approved instead of
              rewinding — mirroring the customer's tracker (Aug 18 session). */
-          const filledIdx = isBranch ? (status === "lab_retake" ? 2 : 1) : currentIdx;
+          const filledIdx = isBranch ? (status === "lab_retake" ? 1 : 0) : currentIdx;
           /* Fraction of the track to fill with the brand ramp (0–1), matching
              the submission stepper and the customer fulfilment tracker. */
           const progress = filledIdx <= 0 ? 0 : filledIdx / (WORKFLOW_STEPS.length - 1);

@@ -75,7 +75,6 @@ const NOTE_TEMPLATES = [
 ];
 
 const WORKFLOW_STEPS = [
-  { key: "pending",        label: "Pending" },
   { key: "in_review",      label: "Review" },
   { key: "approved",       label: "Approved" },
   { key: "in_fabrication", label: "Fabrication" },
@@ -242,11 +241,13 @@ export default function SubmissionDetailPage() {
   if (error || !submission) return <div className={styles.error}>{error || "Not found."}</div>;
 
   /* ── Derived data ── */
-  const status = submission.status || "pending";
+  const rawStatus = submission.status || "pending";
+  /* Pending collapsed into Review (Aug 24) — one stage in the stepper. */
+  const status = rawStatus === "pending" ? "in_review" : rawStatus;
   const meta = STATUS_META[status] ?? STATUS_META.pending;
   const currentStepIdx = stepIndex(status);
   const isBranchStatus = status === "changes_requested" || status === "rejected";
-  const isReviewable = status === "pending" || status === "in_review" || status === "changes_requested";
+  const isReviewable = status === "in_review" || status === "changes_requested";
 
   const productConfigs = (submission.products ?? []).map(resolveProduct).filter(Boolean) as ProductConfig[];
   const needsShade = productConfigs.some((c) => c.needsShade);

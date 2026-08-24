@@ -128,7 +128,10 @@ export type SubmissionStatus =
     anywhere a status needs to read as a sentence rather than a slug. */
 export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
   draft: "Draft",
-  pending: "Pending review",
+  /* Displayed as "In review" — the pending/in-review split was dropped
+     (Aug 24, Nathan: "hard to track if an agent has it"). The status value
+     stays for the backend; the patient and admin see one stage. */
+  pending: "In review",
   in_review: "In review",
   approved: "Approved",
   changes_requested: "Changes requested",

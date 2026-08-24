@@ -8,7 +8,7 @@ interface StatusBadgeProps {
 
 const STATUS_CONFIG: Record<SubmissionStatus, { label: string; bg: string; text: string }> = {
   draft: { label: "Draft", bg: "#f1f5f9", text: "#475569" },
-  pending: { label: "Pending", bg: "#fef3c7", text: "#92400e" },
+  pending: { label: "In Review", bg: "#dbeafe", text: "#1e40af" },
   in_review: { label: "In Review", bg: "#dbeafe", text: "#1e40af" },
   approved: { label: "Approved", bg: "#dcfce7", text: "#166534" },
   rejected: { label: "Can't Proceed", bg: "#fee2e2", text: "#991b1b" },

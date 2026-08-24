@@ -428,11 +428,14 @@ function buildMessages(): ChatMessage[] {
     },
     {
       role: "admin",
-      body: `Status changed from ${SUBMISSION_STATUS_LABELS.pending} to ${SUBMISSION_STATUS_LABELS.in_review}.`,
+      /* With pending collapsed into "In review" (Aug 24), the old
+         pending→in-review hop would read "In review → In review" — the
+         seeded history now shows the review beginning instead. */
+      body: "Your impression photos are in — the care team has started reviewing them.",
       mins: 88,
       event: {
         kind: "status_change",
-        title: "Status updated",
+        title: "Review started",
         fromStatus: "pending",
         toStatus: "in_review",
         actor: "Admin User",
