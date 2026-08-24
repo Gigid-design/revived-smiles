@@ -84,8 +84,23 @@ Commits `96e6acc`…`f4a0175`; live. Full status + links in `Client Change Reque
 | 11 | Inbox priority by business-hours wait (12h), follow-ups don't reset it | /admin/chat |
 | 13 | Return label re-issued after retake — already true | /dashboard?preview=approved |
 
-**Held:** #2 rejected = no retake (reverses Aug 18 — needs Gitai) · #12 pending vs in review (answer first) · #10 multiple orders (after the chat-model decision).
-**Tier 3 not started** — the scope conversation.
+## Aug 24 — built from Nathan's review answers ✅ 8 shipped
+
+Commits `7f0e1ae`…`653e72e`; live.
+
+| Item | Nathan's answer → what shipped | Where |
+| --- | --- | --- |
+| Pending vs In review | "Just drop Pending Review" → one In Review stage everywhere | /admin/submissions |
+| Retake on AI fail | retake, then "Speak to support" after 2 retakes | /camera?ai=fail (fail twice) |
+| Unilateral guard | his "neighbour teeth" approach — blocks other-arch/gap/4th-in-row with an explanation | /step5 on a unilateral order |
+| Customers tab | his reframing of customer-360 | /admin/customers |
+| Chat order mapping | order-context chips; several orders = one-tap picker | /messages |
+| Reason tags | required on unable-to-adjust; feeds his analytics | /admin/adjustments → open one |
+| CS edits intake | rail edit + auto-note to the patient | /admin/chat → Patient Intake → Edit |
+| UPS QR label | "No printer? QR code" toggle; ShipStation wires the real code | /dashboard?preview=approved → Print return label |
+
+**Still with Gitai:** refund-on-reject confirmation · upsell payment path · multi-order dashboard UX (Nathan defined the questions).
+**Engineering integration (Nathan):** kit re-ship v1-as-task · Tasks view build · one-thread chat backend · Apple SSO/IAM · ShipStation QR · role provisioning.
 
 ---
 
