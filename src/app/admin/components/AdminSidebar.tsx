@@ -32,6 +32,18 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    label: "Analytics",
+    href: "/admin/analytics",
+    icon: (
+      <svg {...ICON_PROPS}>
+        <path d="M3 20.5h18" />
+        <rect x="4" y="12" width="4" height="6" rx="1.2" />
+        <rect x="10" y="8" width="4" height="10" rx="1.2" />
+        <rect x="16" y="4" width="4" height="14" rx="1.2" />
+      </svg>
+    ),
+  },
   /* Submissions retired from the nav (Aug 13 session): the chat view now carries
      the full submission detail + actions. The /admin/submissions routes still
      exist as a fallback (linked from Dashboard "Full record") until testing

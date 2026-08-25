@@ -8,6 +8,7 @@
 
 import type { ApiClient } from "../contract";
 import { mockAdjustments } from "./adjustments";
+import { mockAnalytics } from "./analytics";
 import { mockAuth } from "./auth";
 import { mockInsurance } from "./insurance";
 import { mockMessages } from "./messages";
@@ -29,6 +30,7 @@ export const mockApi: ApiClient = {
   insurance: mockInsurance,
   adjustments: mockAdjustments,
   shipping: mockShipping,
+  analytics: mockAnalytics,
 };
 
 export { resetDb } from "./store";

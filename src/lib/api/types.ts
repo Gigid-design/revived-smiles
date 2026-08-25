@@ -950,6 +950,154 @@ export interface Insurance {
   nextClaimEligibleAt: Timestamp | null;
 }
 
+/* ==========================================================================
+   Analytics
+   ========================================================================== */
+
+/**
+ * The window analytics are reported over. A key rather than a pair of dates:
+ * the backend owns the bucket boundaries and the timezone they are cut on, so
+ * two clients asking for "the last 30 days" get the same numbers back.
+ */
+export type AnalyticsRangeKey = "7d" | "30d" | "90d";
+
+/** Human-facing label for each range, for the picker. */
+export const ANALYTICS_RANGE_LABELS: Record<AnalyticsRangeKey, string> = {
+  "7d": "Last 7 days",
+  "30d": "Last 30 days",
+  "90d": "Last 90 days",
+};
+
+export const ANALYTICS_RANGES: AnalyticsRangeKey[] = ["7d", "30d", "90d"];
+
+/**
+ * The unit a metric is measured in, so the UI can format a bare number without
+ * a per-metric lookup table. `minutes` renders as "1h 11m", `csat` as "4.6",
+ * `percent` as "27.1%", `count` as "285", `decimal` as "2.0" for rates that
+ * are neither a whole count nor a score out of five.
+ */
+export type MetricUnit = "count" | "minutes" | "percent" | "csat" | "decimal";
+
+/** Enough to render an agent's identity in a table row or a card. */
+export interface AgentIdentity {
+  agentId: string;
+  name: string;
+  /** Precomputed so the UI never has to guess at name splitting. */
+  initials: string;
+  /** Null when the agent has no photo — render the initials instead. */
+  avatarUrl: string | null;
+}
+
+/**
+ * One agent's row in the performance table.
+ *
+ * Averages are null rather than zero when there is nothing to average — an
+ * agent with no CSAT responses has no score, and a table that renders that as
+ * "0.0" is lying. Every consumer must handle null.
+ */
+export interface AgentPerformance extends AgentIdentity {
+  closedTickets: number;
+  /** Share of all closed tickets in the range, 0–100. */
+  pctOfClosedTickets: number;
+  averageCsat: number | null;
+  ticketsReplied: number;
+  messagesSent: number;
+  firstResponseMinutes: number | null;
+  resolutionMinutes: number | null;
+}
+
+/**
+ * One agent's row in the availability table.
+ *
+ * The three status durations are minutes inside the range, and are expected to
+ * sum to the agent's rostered time — not to the length of the range.
+ */
+export interface AgentAvailability extends AgentIdentity {
+  onlineMinutes: number;
+  awayMinutes: number;
+  offlineMinutes: number;
+  /** Closed tickets per hour spent online. Null when the agent was never online. */
+  ticketsPerOnlineHour: number | null;
+}
+
+/** Which metric a top-performer card is celebrating. */
+export type TopPerformerMetric =
+  | "averageCsat"
+  | "firstResponseTime"
+  | "resolutionTime"
+  | "closedTickets";
+
+/**
+ * The winner of one metric over the range.
+ *
+ * `agent` is null when nobody qualifies — no CSAT responses at all, say. The
+ * card still renders, with an em dash, so the row does not reflow between
+ * ranges.
+ */
+export interface TopPerformer {
+  metric: TopPerformerMetric;
+  label: string;
+  agent: AgentIdentity | null;
+  value: number | null;
+  unit: MetricUnit;
+}
+
+/** Everything the Agents tab needs, in one round trip. */
+export interface AgentAnalytics {
+  topPerformers: TopPerformer[];
+  performance: AgentPerformance[];
+  availability: AgentAvailability[];
+  /** The "Average" summary row. Computed by the backend so every client agrees. */
+  performanceAverage: Omit<AgentPerformance, keyof AgentIdentity>;
+}
+
+/**
+ * One row of the channel table.
+ *
+ * `closedTickets` may exceed `createdTickets`: tickets created before the range
+ * can be closed inside it.
+ */
+export interface ChannelPerformance {
+  channelId: string;
+  label: string;
+  createdTickets: number;
+  /** Share of all tickets created in the range, 0–100. */
+  pctOfCreatedTickets: number;
+  closedTickets: number;
+  /** Total time a ticket was actively worked, not wall-clock age. */
+  handleTimeMinutes: number | null;
+  firstResponseMinutes: number | null;
+  averageCsat: number | null;
+}
+
+/** Everything the Channels tab needs. */
+export interface ChannelAnalytics {
+  channels: ChannelPerformance[];
+  channelAverage: Omit<ChannelPerformance, "channelId" | "label">;
+}
+
+/**
+ * One tag's usage over the range.
+ *
+ * `perDay` is aligned index-for-index with `TagAnalytics.days`, so a chart can
+ * zip the two without a date lookup. Days with no uses are 0, never absent.
+ */
+export interface TagUsage {
+  tag: string;
+  total: number;
+  perDay: number[];
+}
+
+/** Everything the Tags tab needs. */
+export interface TagAnalytics {
+  /** Bucket start dates, ascending. One entry per column of `perDay`. */
+  days: Timestamp[];
+  /** Ordered by total, descending. The chart plots these. */
+  topUsed: TagUsage[];
+  /** Every tag used in the range, ordered by total, descending. */
+  all: TagUsage[];
+}
+
 /**
  * Every adapter rejects with this, so screens can show a message without
  * knowing which backend produced it.

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const PAGE_TITLES: Record<string, string> = {
   "/admin": "Dashboard",
+  "/admin/analytics": "Analytics",
   "/admin/submissions": "Submissions",
   "/admin/adjustments": "Adjustment Requests",
   "/admin/chat": "Chat",

@@ -14,12 +14,15 @@
 
 import type {
   AdjustmentDecision,
+  AgentAnalytics,
+  AnalyticsRangeKey,
   AdjustmentRequest,
   AdjustmentStatus,
   AdminUser,
   AdvisorContext,
   AdvisorMessage,
   AppNotification,
+  ChannelAnalytics,
   AuthEvent,
   AuthUser,
   BillingAddress,
@@ -48,6 +51,7 @@ import type {
   SubmissionDraft,
   SubmissionQuery,
   SubmissionStats,
+  TagAnalytics,
   Timestamp,
   Unsubscribe,
 } from "./types";
@@ -548,6 +552,48 @@ export interface ShippingApi {
 
 /* ------------------------------------------------------------------ */
 
+export interface AnalyticsApi {
+  /**
+   * Support-team performance over the range.
+   *
+   * Staff-only. A real implementation must reject a patient session with
+   * `not_authorized` — these are colleagues' individual performance numbers,
+   * and the patient app shares an origin with the portal.
+   *
+   * Returns the whole tab in one call on purpose: the top-performer cards are
+   * derived from the same aggregate as the table, and computing them in two
+   * requests invites the cards and the table to disagree at a range boundary.
+   *
+   * Averages are null, not zero, when there is nothing to average. Agents with
+   * no activity in the range are omitted from `performance` rather than
+   * returned as a row of zeroes.
+   */
+  agents(range: AnalyticsRangeKey): Promise<AgentAnalytics>;
+
+  /**
+   * Ticket volume and speed, split by the channel the ticket arrived on.
+   *
+   * Staff-only, as above. Channels with no tickets in the range are omitted.
+   * `closedTickets` counts closes that happened inside the range regardless of
+   * when the ticket was created, so it may exceed `createdTickets` — do not
+   * "fix" that by clamping.
+   */
+  channels(range: AnalyticsRangeKey): Promise<ChannelAnalytics>;
+
+  /**
+   * Tag usage over the range, bucketed by day.
+   *
+   * Staff-only, as above. `days` is the x-axis every `perDay` array is aligned
+   * to; a real implementation must emit one entry per bucket including empty
+   * ones, and must cut the buckets in a single declared timezone rather than
+   * the caller's, or the same day will hold different totals for two staff in
+   * different places.
+   */
+  tags(range: AnalyticsRangeKey): Promise<TagAnalytics>;
+}
+
+/* ------------------------------------------------------------------ */
+
 export interface ApiClient {
   auth: AuthApi;
   submissions: SubmissionsApi;
@@ -559,4 +605,5 @@ export interface ApiClient {
   insurance: InsuranceApi;
   adjustments: AdjustmentsApi;
   shipping: ShippingApi;
+  analytics: AnalyticsApi;
 }
