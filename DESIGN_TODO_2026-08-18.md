@@ -137,10 +137,11 @@ Commits `7f0e1ae`…`653e72e`; live.
 
 ## Design later — waiting on input
 
-- [ ] 🕐 **7. Analytics dashboard (Gorgias replacement).** _(≈23:30–27:12)_
+- [x] **7. Analytics dashboard (Gorgias replacement).** _(≈23:30–27:12)_
   Metrics Gitai listed: messages received · first response time · messages-to-ticket-close · resolution time · totals over a time range · trend deltas ("resolution rate much higher than before").
-  **Waiting on:** Nathan pulling the Gorgias data points from his test account, then he and I align on designs. Gitai also owes a list of what his CS team actually watches daily.
-  **Head start possible:** a v1 draft from the metrics above is enough to design against.
+  **Built** as `/admin/analytics` — Agents, Channels and Tags over one range picker, with CSV export.
+  **Reviewed with Gitai on Aug 25**, who asked for a custom date range, a tag search and company-wide totals. All three shipped — see [`DESIGN_TODO_2026-08-25.md`](DESIGN_TODO_2026-08-25.md).
+  **Still open there:** role-gating the view (Nathan's), and Gitai's list of what his CS team watches daily.
 
 - [ ] 🕐 **8. Shipping-team task list (third role).** _(≈13:01–17:58)_
   Replaces their Google Chat to-do list: order number + what to send (material / trays / kit), check-off, and **who completed it** for auditing. Nathan: build it on role-based access — shipping logs in, sees only their queue; can hook up email notifications.
@@ -159,7 +160,7 @@ Commits `7f0e1ae`…`653e72e`; live.
 | Shopify write / auto-resend kits | Added scope + testing; risk of runaway sends | Manual in Shopify short-term; portal shows messaging + blocker only |
 | Shipping task list | Added scope; needs priority alignment | Backlog / appendix; after priority items |
 | Open full record | Keeping it means revising submissions detail | Removed instead (#1) |
-| Analytics | Sequence: check Gorgias data points first | He reviews, then we align on design |
+| Analytics | Sequence: check Gorgias data points first | Done — reviewed Aug 25; Gorgias exports CSV, so the download button is at parity |
 
 ## Not mine, but tracked (owner: Gitai / Nathan)
 

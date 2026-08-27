@@ -15,7 +15,7 @@
 import type {
   AdjustmentDecision,
   AgentAnalytics,
-  AnalyticsRangeKey,
+  AnalyticsRange,
   AdjustmentRequest,
   AdjustmentStatus,
   AdminUser,
@@ -552,6 +552,20 @@ export interface ShippingApi {
 
 /* ------------------------------------------------------------------ */
 
+/**
+ * Support analytics.
+ *
+ * Every method takes an `AnalyticsRange`: one of the three presets, or a
+ * `custom` pair of calendar dates. A custom range must be validated, not
+ * trusted — reject with `validation` when `end` precedes `start`, when either
+ * date is unparseable, when `end` is in the future, or when the window is
+ * longer than `MAX_CUSTOM_RANGE_DAYS`. The browser enforces all four before
+ * asking, and none of that survives a crafted request.
+ *
+ * Bucket boundaries stay the backend's business for a custom range as much as a
+ * preset one: cut on the same declared timezone, and widen the bucket span for
+ * long windows rather than returning a column per day for a year.
+ */
 export interface AnalyticsApi {
   /**
    * Support-team performance over the range.
@@ -567,8 +581,14 @@ export interface AnalyticsApi {
    * Averages are null, not zero, when there is nothing to average. Agents with
    * no activity in the range are omitted from `performance` rather than
    * returned as a row of zeroes.
+   *
+   * `company` carries the whole-team figures and the same figures over the
+   * window immediately before this one, so the screen can show a delta without
+   * issuing a second request for the previous period. Set `previous` to null
+   * rather than to the current value when no comparable history exists — a
+   * zero delta and an unknown delta are different claims.
    */
-  agents(range: AnalyticsRangeKey): Promise<AgentAnalytics>;
+  agents(range: AnalyticsRange): Promise<AgentAnalytics>;
 
   /**
    * Ticket volume and speed, split by the channel the ticket arrived on.
@@ -578,7 +598,7 @@ export interface AnalyticsApi {
    * when the ticket was created, so it may exceed `createdTickets` — do not
    * "fix" that by clamping.
    */
-  channels(range: AnalyticsRangeKey): Promise<ChannelAnalytics>;
+  channels(range: AnalyticsRange): Promise<ChannelAnalytics>;
 
   /**
    * Tag usage over the range, bucketed by day.
@@ -588,8 +608,14 @@ export interface AnalyticsApi {
    * ones, and must cut the buckets in a single declared timezone rather than
    * the caller's, or the same day will hold different totals for two staff in
    * different places.
+   *
+   * `all` is the whole tag vocabulary used in the range, not a page of it. The
+   * Aug 25 tag search filters that list in the browser, so no query parameter
+   * is needed here — but if the vocabulary ever grows past a few hundred tags,
+   * paging this response is the change, and the search moves to the backend
+   * with it.
    */
-  tags(range: AnalyticsRangeKey): Promise<TagAnalytics>;
+  tags(range: AnalyticsRange): Promise<TagAnalytics>;
 }
 
 /* ------------------------------------------------------------------ */

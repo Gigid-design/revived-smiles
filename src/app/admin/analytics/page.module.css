@@ -62,11 +62,141 @@
   color: #ffffff;
 }
 
+.rangeArea {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .rangeCaption {
   font-family: var(--font-body);
   font-size: 0.75rem;
   color: var(--admin-text-muted);
-  margin-left: 0.5rem;
+}
+
+/* ------------------------------------------------------ Custom range */
+
+.customWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.customWrap .rangeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* Anchored to the pill and above the cards below it. Left-aligned so the
+   panel opens under the control that summoned it. */
+.customPanel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 30;
+  width: 20rem;
+  max-width: calc(100vw - 3rem);
+  padding: 1rem;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.14);
+}
+
+.customFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+.customField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+}
+
+.customFieldLabel {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.customInput {
+  width: 100%;
+  padding: 0.4375rem 0.5625rem;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--admin-text);
+}
+
+.customInput:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(30, 102, 255, 0.14);
+}
+
+.customHint,
+.customError {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin: 0.75rem 0 0;
+}
+
+.customHint {
+  color: var(--admin-text-muted);
+}
+
+.customError {
+  color: #b42318;
+}
+
+.customActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+}
+
+.customCancel,
+.customApply {
+  padding: 0.4375rem 0.875rem;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.customCancel {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  color: var(--admin-text-muted);
+}
+
+.customCancel:hover {
+  color: var(--admin-text);
+  border-color: var(--admin-text-muted);
+}
+
+.customApply {
+  background: var(--admin-primary);
+  border: 1px solid var(--admin-primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.customApply:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .downloadBtn {
@@ -673,6 +803,177 @@
 }
 
 /* ----------------------------------------------------------- Loading */
+
+/* ------------------------------------------------------ Company band */
+
+.companyHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.companyCaption {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+.companyGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 1320px) {
+  .companyGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .companyGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.companyTile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.9375rem 1rem 1rem;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 12px;
+}
+
+.companyLabel {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.companyValue {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--admin-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.companyDelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
+  align-self: flex-start;
+  padding: 0.125rem 0.4375rem;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.deltaGood {
+  background: rgba(16, 124, 76, 0.1);
+  color: #107c4c;
+}
+
+.deltaBad {
+  background: rgba(180, 35, 24, 0.1);
+  color: #b42318;
+}
+
+.deltaFlat {
+  background: var(--admin-bg);
+  color: var(--admin-text-muted);
+}
+
+/* --------------------------------------------------------- Tag search */
+
+.cardTools {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.search {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.625rem;
+  color: var(--admin-text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 13rem;
+  max-width: 100%;
+  padding: 0.4375rem 1.875rem 0.4375rem 2rem;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--admin-text);
+}
+
+.searchInput::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(30, 102, 255, 0.14);
+}
+
+.searchClear {
+  position: absolute;
+  right: 0.375rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+}
+
+.searchClear:hover {
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+/* --------------------------------------------------------------- State */
+
+.error {
+  padding: 1rem 1.25rem;
+  background: rgba(180, 35, 24, 0.06);
+  border: 1px solid rgba(180, 35, 24, 0.24);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: #b42318;
+}
 
 .loading {
   display: flex;

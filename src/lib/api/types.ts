@@ -955,20 +955,67 @@ export interface Insurance {
    ========================================================================== */
 
 /**
- * The window analytics are reported over. A key rather than a pair of dates:
- * the backend owns the bucket boundaries and the timezone they are cut on, so
- * two clients asking for "the last 30 days" get the same numbers back.
+ * The named windows analytics are reported over.
+ *
+ * A key rather than a pair of dates: the backend owns the bucket boundaries
+ * and the timezone they are cut on, so two clients asking for "the last 30
+ * days" get the same numbers back.
  */
-export type AnalyticsRangeKey = "7d" | "30d" | "90d";
+export type AnalyticsRangePreset = "7d" | "30d" | "90d";
 
-/** Human-facing label for each range, for the picker. */
-export const ANALYTICS_RANGE_LABELS: Record<AnalyticsRangeKey, string> = {
+/** Human-facing label for each preset, for the picker. */
+export const ANALYTICS_RANGE_LABELS: Record<AnalyticsRangePreset, string> = {
   "7d": "Last 7 days",
   "30d": "Last 30 days",
   "90d": "Last 90 days",
 };
 
-export const ANALYTICS_RANGES: AnalyticsRangeKey[] = ["7d", "30d", "90d"];
+export const ANALYTICS_RANGES: AnalyticsRangePreset[] = ["7d", "30d", "90d"];
+
+/**
+ * The window analytics are reported over: a preset, or a pair of dates the
+ * user picked (Aug 25 session — "are we going to be able to choose a custom
+ * range as well?").
+ *
+ * `start` and `end` are plain calendar dates, `YYYY-MM-DD`, and the window is
+ * inclusive of both. Deliberately not timestamps: the caller is choosing days
+ * off a calendar, and sending an instant would drag the caller's timezone into
+ * a boundary the backend has already declared it owns.
+ */
+export type AnalyticsRange =
+  | { preset: AnalyticsRangePreset }
+  | { preset: "custom"; start: string; end: string };
+
+/**
+ * The longest custom window a caller may ask for.
+ *
+ * A cap the UI can enforce before the request and the backend must enforce
+ * again: "every day since launch" is a report, not a dashboard query, and the
+ * daily buckets behind it would arrive as thousands of columns.
+ */
+export const MAX_CUSTOM_RANGE_DAYS = 366;
+
+/** Whole days in a range, counting both endpoints. Null when `end` precedes `start`. */
+export function analyticsRangeDays(range: AnalyticsRange): number | null {
+  if (range.preset !== "custom") return Number(range.preset.replace("d", ""));
+
+  const start = Date.parse(`${range.start}T00:00:00Z`);
+  const end = Date.parse(`${range.end}T00:00:00Z`);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return null;
+
+  return Math.round((end - start) / 86400000) + 1;
+}
+
+/**
+ * A stable, filename-safe identifier for a range.
+ *
+ * Used for export filenames and cache keys, so a custom window downloads as
+ * `agent-performance-2026-08-01_2026-08-25.csv` rather than overwriting the
+ * last one.
+ */
+export function analyticsRangeSlug(range: AnalyticsRange): string {
+  return range.preset === "custom" ? `${range.start}_${range.end}` : range.preset;
+}
 
 /**
  * The unit a metric is measured in, so the UI can format a bare number without
@@ -1042,8 +1089,56 @@ export interface TopPerformer {
   unit: MetricUnit;
 }
 
+/** Which whole-team figure a company-wide tile is reporting. */
+export type CompanyMetricKey =
+  | "closedTickets"
+  | "ticketsReplied"
+  | "messagesSent"
+  | "averageCsat"
+  | "firstResponseMinutes"
+  | "resolutionMinutes";
+
+/**
+ * One whole-team figure, with the same figure from the window before it.
+ *
+ * Counts are totals; rates and scores are means across the team. Both are the
+ * backend's arithmetic — a client that summed the agent rows itself would get
+ * a different first-response time (a mean of medians is not the median), and
+ * two clients disagreeing about a company number is worse than either being
+ * approximate.
+ *
+ * `previous` covers the window of equal length immediately before this one, and
+ * is null when there is no comparable history — a delta against a partial
+ * window reads as a collapse that never happened.
+ */
+export interface CompanyMetric {
+  key: CompanyMetricKey;
+  label: string;
+  value: number | null;
+  previous: number | null;
+  unit: MetricUnit;
+  /** True for the time metrics, where a fall is an improvement. */
+  lowerIsBetter: boolean;
+}
+
+/**
+ * The company-wide band above the agent tables (Aug 25 session — "company-wide
+ * first response time or company-wide resolution time").
+ *
+ * Distinct from `AgentAnalytics.performanceAverage`, which is the per-agent
+ * mean pinned inside the table. One answers "how is the team doing", the other
+ * "how does this agent compare to their colleagues", and the screen must not
+ * let them be read as the same number.
+ */
+export interface CompanySummary {
+  /** Agents with any activity in the range — the denominator behind the means. */
+  activeAgents: number;
+  metrics: CompanyMetric[];
+}
+
 /** Everything the Agents tab needs, in one round trip. */
 export interface AgentAnalytics {
+  company: CompanySummary;
   topPerformers: TopPerformer[];
   performance: AgentPerformance[];
   availability: AgentAvailability[];

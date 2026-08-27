@@ -17,12 +17,15 @@ import type {
   AgentAnalytics,
   AgentAvailability,
   AgentPerformance,
-  AnalyticsRangeKey,
+  AnalyticsRange,
   ChannelAnalytics,
   ChannelPerformance,
+  CompanyMetric,
+  CompanySummary,
   TagUsage,
   TopPerformer,
 } from "../types";
+import { analyticsRangeDays, analyticsRangeSlug, ApiError, MAX_CUSTOM_RANGE_DAYS } from "../types";
 import { delay } from "./store";
 
 /* ------------------------------------------------------------------ *
@@ -50,14 +53,67 @@ function hash(text: string): number {
   return h >>> 0;
 }
 
+/* ------------------------------------------------------------------ *
+ * Ranges
+ * ------------------------------------------------------------------ */
+
+/** Today at UTC midnight, the last day any range may include. */
+function todayUtc(): number {
+  const now = new Date();
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+}
+
+/**
+ * A validated range, reduced to the two things the rest of this file needs.
+ *
+ * The checks here mirror the ones the contract requires of a real backend, and
+ * exist for the same reason: the picker enforces them too, and none of that
+ * survives someone calling the method directly.
+ */
+interface ResolvedRange {
+  /** Days in the window, inclusive of both endpoints. */
+  days: number;
+  /** UTC midnight of the last day in the window. */
+  endMs: number;
+}
+
+function resolveRange(range: AnalyticsRange): ResolvedRange {
+  const days = analyticsRangeDays(range);
+
+  if (days === null) {
+    throw new ApiError("validation", "The end date must fall on or after the start date.");
+  }
+  if (days > MAX_CUSTOM_RANGE_DAYS) {
+    throw new ApiError(
+      "validation",
+      `A custom range can cover at most ${MAX_CUSTOM_RANGE_DAYS} days.`,
+    );
+  }
+
+  if (range.preset !== "custom") return { days, endMs: todayUtc() };
+
+  const endMs = Date.parse(`${range.end}T00:00:00Z`);
+  if (endMs > todayUtc()) {
+    throw new ApiError("validation", "A range cannot end in the future.");
+  }
+
+  return { days, endMs };
+}
+
 /**
  * Volume scales with the range, but not linearly — the team was smaller three
  * months ago, so 90 days holds less than 90/7 of a week.
+ *
+ * The exponent is chosen so the three presets land on the figures this file
+ * shipped with (7d → 1, 30d → 3.6, 90d → 9.4); a custom range now interpolates
+ * along the same curve instead of falling off a lookup table.
  */
-const RANGE_VOLUME: Record<AnalyticsRangeKey, number> = { "7d": 1, "30d": 3.6, "90d": 9.4 };
+function rangeVolume(resolved: ResolvedRange): number {
+  return Math.pow(resolved.days / 7, 0.88);
+}
 
-function scale(base: number, range: AnalyticsRangeKey): number {
-  return Math.round(base * RANGE_VOLUME[range]);
+function scale(base: number, resolved: ResolvedRange): number {
+  return Math.round(base * rangeVolume(resolved));
 }
 
 /* ------------------------------------------------------------------ *
@@ -283,41 +339,44 @@ const TAGS: { tag: string; weekly: number }[] = [
   { tag: "Negative", weekly: 3 },
 ];
 
-/** How many chart buckets a range gets. 90 days is bucketed weekly. */
-function bucketCount(range: AnalyticsRangeKey): number {
-  if (range === "7d") return 7;
-  if (range === "30d") return 30;
-  return 13;
+/**
+ * Days covered by one bucket.
+ *
+ * Windows past six weeks are bucketed weekly, past nine months monthly-ish, so
+ * a table of per-bucket columns stays readable at any range the picker allows.
+ */
+function bucketSpan(resolved: ResolvedRange): number {
+  if (resolved.days <= 45) return 1;
+  if (resolved.days <= 280) return 7;
+  return 28;
 }
 
-/** Days covered by one bucket — 1 for the daily ranges, 7 for the quarter. */
-function bucketSpan(range: AnalyticsRangeKey): number {
-  return range === "90d" ? 7 : 1;
+/** How many chart buckets a range gets. */
+function bucketCount(resolved: ResolvedRange): number {
+  return Math.max(1, Math.ceil(resolved.days / bucketSpan(resolved)));
 }
 
 /**
- * Bucket start dates, ascending, ending on today.
+ * Bucket start dates, ascending, ending on the last day of the range.
  *
  * Cut at UTC midnight rather than the caller's timezone, matching the note in
  * the contract: two staff in two timezones must see the same day totals.
  */
-function bucketDates(range: AnalyticsRangeKey): string[] {
-  const span = bucketSpan(range);
-  const count = bucketCount(range);
-  const today = new Date();
-  const end = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+function bucketDates(resolved: ResolvedRange): string[] {
+  const span = bucketSpan(resolved);
+  const count = bucketCount(resolved);
   const dayMs = 86400000;
 
   return Array.from({ length: count }, (_, i) => {
     const offset = (count - 1 - i) * span * dayMs;
-    return new Date(end - offset).toISOString();
+    return new Date(resolved.endMs - offset).toISOString();
   });
 }
 
 /** A tag's per-bucket counts: its baseline, wobbled by its own stable seed. */
-function tagSeries(tag: string, weekly: number, range: AnalyticsRangeKey): number[] {
-  const count = bucketCount(range);
-  const span = bucketSpan(range);
+function tagSeries(tag: string, weekly: number, resolved: ResolvedRange): number[] {
+  const count = bucketCount(resolved);
+  const span = bucketSpan(resolved);
   const perBucket = (weekly / 7) * span;
   const random = seeded(hash(tag));
 
@@ -361,6 +420,112 @@ function highest(
   return ranked[0] ?? null;
 }
 
+/**
+ * The whole-team band above the agent tables.
+ *
+ * Counts are totals across the team; CSAT and the two times are means. The
+ * previous-window figures are fabricated the way everything else here is — a
+ * drift seeded from the metric and the range — so a given range always shows
+ * the same deltas, and the design can be reviewed against a screen that holds
+ * still. Most tiles improve; a couple do not, because a band that can only
+ * render green has not been designed.
+ */
+function companySummary(performance: AgentPerformance[], range: AnalyticsRange): CompanySummary {
+  const slug = analyticsRangeSlug(range);
+
+  const total = (pick: (row: AgentPerformance) => number): number =>
+    performance.reduce((sum, row) => sum + pick(row), 0);
+
+  /* The three volume metrics move together, off one drift: a week that closed
+     more tickets did not also send fewer messages, and a band that claimed so
+     would be the first thing anyone reviewing it noticed. */
+  const volumeRandom = seeded(hash(`${slug}:volume`));
+  const volumeRose = volumeRandom() < 0.72;
+  const volumeMagnitude = 0.04 + volumeRandom() * 0.18;
+
+  function previousOf(value: number | null, key: string, lowerIsBetter: boolean, unit: string) {
+    if (value === null) return null;
+
+    const random = seeded(hash(`${slug}:${key}`));
+
+    let improved: boolean;
+    let magnitude: number;
+
+    if (unit === "count") {
+      improved = volumeRose;
+      /* ±15% around the shared figure, so the three tiles aren't identical. */
+      magnitude = volumeMagnitude * (0.85 + random() * 0.3);
+    } else if (unit === "csat") {
+      improved = random() < 0.72;
+      /* A satisfaction score out of five does not move by a fifth in a week.
+         Half a percent to five is what a real quarter of CSAT looks like. */
+      magnitude = 0.005 + random() * 0.045;
+    } else {
+      improved = random() < 0.72;
+      magnitude = 0.04 + random() * 0.18;
+    }
+
+    /* Improving means the current figure beat the old one: lower for a time,
+       higher for a count. So the previous window sits on the other side. */
+    const previous = improved === lowerIsBetter ? value * (1 + magnitude) : value * (1 - magnitude);
+
+    return unit === "csat" ? Math.min(5, previous) : previous;
+  }
+
+  const base: Omit<CompanyMetric, "previous">[] = [
+    {
+      key: "closedTickets",
+      label: "Closed tickets",
+      value: total((row) => row.closedTickets),
+      unit: "count",
+      lowerIsBetter: false,
+    },
+    {
+      key: "firstResponseMinutes",
+      label: "First response",
+      value: meanOf(performance.map((row) => row.firstResponseMinutes)),
+      unit: "minutes",
+      lowerIsBetter: true,
+    },
+    {
+      key: "resolutionMinutes",
+      label: "Resolution time",
+      value: meanOf(performance.map((row) => row.resolutionMinutes)),
+      unit: "minutes",
+      lowerIsBetter: true,
+    },
+    {
+      key: "averageCsat",
+      label: "Average CSAT",
+      value: meanOf(performance.map((row) => row.averageCsat)),
+      unit: "csat",
+      lowerIsBetter: false,
+    },
+    {
+      key: "ticketsReplied",
+      label: "Tickets replied",
+      value: total((row) => row.ticketsReplied),
+      unit: "count",
+      lowerIsBetter: false,
+    },
+    {
+      key: "messagesSent",
+      label: "Messages sent",
+      value: total((row) => row.messagesSent),
+      unit: "count",
+      lowerIsBetter: false,
+    },
+  ];
+
+  return {
+    activeAgents: performance.length,
+    metrics: base.map((metric) => ({
+      ...metric,
+      previous: previousOf(metric.value, metric.key, metric.lowerIsBetter, metric.unit),
+    })),
+  };
+}
+
 function identityOf(row: AgentPerformance | null) {
   if (!row) return null;
   return {
@@ -374,10 +539,11 @@ function identityOf(row: AgentPerformance | null) {
 export const mockAnalytics: AnalyticsApi = {
   async agents(range) {
     await delay();
+    const resolved = resolveRange(range);
 
-    const closedByAgent = AGENTS.map((agent) => scale(agent.closedTickets, range));
+    const closedByAgent = AGENTS.map((agent) => scale(agent.closedTickets, resolved));
     const totalClosed = closedByAgent.reduce((sum, value) => sum + value, 0);
-    const rangeFactor = RANGE_VOLUME[range];
+    const rangeFactor = rangeVolume(resolved);
 
     const performance: AgentPerformance[] = AGENTS.map((agent, index) => ({
       agentId: agent.agentId,
@@ -387,8 +553,8 @@ export const mockAnalytics: AnalyticsApi = {
       closedTickets: closedByAgent[index],
       pctOfClosedTickets: totalClosed === 0 ? 0 : (closedByAgent[index] / totalClosed) * 100,
       averageCsat: agent.averageCsat,
-      ticketsReplied: scale(agent.ticketsReplied, range),
-      messagesSent: scale(agent.messagesSent, range),
+      ticketsReplied: scale(agent.ticketsReplied, resolved),
+      messagesSent: scale(agent.messagesSent, resolved),
       /* Speed is a rate, not a volume — it does not grow with the range. */
       firstResponseMinutes: agent.firstResponseMinutes,
       resolutionMinutes: agent.resolutionMinutes,
@@ -396,7 +562,7 @@ export const mockAnalytics: AnalyticsApi = {
 
     const availability: AgentAvailability[] = AGENTS.map((agent) => {
       const onlineMinutes = Math.round(agent.onlineMinutes * rangeFactor);
-      const closed = scale(agent.closedTickets, range);
+      const closed = scale(agent.closedTickets, resolved);
       return {
         agentId: agent.agentId,
         name: agent.name,
@@ -459,13 +625,20 @@ export const mockAnalytics: AnalyticsApi = {
       resolutionMinutes: meanOf(performance.map((row) => row.resolutionMinutes)),
     };
 
-    return { topPerformers, performance, availability, performanceAverage };
+    return {
+      company: companySummary(performance, range),
+      topPerformers,
+      performance,
+      availability,
+      performanceAverage,
+    };
   },
 
   async channels(range) {
     await delay();
+    const resolved = resolveRange(range);
 
-    const created = CHANNELS.map((channel) => scale(channel.createdTickets, range));
+    const created = CHANNELS.map((channel) => scale(channel.createdTickets, resolved));
     const totalCreated = created.reduce((sum, value) => sum + value, 0);
 
     const channels: ChannelPerformance[] = CHANNELS.map((channel, index) => ({
@@ -495,11 +668,12 @@ export const mockAnalytics: AnalyticsApi = {
 
   async tags(range) {
     await delay();
+    const resolved = resolveRange(range);
 
-    const days = bucketDates(range);
+    const days = bucketDates(resolved);
 
     const all: TagUsage[] = TAGS.map(({ tag, weekly }) => {
-      const perDay = tagSeries(tag, weekly, range);
+      const perDay = tagSeries(tag, weekly, resolved);
       return {
         tag,
         total: perDay.reduce((sum, value) => sum + value, 0),

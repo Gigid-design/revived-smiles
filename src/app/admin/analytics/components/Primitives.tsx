@@ -7,8 +7,8 @@
 
 import Image from "next/image";
 
-import type { AgentIdentity, TagUsage, TopPerformer } from "@/lib/api";
-import { EMPTY, formatMetric } from "../format";
+import type { AgentIdentity, AnalyticsRange, CompanySummary, TagUsage, TopPerformer } from "@/lib/api";
+import { describePreviousWindow, EMPTY, formatDelta, formatMetric } from "../format";
 import styles from "../page.module.css";
 
 /**
@@ -35,6 +35,69 @@ export function AgentCell({ agent }: { agent: AgentIdentity }) {
       )}
       <span className={styles.agentName}>{agent.name}</span>
     </span>
+  );
+}
+
+/**
+ * The whole-team band (Aug 25 — "company-wide first response time or
+ * company-wide resolution time").
+ *
+ * It sits above the top-performer cards because it answers the first question
+ * a manager opens this screen with, and every number below it is a breakdown
+ * of one of these. The distinction it has to hold up is that these are the
+ * team's figures, not an agent's — hence the heading, and hence the deltas,
+ * which only make sense for a figure that has a history.
+ */
+export function CompanyBand({
+  summary,
+  range,
+}: {
+  summary: CompanySummary;
+  range: AnalyticsRange;
+}) {
+  return (
+    <section className={styles.section}>
+      <div className={styles.companyHeader}>
+        <h2 className={styles.sectionTitle}>Company-wide</h2>
+        <p className={styles.companyCaption}>
+          {summary.activeAgents} {summary.activeAgents === 1 ? "agent" : "agents"} active ·{" "}
+          {describePreviousWindow(range)}
+        </p>
+      </div>
+
+      <div className={styles.companyGrid}>
+        {summary.metrics.map((metric) => {
+          const delta = formatDelta(metric.value, metric.previous, metric.lowerIsBetter);
+          const tone =
+            delta === null || delta.good === null
+              ? styles.deltaFlat
+              : delta.good
+                ? styles.deltaGood
+                : styles.deltaBad;
+
+          return (
+            <div key={metric.key} className={styles.companyTile}>
+              <span className={styles.companyLabel}>{metric.label}</span>
+              <span className={styles.companyValue}>
+                {formatMetric(metric.value, metric.unit)}
+              </span>
+              {delta === null ? (
+                <span className={`${styles.companyDelta} ${styles.deltaFlat}`}>
+                  No comparison
+                </span>
+              ) : (
+                <span className={`${styles.companyDelta} ${tone}`}>
+                  {delta.direction !== "flat" && (
+                    <span aria-hidden="true">{delta.direction === "up" ? "↑" : "↓"}</span>
+                  )}
+                  {delta.text}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
