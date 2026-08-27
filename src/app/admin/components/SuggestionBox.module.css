@@ -1,0 +1,184 @@
+/* Matches the dashboard's other panels: white card, hairline border, 12px
+   radius, header rule. It sits below the queue, so it reads as an aside rather
+   than as work waiting to be done. */
+
+.card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-card-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--admin-card-border);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  margin-top: 0.25rem;
+  max-width: 44ch;
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------------------- */
+/* Composer                                                          */
+/* ---------------------------------------------------------------- */
+
+.composer {
+  padding: 1.25rem 1.5rem;
+}
+
+.textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 4.5rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--admin-card-border);
+  border-radius: 10px;
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.textarea:focus {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 1px;
+  background: var(--admin-card-bg);
+}
+
+.textarea:disabled {
+  opacity: 0.6;
+}
+
+.composerFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.hint {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  min-height: 1rem;
+}
+
+.error {
+  color: var(--admin-danger);
+}
+
+.sent {
+  color: var(--admin-success);
+  font-weight: 500;
+}
+
+.send {
+  padding: 0.5rem 1.125rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--admin-primary);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.send:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- */
+/* Manager's list                                                    */
+/* ---------------------------------------------------------------- */
+
+.list {
+  border-top: 1px solid var(--admin-card-border);
+}
+
+.empty {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+}
+
+.item {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--admin-card-border);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.itemBody {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--admin-text);
+}
+
+.itemMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  color: var(--admin-text-muted);
+}
+
+.itemAuthor {
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.itemRole {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-card-border);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -16,6 +16,17 @@ export function useAdminUser(): AdminUser | null {
 /** Public pages that don't require auth */
 const PUBLIC_PATHS = ["/admin/login"];
 
+/**
+ * Whether a path renders without a session.
+ *
+ * Exported because the shell has to ask the same question: a public page has
+ * no admin in context, and anything that gates on a role would render nothing
+ * at all there — a blank sign-in screen, with no way back.
+ */
+export function isPublicAdminPath(pathname: string): boolean {
+  return PUBLIC_PATHS.includes(pathname);
+}
+
 export function AdminAuthGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();

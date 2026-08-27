@@ -10,7 +10,7 @@
 import type { AuthApi } from "../contract";
 import type { AdminUser, AuthEvent, AuthUser, Unsubscribe } from "../types";
 import { ApiError } from "../types";
-import { DEMO_ADMIN_EMAILS, DEMO_PATIENT } from "./seed";
+import { DEMO_PATIENT, DEMO_STAFF } from "./seed";
 import { clone, delay, getDb, mutate, nowIso } from "./store";
 
 type AuthListener = (event: AuthEvent, user: AuthUser | null) => void;
@@ -152,15 +152,18 @@ export const mockAuth: AuthApi = {
     if (!normalised || !password) {
       throw new ApiError("invalid_credentials", "Enter your email address and password.");
     }
-    if (!DEMO_ADMIN_EMAILS.includes(normalised)) {
+    const role = DEMO_STAFF[normalised];
+    if (!role) {
       throw new ApiError("not_authorized", "That account doesn't have admin access.");
     }
 
+    /* The role comes from the account, not from anything the caller sent. A
+       real adapter reads it from the provisioning record the same way. */
     const admin: AdminUser = {
       id: `admin-${normalised.replace(/[^a-z0-9]/g, "-")}`,
       name: displayNameFor(normalised),
       email: normalised,
-      role: "Admin",
+      role,
       loggedInAt: nowIso(),
     };
 

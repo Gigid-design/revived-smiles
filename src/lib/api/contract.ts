@@ -51,6 +51,7 @@ import type {
   SubmissionDraft,
   SubmissionQuery,
   SubmissionStats,
+  Suggestion,
   TagAnalytics,
   Timestamp,
   Unsubscribe,
@@ -98,10 +99,19 @@ export interface AuthApi {
    * Staff sign-in. The admin allowlist lived in two client files and the role
    * was invented in the browser; a real implementation must decide both
    * server-side. Throws `not_authorized` for a non-staff account.
+   *
+   * The returned `role` is the account's provisioned `StaffRole`, and it is the
+   * only thing the portal has to go on when deciding what to show. Never let
+   * the client suggest it — not through a parameter, a header, or a query
+   * string — or the whole model is decoration.
    */
   signInAdmin(email: string, password: string): Promise<AdminUser>;
 
-  /** The signed-in admin, or null. Re-verified on every guarded page load. */
+  /**
+   * The signed-in admin, or null. Re-verified on every guarded page load —
+   * including `role`, so revoking someone's access takes effect on their next
+   * navigation rather than at their next sign-in.
+   */
   getAdminUser(): Promise<AdminUser | null>;
 
   signOutAdmin(): Promise<void>;
@@ -570,9 +580,11 @@ export interface AnalyticsApi {
   /**
    * Support-team performance over the range.
    *
-   * Staff-only. A real implementation must reject a patient session with
+   * Manager-only. A real implementation must reject a patient session, and any
+   * staff session whose `StaffRole` cannot reach `"analytics"`, with
    * `not_authorized` — these are colleagues' individual performance numbers,
-   * and the patient app shares an origin with the portal.
+   * and the patient app shares an origin with the portal. The portal hides the
+   * sidebar item for those roles, which stops nobody who types the URL.
    *
    * Returns the whole tab in one call on purpose: the top-performer cards are
    * derived from the same aggregate as the table, and computing them in two
@@ -593,7 +605,7 @@ export interface AnalyticsApi {
   /**
    * Ticket volume and speed, split by the channel the ticket arrived on.
    *
-   * Staff-only, as above. Channels with no tickets in the range are omitted.
+   * Manager-only, as above. Channels with no tickets in the range are omitted.
    * `closedTickets` counts closes that happened inside the range regardless of
    * when the ticket was created, so it may exceed `createdTickets` — do not
    * "fix" that by clamping.
@@ -603,7 +615,7 @@ export interface AnalyticsApi {
   /**
    * Tag usage over the range, bucketed by day.
    *
-   * Staff-only, as above. `days` is the x-axis every `perDay` array is aligned
+   * Manager-only, as above. `days` is the x-axis every `perDay` array is aligned
    * to; a real implementation must emit one entry per bucket including empty
    * ones, and must cut the buckets in a single declared timezone rather than
    * the caller's, or the same day will hold different totals for two staff in
@@ -620,6 +632,39 @@ export interface AnalyticsApi {
 
 /* ------------------------------------------------------------------ */
 
+/**
+ * The staff suggestion box (Aug 25 session, ≈26:27–27:34).
+ *
+ * A place for anyone on the team to record an idea while they have it, and one
+ * view where management reads them. Gitai's reason for it was forgetting:
+ * "just telling management, hey, I think this is a good idea… throughout the
+ * day, maybe they forget about it."
+ */
+export interface SuggestionsApi {
+  /**
+   * Adds a suggestion, attributed to the signed-in staff member.
+   *
+   * Open to every role — narrowing who may speak defeats the point. The author
+   * and their role come from the session, never from the caller: a suggestion
+   * signed with someone else's name is worse than no suggestion box.
+   *
+   * Rejects with `validation` for an empty body or one longer than
+   * `MAX_SUGGESTION_LENGTH`, and `not_authorized` without a staff session.
+   */
+  create(body: string): Promise<Suggestion>;
+
+  /**
+   * Every suggestion, newest first.
+   *
+   * Manager-only — rejects other roles with `not_authorized`. Staff write into
+   * the box; they do not read each other's entries, which is what makes it
+   * usable for "this process is broken" as well as "here's a nice idea".
+   */
+  list(): Promise<Suggestion[]>;
+}
+
+/* ------------------------------------------------------------------ */
+
 export interface ApiClient {
   auth: AuthApi;
   submissions: SubmissionsApi;
@@ -632,4 +677,5 @@ export interface ApiClient {
   adjustments: AdjustmentsApi;
   shipping: ShippingApi;
   analytics: AnalyticsApi;
+  suggestions: SuggestionsApi;
 }

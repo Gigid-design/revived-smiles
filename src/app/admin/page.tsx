@@ -5,10 +5,11 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import { StatsCard } from "./components/StatsCard";
 import { StatusBadge } from "./components/StatusBadge";
-import { api } from "@/lib/api";
+import { api, canAccess } from "@/lib/api";
 import type { Submission, SubmissionStats } from "@/lib/api";
 import { productLabel, productLabels } from "@/app/context/productConfig";
 import { useAdminUser } from "./components/AdminAuthGuard";
+import { SuggestionBox } from "./components/SuggestionBox";
 import { useRealtimeContext } from "./AdminShell";
 
 function formatRelativeDate(dateStr: string): string {
@@ -28,11 +29,21 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<SubmissionStats>({ total: 0, pending: 0, approved: 0, changesRequested: 0 });
   const [loading, setLoading] = useState(true);
   const adminUser = useAdminUser();
+  /* The dashboard is home for every role, but the queue on it is patient work
+     that opens into chat. A role that cannot reach chat has no business
+     browsing it — Gitai on the shipping team: "we don't need them to have
+     access to everything else." Their own Tasks queue is not built yet, so
+     they get the box and a note rather than someone else's inbox. */
+  const seesQueue = adminUser ? canAccess(adminUser.role, "chat") : false;
   const { lastEvent } = useRealtimeContext();
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
+    if (!seesQueue) {
+      setLoading(false);
+      return;
+    }
     try {
       const [counters, recent] = await Promise.all([
         api.submissions.stats(),
@@ -45,7 +56,7 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [seesQueue]);
 
   useEffect(() => {
     fetchData(); // eslint-disable-line react-hooks/set-state-in-effect -- data fetch on mount
@@ -74,13 +85,30 @@ export default function AdminDashboard() {
         <div>
           <h2 className={styles.welcomeTitle}>Welcome back{adminUser?.name ? `, ${adminUser.name.split(" ")[0]}` : ""}</h2>
           <p className={styles.welcomeSubtitle}>
-            {stats.pending > 0
-              ? `You have ${stats.pending} submission${stats.pending !== 1 ? "s" : ""} awaiting review.`
-              : "All caught up — no pending reviews right now."}
+            {/* Never "all caught up" to a role whose counters were never
+                fetched — that reads as a cleared queue, not an absent one. */}
+            {!seesQueue
+              ? "Signed in — there's nothing waiting on you here."
+              : stats.pending > 0
+                ? `You have ${stats.pending} submission${stats.pending !== 1 ? "s" : ""} awaiting review.`
+                : "All caught up — no pending reviews right now."}
           </p>
         </div>
       </section>
 
+      {!seesQueue && (
+        <section className={styles.roleNote}>
+          <h2 className={styles.roleNoteTitle}>Your queue isn&apos;t here yet</h2>
+          <p className={styles.roleNoteBody}>
+            The shipping task list — what to send, for which order, and who packed it — is still
+            being built. Until it lands there&apos;s nothing here for your role: the patient queue
+            belongs to the support team, so it isn&apos;t shown. The suggestion box below is yours.
+          </p>
+        </section>
+      )}
+
+      {seesQueue && (
+      <>
       {/* Stats Cards */}
       <section className={styles.statsGrid}>
         <StatsCard
@@ -292,6 +320,11 @@ export default function AdminDashboard() {
           </table>
         )}
       </section>
+      </>
+      )}
+
+      {/* Staff idea box — everyone writes, managers read (Aug 25). */}
+      <SuggestionBox />
     </div>
   );
 }

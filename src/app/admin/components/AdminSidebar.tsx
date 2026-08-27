@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAdminUser, signOut } from "./AdminAuthGuard";
+import { canAccess, STAFF_ROLE_LABELS } from "@/lib/api";
+import type { AdminSection } from "@/lib/api";
 
 /* Icons share one optical grid: 24×24 viewBox, ~18px content extent,
    1.8 stroke, round caps/joins — so every glyph renders the same size. */
@@ -22,6 +24,7 @@ const ICON_PROPS = {
 const NAV_ITEMS = [
   {
     label: "Dashboard",
+    section: "dashboard" as AdminSection,
     href: "/admin",
     icon: (
       <svg {...ICON_PROPS}>
@@ -34,6 +37,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Analytics",
+    section: "analytics" as AdminSection,
     href: "/admin/analytics",
     icon: (
       <svg {...ICON_PROPS}>
@@ -50,6 +54,7 @@ const NAV_ITEMS = [
      confirms they're unneeded. */
   {
     label: "Adjustments",
+    section: "adjustments" as AdminSection,
     href: "/admin/adjustments",
     icon: (
       <svg {...ICON_PROPS}>
@@ -62,6 +67,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Customers",
+    section: "customers" as AdminSection,
     href: "/admin/customers",
     icon: (
       <svg {...ICON_PROPS}>
@@ -74,6 +80,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Chat",
+    section: "chat" as AdminSection,
     href: "/admin/chat",
     icon: (
       <svg {...ICON_PROPS}>
@@ -84,6 +91,7 @@ const NAV_ITEMS = [
   },
   {
     label: "AI Prompts",
+    section: "prompts" as AdminSection,
     href: "/admin/prompts",
     icon: (
       <svg {...ICON_PROPS}>
@@ -96,6 +104,13 @@ const NAV_ITEMS = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const user = useAdminUser();
+
+  /* Hide what this role cannot open, rather than letting them click into a
+     refusal (Aug 25: "if you have a look at the prototype and see any views
+     that should be hidden from the support team, we can easily just set that
+     up"). Hiding is a courtesy, not the boundary — RoleGate and the adapter
+     both re-check, because a hidden link is one typed URL away from a visit. */
+  const visible = user ? NAV_ITEMS.filter((item) => canAccess(user.role, item.section)) : [];
 
   function isActive(href: string) {
     if (href === "/admin") return pathname === "/admin";
@@ -124,7 +139,7 @@ export function AdminSidebar() {
 
       {/* Navigation */}
       <nav className="admin-sidebar__nav">
-        {NAV_ITEMS.map((item) => (
+        {visible.map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -140,6 +155,11 @@ export function AdminSidebar() {
       {/* Bottom user area */}
       <div className="admin-sidebar__footer">
         <div className="admin-sidebar__avatar" title={user?.name ?? "Admin User"}>{initials}</div>
+        {user && (
+          <span className="admin-sidebar__role" title={`Signed in as ${STAFF_ROLE_LABELS[user.role]}`}>
+            {STAFF_ROLE_LABELS[user.role]}
+          </span>
+        )}
         <button
           className="admin-sidebar__signout"
           onClick={signOut}
@@ -261,6 +281,16 @@ export function AdminSidebar() {
           font-weight: 600;
           font-family: var(--font-heading);
           flex-shrink: 0;
+        }
+        .admin-sidebar__role {
+          font-family: var(--font-body);
+          font-size: 0.5625rem;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: var(--admin-text-muted);
+          text-align: center;
+          line-height: 1;
         }
         .admin-sidebar__signout {
           background: none;

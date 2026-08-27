@@ -769,13 +769,120 @@ export interface AuthUser {
   state: string | null;
 }
 
+/**
+ * The job roles staff are provisioned into (Aug 25 session, ≈23:35–26:24).
+ *
+ * Grouped rather than per-employee checkboxes — Gitai: "if we're able to create
+ * job roles, that would be cool… instead of having to figure out the check
+ * boxes, we can just [assign] it and it instantly gets access to what the
+ * shipping team needs." Nathan owns provisioning; this is the vocabulary both
+ * sides agree on.
+ */
+export type StaffRole = "manager" | "support" | "shipping" | "technician";
+
+export const STAFF_ROLES: readonly StaffRole[] = [
+  "manager",
+  "support",
+  "shipping",
+  "technician",
+] as const;
+
+export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {
+  manager: "Manager",
+  support: "Support",
+  shipping: "Shipping",
+  technician: "Technician",
+};
+
+/**
+ * Every gated area of the staff portal.
+ *
+ * `suggestions` is the manager's read of the suggestion box — writing to it is
+ * open to all staff and is not gated, so it is not a section.
+ */
+export type AdminSection =
+  | "dashboard"
+  | "analytics"
+  | "adjustments"
+  | "customers"
+  | "chat"
+  | "prompts"
+  | "suggestions";
+
+/** How each section names itself in a "not for your role" message. */
+export const ADMIN_SECTION_LABELS: Record<AdminSection, string> = {
+  dashboard: "The dashboard",
+  analytics: "Analytics",
+  adjustments: "Adjustments",
+  customers: "Customers",
+  chat: "Chat",
+  prompts: "AI Prompts",
+  suggestions: "The suggestion box",
+};
+
+/**
+ * What each role may open.
+ *
+ * Manager sees everything — Gitai: "obviously management has access to
+ * everything." Analytics is manager-only because it holds colleagues'
+ * individual performance numbers. Technicians get adjustments ("I still want
+ * them to have access to all the information regarding adjustments"). Shipping
+ * is deliberately narrow — their own queue is the Tasks view, which is not
+ * built yet; add `"tasks"` here and to `AdminSection` when it lands.
+ *
+ * This table is presentation only. It decides what a screen offers, never what
+ * a caller is allowed to do — see `AdminUser.role`.
+ */
+export const ROLE_SECTIONS: Record<StaffRole, readonly AdminSection[]> = {
+  manager: ["dashboard", "analytics", "adjustments", "customers", "chat", "prompts", "suggestions"],
+  support: ["dashboard", "adjustments", "customers", "chat", "prompts"],
+  shipping: ["dashboard"],
+  technician: ["dashboard", "adjustments"],
+};
+
+/** Whether `role` may open `section`. */
+export function canAccess(role: StaffRole, section: AdminSection): boolean {
+  return ROLE_SECTIONS[role].includes(section);
+}
+
 export interface AdminUser {
   id: string;
   name: string;
   email: string;
-  role: string;
+  /**
+   * Decided by the backend at sign-in, never by the browser.
+   *
+   * The client reads it to hide what a role cannot use, which is a courtesy,
+   * not a boundary: every guarded method must re-check it server-side, because
+   * a hidden nav item is one typed URL away from being visited.
+   */
+  role: StaffRole;
   loggedInAt: Timestamp;
 }
+
+/**
+ * One entry in the staff suggestion box (Aug 25 session, ≈26:27–27:34).
+ *
+ * Gitai: "we expect our team to grow… instead of just telling management, hey,
+ * I think this is a good idea… maybe they forget about it. We can just have a
+ * suggestion box." Any staff member writes one; managers read the list.
+ *
+ * Deliberately without a triage workflow — no assignee, no status, no reply.
+ * What was asked for is a place to put an idea and a place to read them; a
+ * status column nobody agreed to would just rot half-filled.
+ */
+export interface Suggestion {
+  id: string;
+  body: string;
+  /** Display name of the staff member who wrote it. */
+  submittedBy: string;
+  /** Their role at the time of writing — context a manager reads it against. */
+  submittedByRole: StaffRole;
+  createdAt: Timestamp;
+}
+
+/** The longest suggestion the box accepts. */
+export const MAX_SUGGESTION_LENGTH = 1000;
 
 export type OAuthProvider = "google" | "azure";
 

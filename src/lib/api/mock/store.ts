@@ -23,6 +23,7 @@ import type {
   SubmissionChange,
   Subscription,
   SubscriptionPlan,
+  Suggestion,
 } from "../types";
 import { SEED_VERSION, buildSeed } from "./seed";
 
@@ -50,6 +51,8 @@ export interface MockDb {
   messages: ChatMessage[];
   notifications: AppNotification[];
   promptConfigs: PromptConfig[];
+  /** Staff suggestion box entries, newest last. */
+  suggestions: Suggestion[];
   authUser: AuthUser | null;
   adminUser: AdminUser | null;
   /** Set when the visitor arrives via a password-recovery link. */

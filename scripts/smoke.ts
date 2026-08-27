@@ -23,12 +23,17 @@ import {
   api,
   ANALYTICS_RANGES,
   ApiError,
+  canAccess,
   MAX_CUSTOM_RANGE_DAYS,
+  MAX_SUGGESTION_LENGTH,
   PHOTO_TYPES,
+  ROLE_SECTIONS,
+  STAFF_ROLES,
 } from "../src/lib/api";
 import type {
   AgentAnalytics,
   AgentPerformance,
+  AdminSection,
   AnalyticsRange,
   ImpressionPhoto,
   PhotoType,
@@ -280,7 +285,7 @@ async function main() {
   check("a non-staff address is refused", badAdmin !== null, badAdmin ?? "it was allowed!");
 
   const admin = await api.auth.signInAdmin("admin@revivedsmiles.com", "anything");
-  check("staff sign-in works with any password", admin.role === "Admin", admin.name);
+  check("staff sign-in works with any password", admin.role === "manager", `${admin.name} · ${admin.role}`);
 
   console.log("\n8. Signing in lands in the same place as the skip-login shortcut");
   const beforeSignIn = await api.submissions.getMine();
@@ -391,6 +396,9 @@ async function main() {
   );
 
   console.log("\n11. The support analytics contract");
+  /* Analytics is manager-only, so say so out loud rather than leaning on the
+     admin session section 8 happened to leave behind. */
+  await api.auth.signInAdmin("admin@revivedsmiles.com", "anything");
   /* The Agents/Channels/Tags tabs are the one screen with no coverage here,
      and they are almost entirely shape: a chart that zips `perDay` against
      `days`, and top-performer cards derived from the same aggregate as the
@@ -399,10 +407,7 @@ async function main() {
      invariants the contract's doc comments promise, for every range the UI
      offers.
 
-     Not asserted, because the mock cannot honour it: `AnalyticsApi` says a
-     real backend must reject a patient session with `not_authorized`. The
-     mock has no session check on these three calls, so there is nothing to
-     test here until one exists. */
+     Role refusal is asserted in section 12, where the roles are. */
   /* Every window the picker can produce: the three presets, and a custom pair
      of calendar dates. The custom one is the interesting case — it takes the
      same code path but the caller, not the backend, chose the endpoints. */
@@ -611,6 +616,134 @@ async function main() {
     week.performanceAverage.firstResponseMinutes ===
       quarter.performanceAverage.firstResponseMinutes,
     "first response is a rate, not a volume",
+  );
+
+  console.log("\n12. Staff roles and the suggestion box");
+  /* Both halves of the Aug 25 role ask: the table screens read to decide what
+     to show, and the refusal that has to survive someone typing the URL. The
+     table is the only thing the sidebar and RoleGate consult, so asserting it
+     here is asserting what the portal actually offers each role. */
+  check(
+    "every role can reach the dashboard, so nobody signs in to nothing",
+    STAFF_ROLES.every((role) => canAccess(role, "dashboard")),
+  );
+  check(
+    "a manager reaches every section",
+    (["analytics", "adjustments", "customers", "chat", "prompts", "suggestions"] as AdminSection[])
+      .every((section) => canAccess("manager", section)),
+  );
+  check(
+    "and is the only role that does — otherwise the gate is decoration",
+    STAFF_ROLES.filter((role) => canAccess(role, "analytics")).join(",") === "manager",
+    `analytics: ${STAFF_ROLES.filter((role) => canAccess(role, "analytics")).join(", ")}`,
+  );
+  check(
+    "a technician keeps adjustments, which is the whole reason they sign in",
+    canAccess("technician", "adjustments") && !canAccess("technician", "customers"),
+  );
+  check(
+    "no role is granted a section that doesn't exist",
+    STAFF_ROLES.every((role) =>
+      ROLE_SECTIONS[role].every((section) => section in ({
+        dashboard: 1, analytics: 1, adjustments: 1, customers: 1, chat: 1, prompts: 1, suggestions: 1,
+      } as Record<string, number>))),
+  );
+
+  /* The refusal, method by method. The sidebar hiding Analytics is presentation;
+     this is what happens when a support account opens the URL anyway. */
+  const support = await api.auth.signInAdmin("support@revivedsmiles.com", "anything");
+  check("a support account signs in with its provisioned role", support.role === "support", support.role);
+
+  for (const method of ["agents", "channels", "tags"] as const) {
+    let refused: unknown = null;
+    try {
+      await api.analytics[method]({ preset: "7d" });
+    } catch (err) {
+      refused = err;
+    }
+    check(
+      `analytics.${method} refuses a role that can't reach it`,
+      refused instanceof ApiError && refused.code === "not_authorized",
+      refused instanceof ApiError ? refused.message : "it was allowed!",
+    );
+  }
+
+  /* Writing is open to everyone — narrowing who may speak defeats the box. */
+  const fromSupport = await api.suggestions.create(
+    "Canned replies for the three retake reasons we type every day.",
+  );
+  check("any role can put something in the suggestion box", fromSupport.id.length > 0);
+  check(
+    "and it is signed with the session, not with anything the caller sent",
+    fromSupport.submittedBy === support.name && fromSupport.submittedByRole === "support",
+    `${fromSupport.submittedBy} · ${fromSupport.submittedByRole}`,
+  );
+
+  let emptyRejected: unknown = null;
+  try {
+    await api.suggestions.create("   ");
+  } catch (err) {
+    emptyRejected = err;
+  }
+  check(
+    "an empty suggestion is refused",
+    emptyRejected instanceof ApiError && emptyRejected.code === "validation",
+    emptyRejected instanceof ApiError ? emptyRejected.message : "it was allowed!",
+  );
+
+  let longRejected: unknown = null;
+  try {
+    await api.suggestions.create("x".repeat(MAX_SUGGESTION_LENGTH + 1));
+  } catch (err) {
+    longRejected = err;
+  }
+  check(
+    `over ${MAX_SUGGESTION_LENGTH} characters is refused`,
+    longRejected instanceof ApiError && longRejected.code === "validation",
+    longRejected instanceof ApiError ? longRejected.message : "it was allowed!",
+  );
+
+  /* Reading is not open to everyone. Staff write into the box; they don't read
+     each other's entries, which is what makes it usable for "this is broken". */
+  let listRefused: unknown = null;
+  try {
+    await api.suggestions.list();
+  } catch (err) {
+    listRefused = err;
+  }
+  check(
+    "but a non-manager cannot read the box",
+    listRefused instanceof ApiError && listRefused.code === "not_authorized",
+    listRefused instanceof ApiError ? listRefused.message : "it was allowed!",
+  );
+
+  await api.auth.signInAdmin("admin@revivedsmiles.com", "anything");
+  const box = await api.suggestions.list();
+  check("a manager reads the whole box", box.length > 0, `${box.length} suggestion(s)`);
+  check("including the one support just wrote", box.some((s) => s.id === fromSupport.id));
+  check(
+    "newest first, so the list opens on what just came in",
+    box.every((s, i) =>
+      i === 0 || new Date(box[i - 1].createdAt).getTime() >= new Date(s.createdAt).getTime()),
+    box[0]?.submittedBy,
+  );
+  check(
+    "and the seeded entries carry the role that wrote them",
+    box.every((s) => STAFF_ROLES.includes(s.submittedByRole)),
+  );
+
+  /* Signed out of the portal entirely, both halves refuse. */
+  await api.auth.signOutAdmin();
+  let signedOut: unknown = null;
+  try {
+    await api.suggestions.create("anything at all");
+  } catch (err) {
+    signedOut = err;
+  }
+  check(
+    "and with no staff session at all, nothing is accepted",
+    signedOut instanceof ApiError && signedOut.code === "not_authorized",
+    signedOut instanceof ApiError ? signedOut.message : "it was allowed!",
   );
 
   console.log(

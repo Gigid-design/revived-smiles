@@ -18,6 +18,7 @@ import { mockPrompts } from "./prompts";
 import { mockShipping } from "./shipping";
 import { mockSubmissions } from "./submissions";
 import { mockSubscriptions } from "./subscriptions";
+import { mockSuggestions } from "./suggestions";
 
 export const mockApi: ApiClient = {
   auth: mockAuth,
@@ -31,6 +32,7 @@ export const mockApi: ApiClient = {
   adjustments: mockAdjustments,
   shipping: mockShipping,
   analytics: mockAnalytics,
+  suggestions: mockSuggestions,
 };
 
 export { resetDb } from "./store";
@@ -40,5 +42,6 @@ export {
   DEMO_IMPRESSION_PHOTO,
   DEMO_PATIENT,
   DEMO_PHOTOS,
+  DEMO_STAFF,
   DEMO_SUBMISSION_ID,
 } from "./seed";

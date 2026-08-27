@@ -17,10 +17,12 @@ import type {
   PaymentMethod,
   PhotoType,
   PromptConfig,
+  StaffRole,
   Submission,
   SubmissionStatus,
   Subscription,
   SubscriptionPlan,
+  Suggestion,
 } from "../types";
 import { REQUEST_LABELS, REQUEST_OUTCOMES, SUBMISSION_STATUS_LABELS } from "../types";
 import type { MockDb } from "./store";
@@ -38,7 +40,7 @@ import type { MockDb } from "./store";
  * the app open — the stale copy won, and the dashboard rendered as though the
  * patient had no order at all.
  */
-export const SEED_VERSION = 22;
+export const SEED_VERSION = 23;
 
 export const DEMO_SUBMISSION_ID = "demo-1";
 export const CARE_TEAM_NAME = "Revived Smiles Care";
@@ -54,11 +56,22 @@ export const DEMO_PATIENT: AuthUser = {
 /** Credentials shown on the admin login screen. Any password works in the demo. */
 export const DEMO_ADMIN_EMAIL = "admin@revivedsmiles.com";
 
-/** Staff addresses the demo accepts. A real backend decides this server-side. */
-export const DEMO_ADMIN_EMAILS = [
-  "admin@revivedsmiles.com",
-  "ivan.lomelin@unosquare.com",
-];
+/**
+ * Staff addresses the demo accepts, and the role each is provisioned into.
+ *
+ * A real backend decides both server-side; this map only exists so the four
+ * roles can be walked in a demo without a provisioning screen to drive. Any
+ * password works, as everywhere else in the prototype.
+ */
+export const DEMO_STAFF: Record<string, StaffRole> = {
+  "admin@revivedsmiles.com": "manager",
+  "ivan.lomelin@unosquare.com": "manager",
+  "support@revivedsmiles.com": "support",
+  "shipping@revivedsmiles.com": "shipping",
+  "tech@revivedsmiles.com": "technician",
+};
+
+export const DEMO_ADMIN_EMAILS = Object.keys(DEMO_STAFF);
 
 /** Stand-in imagery, so captured photos have something to show. */
 export const DEMO_PHOTOS: Record<PhotoType, string> = {
@@ -788,6 +801,51 @@ function buildAdjustmentRequests(): AdjustmentRequest[] {
   ];
 }
 
+/* ------------------------------------------------------------------ */
+/* Suggestion box                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A few entries so the manager's list is not an empty state on first open.
+ *
+ * Written in the register staff actually use — a specific friction, not a
+ * feature request — because that is what the box is for and the demo should
+ * show management what they will really be reading.
+ */
+function buildSuggestions(): Suggestion[] {
+  return [
+    {
+      id: "sug-1",
+      body:
+        "When a retake is requested we retype the same three sentences every time. " +
+        "Could we save a couple of canned replies for the common ones — blurry, too dark, " +
+        "tray not seated?",
+      submittedBy: "Dana Whitfield",
+      submittedByRole: "support",
+      createdAt: minutesAgo(5 * 60),
+    },
+    {
+      id: "sug-2",
+      body:
+        "The packing slip prints the order number small enough that we mis-key it into " +
+        "ShipStation maybe once a week. Bigger, or a barcode, would save the mix-ups.",
+      submittedBy: "Marcus Feld",
+      submittedByRole: "shipping",
+      createdAt: daysAgo(2),
+    },
+    {
+      id: "sug-3",
+      body:
+        "Half the adjustments I open are the same complaint on the same product. If the " +
+        "reason tags showed up on the queue list I could batch them instead of opening " +
+        "each one to find out.",
+      submittedBy: "Priya Raman",
+      submittedByRole: "technician",
+      createdAt: daysAgo(4),
+    },
+  ];
+}
+
 export function buildSeed(): MockDb {
   const demo = submissionWithAddress({
     id: DEMO_SUBMISSION_ID,
@@ -910,6 +968,7 @@ export function buildSeed(): MockDb {
     messages: [...buildMessages(), ...buildInboxRequests()],
     notifications: buildNotifications(),
     promptConfigs: buildPromptConfigs(),
+    suggestions: buildSuggestions(),
     /* The demo starts signed in as the patient, so opening any URL directly
        lands on a working screen. The login screens still work and still
        overwrite this; signing out clears it. */

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "./page.module.css";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, DEMO_STAFF, STAFF_ROLE_LABELS } from "@/lib/api";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -81,9 +81,26 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
+        {/* One account per role, so the role-gated views can be walked in a
+            demo without a provisioning screen to drive. Any password works. */}
         <div className={styles.demoHint}>
-          Demo credentials:<br />
-          <strong>admin@revivedsmiles.com</strong> / <strong>any password</strong>
+          Demo accounts — any password:
+          <ul className={styles.demoRoles}>
+            {Object.entries(DEMO_STAFF)
+              .filter(([address]) => address.endsWith("@revivedsmiles.com"))
+              .map(([address, role]) => (
+                <li key={address}>
+                  <button
+                    type="button"
+                    className={styles.demoRole}
+                    onClick={() => setEmail(address)}
+                  >
+                    <strong>{address}</strong>
+                    <span>{STAFF_ROLE_LABELS[role]}</span>
+                  </button>
+                </li>
+              ))}
+          </ul>
         </div>
       </div>
     </div>

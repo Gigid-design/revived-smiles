@@ -25,8 +25,8 @@ import type {
   TagUsage,
   TopPerformer,
 } from "../types";
-import { analyticsRangeDays, analyticsRangeSlug, ApiError, MAX_CUSTOM_RANGE_DAYS } from "../types";
-import { delay } from "./store";
+import { analyticsRangeDays, analyticsRangeSlug, ApiError, canAccess, MAX_CUSTOM_RANGE_DAYS } from "../types";
+import { delay, getDb } from "./store";
 
 /* ------------------------------------------------------------------ *
  * Determinism
@@ -75,6 +75,23 @@ interface ResolvedRange {
   days: number;
   /** UTC midnight of the last day in the window. */
   endMs: number;
+}
+
+/**
+ * Refuses anyone who may not read the team's numbers.
+ *
+ * The sidebar already hides Analytics for those roles, which is presentation;
+ * this is the part that survives someone typing the URL, and the part a real
+ * backend has to implement for itself — see `AnalyticsApi` in `../contract`.
+ */
+function requireAnalyticsAccess(): void {
+  const admin = getDb().adminUser;
+  if (!admin) {
+    throw new ApiError("not_authorized", "Sign in to the staff portal first.");
+  }
+  if (!canAccess(admin.role, "analytics")) {
+    throw new ApiError("not_authorized", "Analytics is available to managers.");
+  }
 }
 
 function resolveRange(range: AnalyticsRange): ResolvedRange {
@@ -539,6 +556,7 @@ function identityOf(row: AgentPerformance | null) {
 export const mockAnalytics: AnalyticsApi = {
   async agents(range) {
     await delay();
+    requireAnalyticsAccess();
     const resolved = resolveRange(range);
 
     const closedByAgent = AGENTS.map((agent) => scale(agent.closedTickets, resolved));
@@ -636,6 +654,7 @@ export const mockAnalytics: AnalyticsApi = {
 
   async channels(range) {
     await delay();
+    requireAnalyticsAccess();
     const resolved = resolveRange(range);
 
     const created = CHANNELS.map((channel) => scale(channel.createdTickets, resolved));
@@ -668,6 +687,7 @@ export const mockAnalytics: AnalyticsApi = {
 
   async tags(range) {
     await delay();
+    requireAnalyticsAccess();
     const resolved = resolveRange(range);
 
     const days = bucketDates(resolved);
