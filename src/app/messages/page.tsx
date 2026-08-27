@@ -5,6 +5,7 @@ import Link from "next/link";
 import styles from "./messages.module.css";
 import { BottomNav } from "@/app/components/BottomNav";
 import { ChatDocuments } from "@/app/components/ChatDocuments";
+import { OrderSwitcher } from "@/app/components/OrderSwitcher";
 import { useInsurance } from "@/app/hooks/useInsurance";
 import {
   useMessages,
@@ -215,31 +216,18 @@ export default function Messages() {
           <h1 className={styles.heading}>Messages</h1>
         </div>
 
-        {/* Which order this conversation is about. One order → a quiet chip;
-            several → chips become a picker, so "chat about order X" is one tap
-            (Aug 24 — the answer to how a customer opens a chat for a specific
-            order; under one-thread-per-customer these become context tags). */}
+        {/* Which order this conversation is about — the same switcher the order
+            screen uses, rather than a second answer to the same question. Was
+            a row of chips (Aug 24); three orders filled the row and a fourth
+            wrapped, and a patient had two controls to learn instead of one. */}
         {orders.length > 0 && (
-          <div className={styles.orderChips} role={orders.length > 1 ? "tablist" : undefined} aria-label="Conversation order">
-            <span className={styles.orderChipsLabel}>About</span>
-            {orders.map((o) => {
-              const label = o.orderNumber ? `Order ${o.orderNumber}` : `Order ${o.id.slice(0, 6).toUpperCase()}`;
-              const active = o.id === activeOrderId;
-              return orders.length === 1 ? (
-                <span key={o.id} className={`${styles.orderChip} ${styles.orderChipActive}`}>{label}</span>
-              ) : (
-                <button
-                  key={o.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={active}
-                  className={`${styles.orderChip} ${active ? styles.orderChipActive : ""}`}
-                  onClick={() => setActiveOrder(o.id)}
-                >
-                  {label}
-                </button>
-              );
-            })}
+          <div className={styles.orderPicker}>
+            <OrderSwitcher
+              orders={orders}
+              selectedId={activeOrderId ?? orders[0].id}
+              onSelect={setActiveOrder}
+              framed
+            />
           </div>
         )}
 

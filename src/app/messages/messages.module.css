@@ -921,35 +921,8 @@
 }
 
 /* ── Order context chips — which order the thread is about ── */
-.orderChips {
-  display: flex;
-  align-items: center;
-  gap: 0.375em;
-  flex-wrap: wrap;
-  padding: 0 0 0.625em;
-}
-.orderChipsLabel {
-  font-size: 0.75em;
-  font-weight: 600;
-  color: #8a8a8a;
-  margin-right: 0.125em;
-}
-.orderChip {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.3em 0.75em;
-  border-radius: 9999px;
-  border: 1px solid #e4e7ee;
-  background: #ffffff;
-  color: #5b6472;
-  font-family: var(--font-heading);
-  font-size: 0.75em;
-  font-weight: 600;
-  cursor: pointer;
-}
-.orderChipActive {
-  background: #121723;
-  border-color: #121723;
-  color: #ffffff;
-  cursor: default;
+/* Holds the shared OrderSwitcher above the conversation. Only spacing lives
+   here — the control brings its own surface. */
+.orderPicker {
+  padding: 0 0 0.75em;
 }

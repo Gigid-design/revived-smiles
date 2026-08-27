@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { api } from "@/lib/api";
 import type { AdjustmentRequest, AdjustmentStatus, Submission, SubmissionStatus } from "@/lib/api";
@@ -12,18 +12,12 @@ import { InsuranceCard } from "@/app/components/InsuranceCard";
 import { ReportIssueSheet } from "@/app/components/ReportIssueSheet";
 import {
   productLabel,
-  productLabels,
   productImage,
   productHasArch,
   archFromTeeth,
   ARCH_LABELS,
 } from "@/app/context/productConfig";
-
-/* An order's thumbnail = its first product's photo, falling back to the
-   generic hero image for an order with no recognised product. */
-function orderImage(products: string[]): string {
-  return (products.length ? productImage(products[0]) : null) ?? "/assets/images/hero-product.png";
-}
+import { OrderSwitcher } from "@/app/components/OrderSwitcher";
 
 /* The arch label ("Upper" / "Lower") for one appliance on an order, or null
    when it doesn't apply (a nightguard) or isn't known yet (teeth not chosen,
@@ -115,20 +109,6 @@ function resubmitAreaFromNotes(notes: string | null | undefined): "upper" | "low
   return hits.length === 1 ? (hits[0][0] as "upper" | "lower" | "bite") : null;
 }
 
-/* The patient-facing wording for an order status. */
-const ORDER_STATUS_COPY: Record<SubmissionStatus, string> = {
-  draft: "In progress",
-  pending: "In review",
-  in_review: "In review",
-  changes_requested: "Action needed",
-  lab_retake: "Action needed",
-  rejected: "Can't proceed with order",
-  approved: "Review completed",
-  in_fabrication: "In production",
-  shipped: "Shipped",
-  completed: "Completed",
-};
-
 const STATUS_COPY: Record<RequestStatus, string> = {
   pending: "Awaiting review",
   accepted: "Accepted",
@@ -145,13 +125,6 @@ function formatPlaced(iso: string): string {
     day: "numeric",
     year: "numeric",
   });
-}
-
-/* The Shopify order number is the reference the patient, support and the lab
-   all share, so it leads platform-wide (Aug 21 client review). The derived
-   RS- ref only stands in when an order hasn't synced its number yet. */
-function orderReference(order: { id: string; orderNumber?: string | null }): string {
-  return order.orderNumber ? `Order ${order.orderNumber}` : `RS-${order.id.slice(0, 8).toUpperCase()}`;
 }
 
 /* A patient-facing "arrives by" estimate. Firm once shipped (a few days from
@@ -175,7 +148,6 @@ export default function MyOrder() {
 
   const [orders, setOrders] = useState<Submission[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   /* Demo affordance: lets the tracker be viewed in a state an admin would
@@ -186,8 +158,6 @@ export default function MyOrder() {
      `?preview=adjustment_<status>` synthesises one for a demo. */
   const [adjustments, setAdjustments] = useState<AdjustmentRequest[]>([]);
   const [forceAdjustment, setForceAdjustment] = useState<AdjustmentStatus | null>(null);
-
-  const headRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -249,25 +219,6 @@ export default function MyOrder() {
   const activeAdjustment: Pick<AdjustmentRequest, "status" | "reviewNotes" | "product"> | null = forceAdjustment
     ? { status: forceAdjustment, product: order?.products?.[0] ?? "", reviewNotes: forceAdjustment === "rejected" ? "The appliance shows wear beyond what an adjustment can correct — a remake is the right path. Customer service will reach out with options." : null }
     : adjustments.find((a) => a.status !== "draft") ?? null;
-  const hasMultiple = orders.length > 1;
-
-  /* Close the order switcher on an outside click or Escape. */
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onDoc = (e: MouseEvent) => {
-      if (headRef.current && !headRef.current.contains(e.target as Node)) setMenuOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
-    };
-    document.addEventListener("mousedown", onDoc);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [menuOpen]);
-
   const effectiveStatus: SubmissionStatus | undefined = order
     ? (forceStatus ?? order.status)
     : undefined;
@@ -346,66 +297,12 @@ export default function MyOrder() {
           <section className={styles.orderCard}>
             {/* Order-level meta bar — reference, placed date and status. Doubles
                 as the order switcher (a dropdown) when there's more than one. */}
-            <div className={styles.orderHeadWrap} ref={headRef}>
-              <button
-                type="button"
-                className={`${styles.orderBar} ${hasMultiple ? styles.orderBarTrigger : ""}`}
-                onClick={() => hasMultiple && setMenuOpen((o) => !o)}
-                disabled={!hasMultiple}
-                aria-haspopup={hasMultiple ? "listbox" : undefined}
-                aria-expanded={hasMultiple ? menuOpen : undefined}
-                aria-label={hasMultiple ? "Switch order" : undefined}
-              >
-                <span className={styles.orderBarText}>
-                  <span className={styles.orderRef}>{orderReference(order)}</span>
-                  <span className={styles.orderPlaced}>Placed {formatPlaced(order.createdAt)}</span>
-                </span>
-                <span className={`${styles.orderStatus} ${isBlocked ? styles.orderStatusBlocked : ""}`}>{ORDER_STATUS_COPY[effectiveStatus ?? order.status]}</span>
-                {hasMultiple && (
-                  <svg
-                    className={`${styles.orderHeadChevron} ${menuOpen ? styles.orderHeadChevronOpen : ""}`}
-                    width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                )}
-              </button>
-
-              {hasMultiple && menuOpen && (
-                <div className={styles.orderMenu} role="listbox" aria-label="Your orders">
-                  {orders.map((o) => {
-                    const selected = o.id === order.id;
-                    return (
-                      <button
-                        key={o.id}
-                        type="button"
-                        role="option"
-                        aria-selected={selected}
-                        className={`${styles.orderMenuItem} ${selected ? styles.orderMenuItemActive : ""}`}
-                        onClick={() => { setSelectedId(o.id); setMenuOpen(false); }}
-                      >
-                        <div className={styles.orderMenuThumb}>
-                          <Image src={orderImage(o.products)} alt="" width={96} height={96} sizes="44px" style={{ objectFit: "cover" }} />
-                        </div>
-                        <div className={styles.orderMenuText}>
-                          <span className={styles.orderMenuName}>
-                            {o.products.length ? productLabels(o.products) : "Your order"}
-                          </span>
-                          <span className={styles.orderMenuMeta}>
-                            {orderReference(o)} · {ORDER_STATUS_COPY[o.status]}
-                          </span>
-                        </div>
-                        {selected && (
-                          <svg className={styles.orderMenuCheck} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <path d="M4 12.5L9.5 18L20 6.5" />
-                          </svg>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            <OrderSwitcher
+              orders={orders}
+              selectedId={order.id}
+              onSelect={setSelectedId}
+              status={effectiveStatus}
+            />
 
             {/* What's on the order — one row per appliance, each with its photo
                 and, for a partial or full denture, its arch (Upper / Lower) so
