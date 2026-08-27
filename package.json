@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "smoke": "jiti scripts/smoke.ts"
+    "smoke": "JITI_TSCONFIG_PATHS=true jiti scripts/smoke.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
